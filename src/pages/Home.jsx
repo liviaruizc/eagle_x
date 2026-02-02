@@ -1,16 +1,10 @@
 import Button from "../components/ui/Button";
 import { Card, CardTitle, CardBody } from "../components/ui/Card";
 import { mockProjects } from "../mock/projects";
-import { useNavigate } from "react-router-dom";
+import NavButton from "../components/ui/NavButton";
 
 
 export default function Home() {
-
-    const navigate = useNavigate();
-
-    function handleClick(url) {
-        navigate(url);
-    }
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -43,7 +37,8 @@ export default function Home() {
                             Pages are separate from UI components and helpers.
                         </CardBody>
                     </Card>
-                    <Button onClick={() => handleClick('/judges')} variant="primary">Judging Page</Button>
+                    <NavButton to='/judges'>Judging Page</NavButton>
+                    <NavButton to='/admin'>Admin Page</NavButton>
                 </main>
             </div>
         </div>
