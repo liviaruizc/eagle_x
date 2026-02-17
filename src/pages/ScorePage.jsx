@@ -1,94 +1,150 @@
-import { useMemo, useState } from 'react';
-import RubricForm from '../components/scoring/RubricForm';
-import { questionsRubric } from '../domain/rubric/questionsRubric';
-import { calculateTotal, validateAnswers } from "../domain/rubric/scoring.js";
-import Button from "../components/ui/Button.jsx";
-import {useNavigate, useParams} from "react-router-dom";
-import { submitScore } from "../services/scoreService.js";
-import { mockJudge } from "../mock/judge.js";
-import { HandlePullNext } from "../services/queueService";
-
-
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+    calculateScoreTotal,
+    fetchScoringContext,
+    submitScoreSheet,
+    validateCriterionResponses,
+} from "../services/score/scoreService.js";
+import { getJudgeSession } from "../services/judgeSession.js";
+import ScorePageView from "./score/ScorePageView.jsx";
 
 export default function ScorePage() {
+    const { projectId: submissionId } = useParams();
+    const [submissionTitle, setSubmissionTitle] = useState("Submission");
+    const [trackId, setTrackId] = useState(null);
+    const [rubricId, setRubricId] = useState(null);
+    const [rubricName, setRubricName] = useState("Rubric");
+    const [criteria, setCriteria] = useState([]);
+    const [responsesByCriterionId, setResponsesByCriterionId] = useState({});
+    const [overallComment, setOverallComment] = useState("");
 
-    const { projectId } = useParams();
-    const [judgeName, setJudgeName] = useState('');
-    const [answers, setAnswers] = useState({});
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
 
-    const judgeId = mockJudge.judgeId;
-    const total = useMemo(() => calculateTotal(answers, questionsRubric), [answers]);
+    const judgeSession = getJudgeSession();
+    const judgeId = judgeSession?.personId;
+
+    const total = useMemo(
+        () => calculateScoreTotal(criteria, responsesByCriterionId),
+        [criteria, responsesByCriterionId]
+    );
+
     const navigate = useNavigate();
 
-    function handleChange(questionId, value) {
-        setAnswers((prev) => ({...prev, [questionId]: value}));
+    useEffect(() => {
+        async function loadScoringContext() {
+            setError("");
+            setIsLoading(true);
+
+            if (!judgeId) {
+                setError("No active judge profile found. Please sign up first.");
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const context = await fetchScoringContext(submissionId, judgeId);
+                setSubmissionTitle(context.submissionTitle || "Submission");
+                setTrackId(context.trackId);
+                setRubricId(context.rubricId);
+                setRubricName(context.rubricName || "Rubric");
+                setCriteria(context.criteria || []);
+
+                const initialResponses = (context.criteria || []).reduce((acc, criterion) => {
+                    acc[criterion.id] = {
+                        value: "",
+                        comment: "",
+                    };
+                    return acc;
+                }, {});
+
+                setResponsesByCriterionId(initialResponses);
+            } catch (loadError) {
+                console.error(loadError);
+                setError(loadError.message || "Could not load scoring form.");
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        loadScoringContext();
+    }, [judgeId, submissionId]);
+
+    function handleValueChange(criterionId, value) {
+        setResponsesByCriterionId((prev) => ({
+            ...prev,
+            [criterionId]: {
+                value,
+                comment: prev?.[criterionId]?.comment || "",
+            },
+        }));
     }
 
-    function handleSubmit(e) {
+    function handleCommentChange(criterionId, comment) {
+        setResponsesByCriterionId((prev) => ({
+            ...prev,
+            [criterionId]: {
+                value: prev?.[criterionId]?.value ?? "",
+                comment,
+            },
+        }));
+    }
+
+    async function handleSubmit(e) {
         e.preventDefault();
         setError("");
 
-        // Validate Judge Name
-        if (!judgeName.trim()) {
-            setError("Please enter your name.");
+        if (!judgeId) {
+            setError("No active judge profile found. Please sign up first.");
             return;
         }
 
-        // Validate all rubric questions answered
-        const result = validateAnswers(answers, questionsRubric);
+        const result = validateCriterionResponses(criteria, responsesByCriterionId);
         if (!result.ok) {
             setError("Please answer all rubric questions.");
             return;
         }
 
-        // Submit Score
-        submitScore(judgeId, projectId);
+        setIsSubmitting(true);
 
-        // Confirmation + redirect
-        console.log({ judgeName, answers, total });
-        alert("Submitted!")
-        navigate("/queue")
+        try {
+            await submitScoreSheet({
+                submissionId,
+                trackId,
+                rubricId,
+                judgePersonId: judgeId,
+                criteria,
+                responsesByCriterionId,
+                overallComment,
+            });
+
+            alert("Submitted!");
+            navigate("/queue");
+        } catch (submitError) {
+            console.error(submitError);
+            setError("Could not submit score. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
-
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="p-6">
-                <h1 className="text-2x1 font-bold">Scoring Project</h1>
-                <p className="mt-2 text-gray-600">
-                    Project ID: {projectId}
-                </p>
-            <form onSubmit={handleSubmit} className="mx-auto max-w-3xl p-6">
-                <header className="flex items-end justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold">Score Poster</h1>
-                        <p className="mt-1 text-sm text-gray-600">Total score: {total}</p>
-                    </div>
-                </header>
-
-                <div className="mt-6 rounded-2xl border bg-white p-5 shadow-sm">
-                    <label className="text-sm font-medium">Judge name</label>
-                    <input
-                        value={judgeName}
-                        onChange={(e) => setJudgeName(e.target.value)}
-                        className="mt-2 w-full rounded-lg border px-3 py-2"
-                        placeholder="Enter your name"
-                    />
-                </div>
-
-                <div className="mt-6">
-                    <RubricForm answers={answers} onChange={handleChange} />
-                </div>
-
-                {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-
-                <div className="mt-6 flex justify-end">
-                    <Button
-                        type="submit" variant="secondary">Submit</Button>
-                </div>
-            </form>
-        </div>
-        </div>
+        <ScorePageView
+            submissionTitle={submissionTitle}
+            rubricName={rubricName}
+            total={total}
+            isLoading={isLoading}
+            criteria={criteria}
+            responsesByCriterionId={responsesByCriterionId}
+            overallComment={overallComment}
+            error={error}
+            isSubmitting={isSubmitting}
+            onSubmit={handleSubmit}
+            onValueChange={handleValueChange}
+            onCommentChange={handleCommentChange}
+            onOverallCommentChange={setOverallComment}
+        />
     );
 }

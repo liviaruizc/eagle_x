@@ -1,6 +1,7 @@
-import { mockProjects } from "../mock/projects";
 import ProjectCard from "../components/queue/CurrentProjectCard";
 import { useNavigate } from "react-router-dom";
+
+const mockProjects = [];
 
 export default function ProjectsPage() {
 

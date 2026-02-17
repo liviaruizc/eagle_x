@@ -6,8 +6,8 @@ export default function NavButton({ to, children}) {
 
     return (
         <Button
-            onclick={() => navigate(to)}
-            variant="outline-primary"
+            onClick={() => navigate(to)}
+            variant="primary"
             >
             {children}
         </Button>

@@ -1,6 +1,5 @@
 import Button from "../components/ui/Button";
 import { Card, CardTitle, CardBody } from "../components/ui/Card";
-import { mockProjects } from "../mock/projects";
 import NavButton from "../components/ui/NavButton";
 
 
