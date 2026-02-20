@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../components/ui/Button.jsx";
 import {
     fetchQueueSubmissionsForJudge,
@@ -9,6 +9,12 @@ import { getJudgeSession } from "../services/judgeSession.js";
 
 export default function QueuePage() {
     const navigate = useNavigate();
+
+    const [searchParams] = useSearchParams();
+    const trackId = String(searchParams.get("trackId") ?? "");
+
+    console.log("QueuePage rendered with trackId:", trackId);
+
 
     const [allSubmissions, setAllSubmissions] = useState([]);
     const [filterFacets, setFilterFacets] = useState([]);
@@ -36,6 +42,13 @@ export default function QueuePage() {
             setError("");
             setIsLoading(true);
 
+            if (!trackId) {
+                setError("No track selected. Please choose a track to judge.");
+                setIsLoading(false);
+                return;
+            }
+
+
             try {
                 const judgeSession = getJudgeSession();
                 const judgePersonId = judgeSession?.personId;
@@ -51,6 +64,7 @@ export default function QueuePage() {
                 const queueData = await fetchQueueSubmissionsForJudge({
                     judgePersonId,
                     eventInstanceId,
+                    trackId,
                 });
 
                 setAllSubmissions(queueData.submissions ?? []);
@@ -66,7 +80,8 @@ export default function QueuePage() {
         }
 
         loadQueueSubmissions();
-    }, []);
+    }, [trackId]);
+
 
     function setFacetFilterToken(facetId, token) {
         setSelectedFiltersByFacetId((prev) => ({

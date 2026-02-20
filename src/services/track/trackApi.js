@@ -51,6 +51,17 @@ export async function fetchFacetRowsByIds(facetIds) {
     return data ?? [];
 }
 
+export async function fetchTracksByEventInstance(eventInstanceId) {
+    const { data, error } = await supabase
+        .from("track")
+        .select("track_id, name")
+        .eq("event_instance_id", eventInstanceId);
+
+    if (error) throw error;
+    return data ?? [];
+}
+
+
 export async function fetchAllFacetRows() {
     const { data, error } = await supabase
         .from("facet")

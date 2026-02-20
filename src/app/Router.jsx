@@ -14,6 +14,7 @@ import TrackRubricCreatePage from "../pages/TrackRubricCreatePage.jsx";
 import TrackRubricEditPage from "../pages/TrackRubricEditPage.jsx";
 import JudgeSignupPage from "../pages/judgeSignup/JudgeSignupPage.jsx";
 import TrackResultsPage from "../pages/TrackResultsPage.jsx";
+import TrackSelection from "../pages/TrackSelectPage.jsx";
 
 export default function AppRouter() {
     return (
@@ -22,8 +23,10 @@ export default function AppRouter() {
                 <Route path="/" element={<Home />} />
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/queue" element={<QueuePage />} />
+                <Route path="/queue?trackId=:trackId" element={<QueuePage />} />
                 <Route path="/judges" element={<JudgePage />} />
                 <Route path="/judges/signup/:eventInstanceId" element={<JudgeSignupPage />} />
+                <Route path="/judges/:eventInstanceId/tracks" element={<TrackSelection />} />
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/admin/create-event" element={<CreateEventPage />} />
                 <Route path="/admin/events/:eventInstanceId" element={<EventDetailsPage />} />

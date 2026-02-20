@@ -32,8 +32,9 @@ export default function JudgePage() {
         loadJudgeEvents();
     }, []);
 
-    function handleStartJudging() {
-        navigate("/queue");
+    function handleStartJudging(eventInstanceId) {
+
+        navigate(`/judges/${eventInstanceId}/tracks`);
     }
 
     function handleSignUp(eventInstanceId) {
@@ -76,13 +77,12 @@ export default function JudgePage() {
                         <EventInstanceCard
                             key={event.id}
                             event={event}
-                            onClick={handleStartJudging}
                             action={(
                                 <div className="flex gap-2">
                                     <Button variant="secondary" onClick={() => handleSignUp(event.id)}>
                                         Sign Up
                                     </Button>
-                                    <Button variant="primary" onClick={handleStartJudging}>
+                                    <Button variant="primary" onClick={() => handleStartJudging(event.id)}>
                                         Start Judging
                                     </Button>
                                 </div>

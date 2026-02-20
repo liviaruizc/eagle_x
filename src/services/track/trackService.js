@@ -16,6 +16,7 @@ import {
     fetchTrackNameRow,
     fetchTrackTypeRows,
     upsertTrackTypes,
+    fetchTracksByEventInstance,
 } from "./trackApi.js";
 import {
     DEFAULT_TRACK_TYPES,
@@ -28,6 +29,13 @@ import {
 export async function fetchTrackTypes() {
     return fetchTrackTypeRows();
 }
+
+// Reads all tracks for an event instance, used for track selection and track name lookups.
+export async function fetchTracksForEvent(eventInstanceId) {
+    return fetchTracksByEventInstance(eventInstanceId);
+}
+
+
 
 // Reads a single track name for pages that receive only track_id in the route.
 export async function fetchTrackName(trackId) {

@@ -56,7 +56,8 @@ export async function pullNext(judgeId) {
     return null;
 }
 
-export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstanceId }) {
+export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstanceId, trackId }) {
+    console.log("Fetching queue submissions with params:", { judgePersonId, eventInstanceId, trackId });
     if (!judgePersonId) {
         throw new Error("Judge person id is required.");
     }
@@ -67,13 +68,26 @@ export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstan
 
     await syncEventAndSubmissionStatusesBySchedule();
 
-    const tracks = await fetchTracksByEventInstance(eventInstanceId);
-    if (!tracks.length) return buildEmptyQueueResult();
+    let trackIds = [];
+    let trackNameById = new Map();
 
-    const trackIds = tracks.map((track) => track.track_id);
-    const trackNameById = new Map(tracks.map((track) => [track.track_id, track.name ?? "Track"]));
+    if (trackId) {
+        // single track selected
+        trackIds = [trackId];
+        const track = await fetchTracksByEventInstance(eventInstanceId)
+            .then(tracks => tracks.find(t => t.track_id === trackId));
+        trackNameById.set(trackId, track?.name ?? "Track");
+    } else {
+        // fallback: all tracks
+        const tracks = await fetchTracksByEventInstance(eventInstanceId);
+        if (!tracks.length) return buildEmptyQueueResult();
+        trackIds = tracks.map((track) => track.track_id);
+        trackNameById = new Map(tracks.map((track) => [track.track_id, track.name ?? "Track"]));
+    }
 
-    const submissions = await fetchEligibleSubmissionsByTracks({ trackIds, judgePersonId });
+    console.log("Determined trackIds for queue fetch:", trackIds);
+
+    const submissions = await fetchEligibleSubmissionsByTracks({ trackIds: [trackIds], judgePersonId });
     if (!submissions.length) return buildEmptyQueueResult();
 
     const submissionIds = submissions.map((submission) => submission.submission_id);
