@@ -20,6 +20,32 @@ export async function findJudgeRoleByCode() {
     return data?.event_role_id ?? null;
 }
 
+
+export async function fetchJudgeEventInstances(personId) {
+    const { data, error } = await supabase
+        .from("person_event_role")
+        .select(`
+            event_instance (
+                event_instance_id,
+                name,
+                status,
+                start_at,
+                end_at,
+                location
+            ),
+            event_role (code)
+        `)
+        .eq("person_id", personId)
+        .eq("is_active", true)
+        .eq("event_role.code", "judge");
+
+    if (error) throw error;
+
+    return (data ?? [])
+        .map(row => row.event_instance)
+        .filter(Boolean);
+}
+
 export async function findJudgeRoleByName() {
     const { data, error } = await supabase
         .from("event_role")

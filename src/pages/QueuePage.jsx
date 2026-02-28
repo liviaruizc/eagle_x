@@ -51,6 +51,7 @@ export default function QueuePage() {
 
             try {
                 const judgeSession = getJudgeSession();
+                alert(`Loaded judge session: ${JSON.stringify(judgeSession)}`);
                 const judgePersonId = judgeSession?.personId;
                 const eventInstanceId = judgeSession?.eventInstanceId;
 

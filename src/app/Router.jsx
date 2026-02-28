@@ -15,16 +15,25 @@ import TrackRubricEditPage from "../pages/TrackRubricEditPage.jsx";
 import JudgeSignupPage from "../pages/judgeSignup/JudgeSignupPage.jsx";
 import TrackResultsPage from "../pages/TrackResultsPage.jsx";
 import TrackSelection from "../pages/TrackSelectPage.jsx";
+import RoleSelectionPage from '../pages/LoginProcess/RoleSelectionPage.jsx';
+import LoginEmailPage from '../pages/LoginProcess/LoginEmailPage.jsx';
+import LoginSetPassword from '../pages/LoginProcess/LoginSetPassword.jsx';
+import LoginAfterVerified from '../pages/LoginProcess/LoginAfterVerified.jsx';
+import StudentDashboard from '../pages/StudentPage.jsx';
 
 export default function AppRouter() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<RoleSelectionPage />} />
+                <Route path="/login/email" element={<LoginEmailPage />} />
+                <Route path="/set-password" element={<LoginSetPassword/>} />
+                <Route path="/login-password" element={<LoginAfterVerified />} />
+                <Route path="/student" element={<StudentDashboard />} />
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/queue" element={<QueuePage />} />
                 <Route path="/queue?trackId=:trackId" element={<QueuePage />} />
-                <Route path="/judges" element={<JudgePage />} />
+                <Route path="/judge" element={<JudgePage />} />
                 <Route path="/judges/signup/:eventInstanceId" element={<JudgeSignupPage />} />
                 <Route path="/judges/:eventInstanceId/tracks" element={<TrackSelection />} />
                 <Route path="/admin" element={<AdminPage />} />

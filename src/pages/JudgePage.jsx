@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button.jsx";
 import EventInstanceCard from "../components/ui/EventInstanceCard.jsx";
-import { fetchEventInstances } from "../services/eventAdminService.js";
+import { fetchJudgeEventInstances } from "../services/judgeSignup/judgeSignupApi.js";
+import { getCurrentUser } from "../services/loginAuth/authService.js";
 
-export default function JudgePage() {
+export default function JudgeDashboardPage() {
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [error, setError] = useState("");
@@ -16,14 +17,26 @@ export default function JudgePage() {
             setIsLoading(true);
 
             try {
-                const data = await fetchEventInstances();
-                const judgeEvents = data.filter(
-                    (event) => event.status === "pre-scoring" || event.status === "event_scoring"
+                const user = await getCurrentUser();
+
+                
+                if (!user?.person_id) {
+                    setError("No logged in user found.");
+                    return;
+                }
+
+                const judgeEvents = await fetchJudgeEventInstances(user.person_id);
+
+                const openEvents = judgeEvents.filter(
+                    event =>
+                        event.status === "pre-scoring" ||
+                        event.status === "event_scoring"
                 );
-                setEvents(judgeEvents);
-            } catch (loadError) {
-                console.error(loadError);
-                setError("Could not load events available for judging.");
+
+                setEvents(openEvents);
+            } catch (err) {
+                console.error(err);
+                setError("Could not load your judging events.");
             } finally {
                 setIsLoading(false);
             }
@@ -33,59 +46,40 @@ export default function JudgePage() {
     }, []);
 
     function handleStartJudging(eventInstanceId) {
-
         navigate(`/judges/${eventInstanceId}/tracks`);
-    }
-
-    function handleSignUp(eventInstanceId) {
-        navigate(`/judges/signup/${eventInstanceId}`);
     }
 
     return (
         <div className="judge-page text-center text-5xl font-bold">
             <header className="text-5xl text-center font-bold">
-                Welcome Judge
+                My Judging Events
             </header>
 
-            <div className="mt-4 flex justify-center">
-                <Button
-                    variant="secondary"
-                    onClick={() => {
-                        if (!events.length) {
-                            window.alert("No events available for judge signup right now.");
-                            return;
-                        }
-
-                        handleSignUp(events[0].id);
-                    }}
-                >
-                    Sign Up
-                </Button>
-            </div>
-
             <div className="mx-auto mt-6 max-w-4xl rounded border p-4 text-left">
-                <p className="mb-3 text-lg font-semibold">Available Events to Judge</p>
+                <p className="mb-3 text-lg font-semibold">
+                    Events Assigned to You
+                </p>
 
                 {isLoading && <p className="text-sm text-gray-500">Loading events...</p>}
                 {error && <p className="text-sm text-red-600">{error}</p>}
                 {!isLoading && !error && !events.length && (
-                    <p className="text-sm text-gray-500">No events currently open for judging.</p>
+                    <p className="text-sm text-gray-500">
+                        You are not assigned to any active judging events.
+                    </p>
                 )}
 
                 <ul className="space-y-4">
                     {events.map((event) => (
                         <EventInstanceCard
-                            key={event.id}
+                            key={event.event_instance_id}
                             event={event}
                             action={(
-                                <div className="flex gap-2">
-                                    <Button variant="secondary" onClick={() => handleSignUp(event.id)}>
-                                        Sign Up
-                                    </Button>
-                                    <Button variant="primary" onClick={() => handleStartJudging(event.id)}>
-                                        Start Judging
-                                    </Button>
-                                </div>
+                                <Button
+                                    variant="primary"
+                                    onClick={() => handleStartJudging(event.event_instance_id)}
+                                >
+                                    Start Judging
+                                </Button>
                             )}
                         />
                     ))}

@@ -36,6 +36,7 @@ export default function Home() {
                             Pages are separate from UI components and helpers.
                         </CardBody>
                     </Card>
+                    <NavButton to='/student'>Student Page</NavButton>
                     <NavButton to='/judges'>Judging Page</NavButton>
                     <NavButton to='/admin'>Admin Page</NavButton>
                 </main>
