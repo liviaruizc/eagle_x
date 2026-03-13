@@ -20,6 +20,8 @@ import LoginEmailPage from '../pages/LoginProcess/LoginEmailPage.jsx';
 import LoginSetPassword from '../pages/LoginProcess/LoginSetPassword.jsx';
 import LoginAfterVerified from '../pages/LoginProcess/LoginAfterVerified.jsx';
 import StudentDashboard from '../pages/StudentPage.jsx';
+import StudentEventProjectsPage from '../pages/StudentProjectsPage.jsx';
+import UploadPosterPage from '../pages/UploadPosterPage.jsx';
 
 export default function AppRouter() {
     return (
@@ -30,6 +32,10 @@ export default function AppRouter() {
                 <Route path="/set-password" element={<LoginSetPassword/>} />
                 <Route path="/login-password" element={<LoginAfterVerified />} />
                 <Route path="/student" element={<StudentDashboard />} />
+                <Route path="/students/:eventInstanceId/projects" element={<StudentEventProjectsPage />} />
+                {/* <Route path="/students/:eventInstanceId/projects/:submissionId" element={<ScorePage />} /> */}
+                <Route path="/students/projects/:submissionId/upload-poster" element={<UploadPosterPage />} />
+                <Route path="/" element={<Home />} />
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/queue" element={<QueuePage />} />
                 <Route path="/queue?trackId=:trackId" element={<QueuePage />} />

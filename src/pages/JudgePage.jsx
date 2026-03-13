@@ -46,6 +46,7 @@ export default function JudgeDashboardPage() {
     }, []);
 
     function handleStartJudging(eventInstanceId) {
+        sessionStorage.setItem("judge_event_instance_id", eventInstanceId);
         navigate(`/judges/${eventInstanceId}/tracks`);
     }
 
@@ -80,6 +81,7 @@ export default function JudgeDashboardPage() {
                                 >
                                     Start Judging
                                 </Button>
+                                
                             )}
                         />
                     ))}

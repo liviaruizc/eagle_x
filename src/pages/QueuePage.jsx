@@ -7,6 +7,7 @@ import {
 } from "../services/queue/queueService.js";
 import { getJudgeSession } from "../services/judgeSession.js";
 
+
 export default function QueuePage() {
     const navigate = useNavigate();
 
@@ -50,10 +51,10 @@ export default function QueuePage() {
 
 
             try {
-                const judgeSession = getJudgeSession();
-                alert(`Loaded judge session: ${JSON.stringify(judgeSession)}`);
-                const judgePersonId = judgeSession?.personId;
-                const eventInstanceId = judgeSession?.eventInstanceId;
+                // const judgeSession = supabase.auth.getSession();
+                // alert(`Loaded judge session: ${JSON.stringify(judgeSession)}`);
+                const judgePersonId = sessionStorage.getItem("auth_person_id");
+                const eventInstanceId = sessionStorage.getItem("judge_event_instance_id");
 
                 if (!judgePersonId || !eventInstanceId) {
                     setError("No active judge profile found. Please sign up first.");
