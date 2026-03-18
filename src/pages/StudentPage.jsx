@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchStudentEventInstances } from "../services/studentProjects/studentApi.js";
 import Button from "../components/ui/Button.jsx";
+import EventInstanceCard from "../components/ui/EventInstanceCard.jsx";
 
 export default function StudentDashboard() {
-
     const navigate = useNavigate();
 
     const [events, setEvents] = useState([]);
@@ -13,12 +13,10 @@ export default function StudentDashboard() {
 
     useEffect(() => {
         async function loadEvents() {
-
             setLoading(true);
             setError("");
 
             try {
-
                 const personId = sessionStorage.getItem("auth_person_id");
 
                 if (!personId) {
@@ -27,8 +25,6 @@ export default function StudentDashboard() {
                 }
 
                 const result = await fetchStudentEventInstances(personId);
-
-                alert(`Fetched events: ${JSON.stringify(result)}`);
 
                 const activeEvents = result.filter(
                     event => event.status === "pre-scoring" || event.status === "event_scoring"
@@ -52,43 +48,41 @@ export default function StudentDashboard() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
+        <div className="max-w-6xl mx-auto p-6">
+            <div className="flex items-center justify-between mb-8">
+                <h1 className="text-3xl font-bold text-[#004785]">My Events</h1>
+                
+            </div>
 
-            <h1 className="text-3xl font-bold text-center mb-6">
-                My Events
-            </h1>
-
-            {loading && <p className="text-gray-500">Loading events...</p>}
-            {error && <p className="text-red-600">{error}</p>}
-
+            {loading && <p className="text-[#55616D] text-center py-10">Loading events...</p>}
+            {error && <p className="text-[#CCAB00] text-center">{error}</p>}
             {!loading && !events.length && (
-                <p className="text-gray-500">
+                <p className="text-[#55616D] text-center py-10">
                     You are not registered for any active events.
                 </p>
             )}
 
-            <div className="space-y-4">
+            <ul className="grid gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                 {events.map(event => (
-
-                    <div key={event.event_instance_id} className="border rounded p-4 flex justify-between items-center">
-
-                        <div>
-                            <p className="font-semibold">{event.name}</p>
-                            <p className="text-sm text-gray-500">Status: {event.status}</p>
-                        </div>
-
-                        <Button
-                            variant="primary"
-                            onClick={() => handleViewDetails(event.event_instance_id)}
-                        >
-                            View Details
-                        </Button>
-
-                    </div>
-
+                    <EventInstanceCard
+                        key={event.event_instance_id}
+                        event={event}
+                        onClick={() => handleViewDetails(event.event_instance_id)}
+                        action={
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleViewDetails(event.event_instance_id);
+                                }}
+                            >
+                                View Event
+                            </Button>
+                        }
+                    />
                 ))}
-            </div>
-
+            </ul>
         </div>
     );
 }

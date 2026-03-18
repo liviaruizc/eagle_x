@@ -1,99 +1,63 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { fetchStudentProjectsForEvent } from "../services/studentProjects/studentApi.js";
-import Button from "../components/ui/Button.jsx";
+import { ProjectCard } from "../components/ui/ProjectCard.jsx";
 
 export default function StudentEventProjectsPage() {
     const navigate = useNavigate();
-
     const { eventInstanceId } = useParams();
 
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-
         async function loadProjects() {
-
             const personId = sessionStorage.getItem("auth_person_id");
-
             const result = await fetchStudentProjectsForEvent(personId, eventInstanceId);
-
-            alert(`Fetched projects: ${JSON.stringify(result)}`);
 
             setProjects(result);
             setLoading(false);
         }
 
         loadProjects();
-
     }, [eventInstanceId]);
 
     function handleViewProject(submissionId) {
-        navigate(`/students/${eventInstanceId}/projects/${submissionId}`);
+        navigate(`/students/projects/${submissionId}`);
     }
 
     function handleUploadPoster(submissionId) {
         navigate(`/students/projects/${submissionId}/upload-poster`);
     }
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-40">
+                <p className="text-[#55616D]">Loading projects...</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
-
-            <h1 className="text-3xl font-bold mb-6">
+        <div className="p-6">
+            <h1 className="text-4xl font-bold text-[#004785] mb-8">
                 My Projects
             </h1>
 
-            {!projects.length && (
-                <p className="text-gray-500">No projects for this event.</p>
+            {!projects.length ? (
+                <p className="text-[#55616D]">No projects for this event.</p>
+            ) : (
+                <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                    {projects.map(project => (
+                        <ProjectCard
+                            key={project.submission_id}
+                            project={project}
+                            onView={handleViewProject}
+                            onUpload={handleUploadPoster}
+                        />
+                    ))}
+                </div>
             )}
-
-            <div className="space-y-4">
-
-                {projects.map(project => (
-
-                    <div key={project.submission_id} className="border rounded p-4">
-
-                        <h2 className="font-semibold text-lg">
-                            {project.title}
-                        </h2>
-
-                        <p className="text-sm text-gray-600">
-                            Track: {project.track?.name}
-                        </p>
-
-                        <p className="text-sm">
-                            Status: {project.status}
-                        </p>
-
-                        <div className="flex gap-2 mt-3">
-
-                            <Button
-                                variant="secondary"
-                                onClick={() => handleViewProject(project.submission_id)}
-                            >
-                                View Info
-                            </Button>
-
-                            {project.status === "pre_scoring" && (
-                                <Button
-                                    variant="primary"
-                                    onClick={() => handleUploadPoster(project.submission_id)}
-                                >
-                                    Upload Poster
-                                </Button>
-                            )}
-
-                        </div>
-
-                    </div>
-
-                ))}
-
-            </div>
-
         </div>
     );
 }

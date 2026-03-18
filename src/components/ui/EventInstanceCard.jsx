@@ -1,20 +1,38 @@
-export default function EventInstanceCard({
-    event,
-    onClick,
-    action,
-}) {
+export default function EventInstanceCard({ event, onClick, action }) {
     return (
         <li
             onClick={onClick}
-            className="cursor-pointer border p-4 rounded hover:bg-gray-100 transition"
+            className="cursor-pointer bg-[#FFFFFF] border border-[#00794C] rounded-2xl shadow-md hover:shadow-xl transition flex flex-col justify-between p-10 min-h-[260px]"
         >
-            <div className="flex items-start justify-between gap-3">
-                <p className="font-semibold">{event.name}</p>
-                {action ?? null}
+            <div className="flex flex-col gap-3 flex-grow">
+                
+                {/* Title */}
+                <h2 className="text-2xl md:text-3xl font-bold text-[#004785] leading-tight">
+                    {event.name}
+                </h2>
+
+                {/* Date */}
+                {event.start_at && (
+                    <p className="text-md text-[#55616D]">
+                        {new Date(event.start_at).toLocaleDateString()}
+                        {event.end_at ? ` - ${new Date(event.end_at).toLocaleDateString()}` : ""}
+                    </p>
+                )}
+
+                {/* Description */}
+                {event.description && (
+                    <p className="text-sm text-[#55616D] line-clamp-3 mt-2">
+                        {event.description}
+                    </p>
+                )}
             </div>
-            <p className="text-sm text-gray-500">{new Date(event.date).toLocaleDateString()}</p>
-            <p className="text-sm text-gray-500">{event.umbrellaName} · {event.status}</p>
-            <p className="text-sm text-gray-500">{event.description}</p>
+
+            {/* Button */}
+            {action && (
+                <div className="mt-6">
+                    {action}
+                </div>
+            )}
         </li>
     );
 }
