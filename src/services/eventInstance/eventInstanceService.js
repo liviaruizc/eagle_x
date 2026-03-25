@@ -72,6 +72,7 @@ export async function createEventHierarchyFromForm(form) {
         submissionOpenAt,
         submissionCloseAt,
         selectedTrackTypeIds,
+            // Removed: track-level pre-scoring
     } = form;
 
     let eventId = await findEventIdByName(eventName);
@@ -86,14 +87,15 @@ export async function createEventHierarchyFromForm(form) {
         eventId = await createEvent(eventPayload);
     }
 
+    const hasTracks = selectedTrackTypeIds.length > 0;
     const eventInstancePayload = buildEventInstanceInsertPayload({
         eventId,
         instanceName,
         startAt,
         endAt,
-        preScoringEnabled,
-        preScoringStartAt,
-        preScoringEndAt,
+        preScoringEnabled: hasTracks ? "no" : preScoringEnabled,
+        preScoringStartAt: hasTracks ? null : preScoringStartAt,
+        preScoringEndAt: hasTracks ? null : preScoringEndAt,
         location,
         status,
         timezone,
@@ -114,6 +116,8 @@ export async function createEventHierarchyFromForm(form) {
             submissionCloseAt,
             startAt,
             endAt,
+            preScoringStartAt,
+                // Removed: track-level pre-scoring
         });
 
         await insertTracks(tracksToInsert);

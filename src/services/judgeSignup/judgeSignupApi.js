@@ -31,6 +31,8 @@ export async function fetchJudgeEventInstances(personId) {
                 status,
                 start_at,
                 end_at,
+                pre_scoring_start_at,
+                pre_scoring_end_at,
                 location
             ),
             event_role (code)
@@ -227,4 +229,28 @@ export async function insertPersonEventRoleFacetValues(payloads) {
         .insert(payloads);
 
     if (error) throw error;
+}
+
+export async function fetchJudgesForEvent(eventInstanceId) {
+    const { data, error } = await supabase
+        .from("person_event_role")
+        .select(`
+            person_event_role_id,
+            person (
+                person_id,
+                email,
+                display_name
+            ),
+            person_event_role_facet_value (
+                facet_id,
+                facet_option_id
+            ),
+            event_role (code)
+        `)
+        .eq("event_instance_id", eventInstanceId)
+        .eq("is_active", true)
+        .eq("event_role.code", "judge");
+
+    if (error) throw error;
+    return data ?? [];
 }

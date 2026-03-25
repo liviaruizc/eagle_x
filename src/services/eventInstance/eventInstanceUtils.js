@@ -56,6 +56,7 @@ export function buildTrackInsertRows({
     submissionCloseAt,
     startAt,
     endAt,
+    preScoringStartAt,
 }) {
     return (trackTypesToCreate ?? []).map((trackType, index) => ({
         event_instance_id: eventInstanceId,
@@ -63,7 +64,7 @@ export function buildTrackInsertRows({
         name: `${instanceName} ${trackType.name}`,
         submission_open_at: toIsoString(submissionOpenAt),
         submission_close_at: toIsoString(submissionCloseAt),
-        scoring_open_at: toIsoString(startAt),
+        scoring_open_at: preScoringStartAt ? toIsoString(preScoringStartAt) : toIsoString(startAt),
         scoring_close_at: toIsoString(endAt),
         display_order: index + 1,
     }));

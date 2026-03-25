@@ -130,3 +130,71 @@ export async function insertSubmissionFacetValues(payloads) {
 
     if (error) throw error;
 }
+
+export async function fetchAdminProjectRowsByEvent(eventInstanceId) {
+    const { data, error } = await supabase
+        .from("submission")
+        .select(`
+            submission_id,
+            title,
+            description,
+            status,
+            created_at,
+            track:track_id (
+                track_id,
+                name,
+                event_instance_id
+            ),
+            submission_author (
+                person:person_id (
+                    person_id,
+                    display_name,
+                    email
+                )
+            ),
+            supervisor:supervisor_person_id (
+                person_id,
+                display_name,
+                email
+            )
+        `)
+        .eq("track.event_instance_id", eventInstanceId)
+        .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data ?? [];
+}
+
+export async function fetchAdminProjectRowsByTrack(trackId) {
+    const { data, error } = await supabase
+        .from("submission")
+        .select(`
+            submission_id,
+            title,
+            description,
+            status,
+            created_at,
+            track:track_id (
+                track_id,
+                name,
+                event_instance_id
+            ),
+            submission_author (
+                person:person_id (
+                    person_id,
+                    display_name,
+                    email
+                )
+            ),
+            supervisor:supervisor_person_id (
+                person_id,
+                display_name,
+                email
+            )
+        `)
+        .eq("track_id", trackId)
+        .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data ?? [];
+}
