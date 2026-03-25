@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button.jsx";
 import { getAuthIntent } from "../../services/loginAuth/authIntent.js";
 import { fetchPersonByEmail, fetchPersonRoles } from "../../services/loginAuth/authApi.js";
+import FGCUlogo from "../../assets/FGCU logo.jpg";
 
 export default function LoginEmailPage() {
     const navigate = useNavigate();
@@ -25,24 +26,17 @@ export default function LoginEmailPage() {
 
         try {
             const person = await fetchPersonByEmail(email);
-
             const roles = await fetchPersonRoles(person.person_id);
-
-            console.log("Roles: " + roles.join(", "));
-
-            // roles example: ["student", "judge"]
 
             if (!roles.includes(selectedRole.toUpperCase())) {
                 throw new Error("You do not have permission to access this role.");
             }
-            
+
             if (!person) {
                 throw new Error("Account not found.");
-            }
-            else if (!person.auth_user_id) {
-                navigate("/set-password", { state: { email} });
-            }
-            else {
+            } else if (!person.auth_user_id) {
+                navigate("/set-password", { state: { email } });
+            } else {
                 navigate("/login-password", { state: { email, role: selectedRole } });
             }
         } catch (err) {
@@ -54,41 +48,74 @@ export default function LoginEmailPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="w-full max-w-md bg-white p-8 rounded shadow">
-                <h1 className="text-2xl font-bold mb-2">
-                    Sign In
-                </h1>
+        <div className="min-h-screen flex items-center justify-center bg-[#F3F3F3] p-4">
+            <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-md space-y-6">
 
-                <p className="text-sm text-gray-600 mb-6">
-                    Enter your email to continue
-                </p>
+                {/* Logo */}
+                <div className="w-full bg-white rounded-xl shadow-sm p-4 flex justify-center items-center">
+                    <img
+                        src={FGCUlogo}
+                        alt="FGCU Logo"
+                        className="w-full h-auto object-contain"
+                    />
+                </div>
 
+                {/* Header */}
+                <div>
+                    <h1 className="text-3xl font-bold text-[#004785]">
+                        Sign In
+                    </h1>
+                    <p className="text-sm text-[#55616D] mt-1">
+                        Enter your email to continue
+                    </p>
+                </div>
+
+                {/* Form */}
                 <form onSubmit={handleContinue} className="space-y-4">
+
+                    {/* Email Input */}
                     <input
                         type="email"
                         required
                         placeholder="email@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full border rounded p-3"
+                        className="
+                            w-full border border-[#55616D]/40 rounded-lg p-3
+                            focus:outline-none focus:ring-2 focus:ring-[#00794C]
+                            transition
+                        "
                     />
 
-                    <Button
-                        type="submit"
-                        variant="primary"
-                        className="w-full"
-                        disabled={isLoading}
-                    >
-                        {isLoading ? "Checking..." : "Continue"}
-                    </Button>
+                    {/* Actions */}
+                    <div className="flex gap-3">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={() => navigate(-1)}
+                        >
+                            Back
+                        </Button>
+
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            className="flex-1"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? "Checking..." : "Continue"}
+                        </Button>
+                    </div>
                 </form>
 
+                {/* Error */}
                 {error && (
-                    <p className="mt-3 text-sm text-red-600">
+                    <p className="text-sm text-red-600 text-center">
                         {error}
                     </p>
                 )}
+
             </div>
         </div>
     );
