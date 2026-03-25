@@ -62,42 +62,44 @@ export default function AppRouter() {
                             <Route path="/students/projects/:submissionId" element={<StudentProjectDetails />} />
                             <Route path="/students/projects/:submissionId/upload-poster" element={<UploadPosterPage />} />
                         </Route>
-                    </Route>
+                   
 
-                    {/* Judge */}
-                    <Route element={<RoleRoute allowedRoles={["judge"]} />}>
-                        <Route path="/judge" element={<JudgePage />} />
-                        <Route path="/judges/signup/:eventInstanceId" element={<JudgeSignupPage />} />
-                        <Route path="/judges/:eventInstanceId/tracks" element={<TrackSelection />} />
-                        <Route path="/score/:projectId" element={<ScorePage />} />
-                    </Route>
+                        {/* Judge */}
+                        <Route element={<RoleRoute allowedRoles={["judge"]} />}>
+                            <Route path="/judge" element={<JudgePage />} />
+                            <Route path="/judges/signup/:eventInstanceId" element={<JudgeSignupPage />} />
+                            <Route path="/judges/:eventInstanceId/tracks" element={<TrackSelection />} />
+                            <Route path="/score/:projectId" element={<ScorePage />} />
+                        </Route>
 
-                    {/* Admin */}
-                    <Route element={<RoleRoute allowedRoles={["admin"]} />}>
-                        <Route path="/admin" element={<AdminPage />} />
-                        <Route path="/admin/create-event" element={<CreateEventPage />} />
-                        <Route path="/admin/events/:eventInstanceId" element={<EventDetailsPage />} />
-                        <Route
-                            path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics"
-                            element={<TrackRubricsOverviewPage />}
-                        />
-                        <Route
-                            path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics/create"
-                            element={<TrackRubricCreatePage />}
-                        />
-                        <Route
-                            path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics/:rubricId/edit"
-                            element={<TrackRubricEditPage />}
-                        />
-                        <Route
-                            path="/admin/events/:eventInstanceId/tracks/:trackId/submissions"
-                            element={<TrackSubmissionsPage />}
-                        />
-                        <Route
-                            path="/admin/events/:eventInstanceId/tracks/:trackId/results"
-                            element={<TrackResultsPage />}
-                        />
-                    </Route>
+                        {/* Admin */}
+                        <Route element={<RoleRoute allowedRoles={["admin"]} />}>
+                            <Route path="/admin" element={<AdminPage />} />
+                            <Route path="/admin/create-event" element={<CreateEventPage />} />
+                            <Route path="/admin/events/:eventInstanceId" element={<EventDetailsPage />} />
+                            <Route
+                                path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics"
+                                element={<TrackRubricsOverviewPage />}
+                            />
+                            <Route
+                                path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics/create"
+                                element={<TrackRubricCreatePage />}
+                            />
+                            <Route
+                                path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics/:rubricId/edit"
+                                element={<TrackRubricEditPage />}
+                            />
+                            <Route
+                                path="/admin/events/:eventInstanceId/tracks/:trackId/submissions"
+                                element={<TrackSubmissionsPage />}
+                            />
+                            <Route
+                                path="/admin/events/:eventInstanceId/tracks/:trackId/results"
+                                element={<TrackResultsPage />}
+                            />
+                        </Route>
+
+                     </Route>
 
                     {/* Scoring */}
                     
