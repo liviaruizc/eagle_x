@@ -6,7 +6,7 @@ import {
     submitScoreSheet,
     validateCriterionResponses,
 } from "../services/score/scoreService.js";
-import { getJudgeSession } from "../services/judgeSession.js";
+import { getCurrentUser } from "../services/loginAuth/authService.js";
 import ScorePageView from "./score/ScorePageView.jsx";
 
 export default function ScorePage() {
@@ -19,12 +19,10 @@ export default function ScorePage() {
     const [responsesByCriterionId, setResponsesByCriterionId] = useState({});
     const [overallComment, setOverallComment] = useState("");
 
+    const [judgeId, setJudgeId] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
-
-    const judgeSession = getJudgeSession();
-    const judgeId = judgeSession?.personId;
 
     const total = useMemo(
         () => calculateScoreTotal(criteria, responsesByCriterionId),
@@ -38,14 +36,18 @@ export default function ScorePage() {
             setError("");
             setIsLoading(true);
 
-            if (!judgeId) {
-                setError("No active judge profile found. Please sign up first.");
-                setIsLoading(false);
-                return;
-            }
-
             try {
-                const context = await fetchScoringContext(submissionId, judgeId);
+                const user = await getCurrentUser();
+                const resolvedJudgeId = user?.person_id;
+
+                if (!resolvedJudgeId) {
+                    setError("No active session found. Please log in first.");
+                    setIsLoading(false);
+                    return;
+                }
+
+                setJudgeId(resolvedJudgeId);
+                const context = await fetchScoringContext(submissionId, resolvedJudgeId);
                 setSubmissionTitle(context.submissionTitle || "Submission");
                 setTrackId(context.trackId);
                 setRubricId(context.rubricId);
@@ -70,7 +72,7 @@ export default function ScorePage() {
         }
 
         loadScoringContext();
-    }, [judgeId, submissionId]);
+    }, [submissionId]);
 
     function handleValueChange(criterionId, value) {
         setResponsesByCriterionId((prev) => ({
@@ -121,7 +123,7 @@ export default function ScorePage() {
             });
 
             alert("Submitted!");
-            navigate("/queue");
+            navigate(`/queue?trackId=${trackId}`);
         } catch (submitError) {
             console.error(submitError);
             setError("Could not submit score. Please try again.");

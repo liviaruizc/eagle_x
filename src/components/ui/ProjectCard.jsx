@@ -36,7 +36,7 @@ export function ProjectCard({ project, onView, onUpload }) {
                     View Info
                 </Button>
 
-                {project.status === "pre_scoring" && (
+                
                     <Button
                         onClick={() => onUpload(project.submission_id)}
                         className="flex-1"
@@ -44,7 +44,7 @@ export function ProjectCard({ project, onView, onUpload }) {
                     >
                         {project.poster_file_url ? "Reupload" : "Upload"}
                     </Button>
-                )}
+                
             </div>
         </div>
     );
