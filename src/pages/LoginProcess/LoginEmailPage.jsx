@@ -41,7 +41,7 @@ export default function LoginEmailPage() {
             }
         } catch (err) {
             console.error(err);
-            setError(err.message);
+            setError("An error occurred. Please try again.");
         } finally {
             setIsLoading(false);
         }

@@ -176,6 +176,7 @@ export function buildNormalizedSubmissions({
     facetTokensBySubmissionId,
     displayFacetsBySubmissionId,
     trackNameById,
+    tableBySubmissionId = new Map(),
 }) {
     return submissions.map((submission) => {
         const submissionId = submission.submission_id;
@@ -197,6 +198,8 @@ export function buildNormalizedSubmissions({
             };
         });
 
+        const tableInfo = tableBySubmissionId.get(submissionId) ?? null;
+
         return {
             submissionId,
             title: submission.title ?? "Untitled Submission",
@@ -205,6 +208,8 @@ export function buildNormalizedSubmissions({
             trackName: trackNameById.get(submission.track_id) ?? "Track",
             supervisorPersonId: submission.supervisor_person_id ?? null,
             createdAt: submission.created_at,
+            tableNumber: tableInfo?.table_number ?? null,
+            tableSession: tableInfo?.session ?? null,
             facetTokensByFacetId,
             facets,
         };

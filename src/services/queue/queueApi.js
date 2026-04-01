@@ -132,6 +132,24 @@ export async function fetchFacetsByIds(facetIds) {
     return data ?? [];
 }
 
+export async function fetchTableAssignmentsBySubmissions(submissionIds) {
+    if (!submissionIds?.length) return [];
+
+    const { data, error } = await supabase
+        .from("submission_table_assignment")
+        .select(`
+            submission_id,
+            event_table:table_id (
+                table_number,
+                session
+            )
+        `)
+        .in("submission_id", submissionIds);
+
+    if (error) throw error;
+    return data ?? [];
+}
+
 export async function fetchFacetOptionsByIds(optionIds) {
     if (!optionIds?.length) return [];
 
