@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardBody, CardTitle } from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
-import { fetchAdminJudgesByEvent } from "../services/admin/adminEventViewService.js";
+import {
+    deleteAdminJudge,
+    fetchAdminJudgesByEvent,
+} from "../services/admin/adminEventViewService.js";
 
 export default function AdminJudgesPage() {
     const navigate = useNavigate();
@@ -11,6 +14,7 @@ export default function AdminJudgesPage() {
     const [judges, setJudges] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
+    const [deletingPersonId, setDeletingPersonId] = useState(null);
 
     useEffect(() => {
         async function loadJudges() {
@@ -31,6 +35,29 @@ export default function AdminJudgesPage() {
 
         loadJudges();
     }, [eventInstanceId]);
+
+    async function handleDeleteJudge(judge) {
+        const confirmed = window.confirm(
+            `Delete ${judge.displayName} and remove their person record? This removes all of their event-role links.`
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setError("");
+        setDeletingPersonId(judge.personId);
+
+        try {
+            await deleteAdminJudge(judge.personId);
+            setJudges((currentJudges) => currentJudges.filter((row) => row.personId !== judge.personId));
+        } catch (deleteError) {
+            console.error(deleteError);
+            setError("Could not delete this judge.");
+        } finally {
+            setDeletingPersonId(null);
+        }
+    }
 
     return (
         <div className="text-center text-bold text-5xl">
@@ -58,8 +85,20 @@ export default function AdminJudgesPage() {
                     <ul className="space-y-3 text-left">
                         {judges.map((judge) => (
                             <li key={judge.personEventRoleId} className="rounded border p-3">
-                                <p className="font-semibold text-gray-900">{judge.displayName}</p>
-                                <p className="text-sm text-gray-600">{judge.email || "No email available"}</p>
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <p className="font-semibold text-gray-900">{judge.displayName}</p>
+                                        <p className="text-sm text-gray-600">{judge.email || "No email available"}</p>
+                                    </div>
+
+                                    <Button
+                                        variant="secondary"
+                                        disabled={deletingPersonId === judge.personId}
+                                        onClick={() => handleDeleteJudge(judge)}
+                                    >
+                                        {deletingPersonId === judge.personId ? "Deleting..." : "Delete"}
+                                    </Button>
+                                </div>
                             </li>
                         ))}
                     </ul>
