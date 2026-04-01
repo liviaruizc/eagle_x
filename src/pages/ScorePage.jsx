@@ -62,7 +62,7 @@ export default function ScorePage() {
 
                 setResponsesByCriterionId(initialResponses);
             } catch (loadError) {
-                console.error(loadError);
+                console.error("[ScorePage] Failed to load scoring context:", loadError);
                 setError(loadError.message || "Could not load scoring form.");
             } finally {
                 setIsLoading(false);

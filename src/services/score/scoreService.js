@@ -10,6 +10,7 @@
 
 import {
     deleteScoreItemsByScoreSheetId,
+    fetchEventInstanceStatusByTrack,
     fetchLatestScoreSheet,
     fetchRubricById,
     fetchRubricCriteria,
@@ -25,6 +26,7 @@ import {
     computeCriterionScore,
     mapScoreItemsToResponses,
     normalizeCriterion,
+    resolveAllowedScoringPhases,
     resolveTrackRubric,
     validateCriterionResponses,
 } from "./scoreUtils.js";
@@ -53,10 +55,23 @@ export async function fetchScoringContext(submissionId, judgePersonId) {
         throw new Error("No rubric is linked to this submission's track.");
     }
 
-    const rubric = await fetchRubricById(selectedTrackRubric.rubric_id);
+    const [rubric, eventStatus] = await Promise.all([
+        fetchRubricById(selectedTrackRubric.rubric_id),
+        fetchEventInstanceStatusByTrack(submission.track_id),
+    ]);
+
+    const allowedPhases = resolveAllowedScoringPhases(eventStatus);
     const criteriaRows = await fetchRubricCriteria(rubric.rubric_id);
 
-    const criteria = (criteriaRows ?? []).map(normalizeCriterion);
+    console.log("[scoring] eventStatus:", eventStatus);
+    console.log("[scoring] allowedPhases:", allowedPhases);
+    console.log("[scoring] criteriaRows (before filter):", criteriaRows.map((r) => ({ name: r.name, scoring_phase: r.scoring_phase })));
+
+    const criteria = (criteriaRows ?? [])
+        .filter((row) => allowedPhases.includes(row.scoring_phase))
+        .map(normalizeCriterion);
+
+    console.log("[scoring] criteria (after filter):", criteria.map((c) => ({ name: c.name })));
 
     // Hydrate existing responses when judge already scored this submission.
     let existingResponsesByCriterionId = {};

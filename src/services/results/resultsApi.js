@@ -47,7 +47,7 @@ export async function fetchRubricCriteria(criterionIds) {
 
     const { data, error } = await supabase
         .from("rubric_criterion")
-        .select("criterion_id, criterion_category")
+        .select("criterion_id, criterion_category, scoring_phase")
         .in("criterion_id", criterionIds);
 
     if (error) throw error;

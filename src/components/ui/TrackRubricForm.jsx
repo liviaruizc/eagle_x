@@ -173,6 +173,7 @@ export default function TrackRubricForm({
         // Normalize UI state into consistent scoring schema expected by service layer.
         const normalizedCriteria = normalizeCriteria(criteria);
 
+
         // Dropdown criteria must define at least one option.
         if (hasDropdownWithoutOptions(normalizedCriteria)) {
             setError("Dropdown criteria must include at least one option.");
@@ -200,6 +201,7 @@ export default function TrackRubricForm({
                 isDefault: formData.isDefault,
                 criteria: normalizedCriteria,
             };
+
 
             // Decide whether to update an existing rubric or create a new one.
             const result =
