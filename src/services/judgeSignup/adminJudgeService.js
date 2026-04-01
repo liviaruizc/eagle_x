@@ -13,6 +13,7 @@ import {
     insertPerson,
     insertPersonEventRole,
 } from "./judgeSignupApi.js";
+import { supabase } from "../../lib/supabaseClient.js";
 
 // Resolves a role by code with fallback logic.
 async function resolveRoleId(roleCode) {
@@ -20,6 +21,26 @@ async function resolveRoleId(roleCode) {
         if (roleCode === "judge") {
             const roleId = await findJudgeRoleByCode();
             if (roleId) return roleId;
+        }
+
+        if (roleCode === "admin") {
+            const { data: adminByCode, error: adminByCodeError } = await supabase
+                .from("event_role")
+                .select("event_role_id")
+                .ilike("code", "admin")
+                .maybeSingle();
+
+            if (adminByCodeError) throw adminByCodeError;
+            if (adminByCode?.event_role_id) return adminByCode.event_role_id;
+
+            const { data: adminByName, error: adminByNameError } = await supabase
+                .from("event_role")
+                .select("event_role_id")
+                .ilike("name", "%admin%")
+                .maybeSingle();
+
+            if (adminByNameError) throw adminByNameError;
+            if (adminByName?.event_role_id) return adminByName.event_role_id;
         }
 
         // Fallback to name-based search
@@ -48,6 +69,7 @@ export async function createJudgeOrAdmin({
     displayName,
     role = "judge", // "judge" or "admin"
     eventInstanceId,
+    isGlobalAdmin = false,
 }) {
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedDisplayName = displayName.trim();
@@ -61,8 +83,12 @@ export async function createJudgeOrAdmin({
         throw new Error("Role must be either 'judge' or 'admin'.");
     }
 
-    if (!eventInstanceId) {
+    if (role === "judge" && !eventInstanceId) {
         throw new Error("Event instance ID is required.");
+    }
+
+    if (role === "admin" && !isGlobalAdmin && !eventInstanceId) {
+        throw new Error("Event instance ID is required for event admins.");
     }
 
     // Check if person already exists
@@ -80,9 +106,13 @@ export async function createJudgeOrAdmin({
         displayName: normalizedDisplayName,
     });
 
-    // Assign the role for this event
+    const targetEventInstanceId = role === "admin" && isGlobalAdmin
+        ? null
+        : eventInstanceId;
+
+    // Judges and event admins are event-linked. Global admins are not.
     const personEventRoleId = await insertPersonEventRole({
-        eventInstanceId,
+        eventInstanceId: targetEventInstanceId,
         personId,
         eventRoleId: roleId,
     });

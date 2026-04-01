@@ -30,17 +30,32 @@ export default function SetPasswordPage() {
         setLoading(true);
 
         try {
+            const normalizedEmail = email.toString().trim().toLowerCase();
+
             const { data, error: signUpError } = await supabase.auth.signUp({
-                email,
+                email: normalizedEmail,
                 password,
             });
 
             if (signUpError) throw signUpError;
 
-            await supabase
+            const authUserId = data?.user?.id;
+            if (!authUserId) {
+                throw new Error("Auth account creation did not return a user id.");
+            }
+
+            const { error: updateError } = await supabase
                 .from("person")
-                .update({ auth_user_id: data.user.id })
-                .eq("email", email);
+                .update({ auth_user_id: authUserId })
+                .eq("email", normalizedEmail);
+
+            if (updateError?.code === "22P02") {
+                throw new Error(
+                    "Database column person.auth_user_id has the wrong type. It must store UUID values from Supabase Auth."
+                );
+            }
+
+            if (updateError) throw updateError;
 
             alert("Password set! Please verify your email before logging in.");
             navigate("/login");

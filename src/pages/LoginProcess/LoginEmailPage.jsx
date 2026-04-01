@@ -5,11 +5,14 @@ import { getAuthIntent } from "../../services/loginAuth/authIntent.js";
 import { fetchPersonByEmail, fetchPersonRoles } from "../../services/loginAuth/authApi.js";
 import FGCUlogo from "../../assets/FGCU logo.jpg";
 
+const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
+
 export default function LoginEmailPage() {
     const navigate = useNavigate();
 
     const [email, setEmail] = useState("");
     const [error, setError] = useState("");
+    const [debugInfo, setDebugInfo] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
     const selectedRole = getAuthIntent();
@@ -22,25 +25,64 @@ export default function LoginEmailPage() {
     async function handleContinue(e) {
         e.preventDefault();
         setError("");
+        setDebugInfo("");
         setIsLoading(true);
 
         try {
-            const person = await fetchPersonByEmail(email);
-            const roles = await fetchPersonRoles(person.person_id);
+            if (DEBUG_LOGS) {
+                console.log("[auth] login-email:attempt", {
+                    email,
+                    selectedRole,
+                });
+            }
 
-            if (!roles.includes(selectedRole.toUpperCase())) {
-                throw new Error("You do not have permission to access this role.");
+            const person = await fetchPersonByEmail(email);
+            if (DEBUG_LOGS) {
+                console.log("[auth] login-email:person", {
+                    personId: person?.person_id,
+                    authUserId: person?.auth_user_id,
+                });
             }
 
             if (!person) {
                 throw new Error("Account not found.");
-            } else if (!person.auth_user_id) {
+            }
+
+            const roles = await fetchPersonRoles(person.person_id);
+            const requiredRole = selectedRole.toString().trim().toUpperCase();
+            const normalizedRoles = roles.map((role) => role.toString().trim().toUpperCase());
+
+            if (DEBUG_LOGS) {
+                console.log("[auth] login-email:role-check", {
+                    requiredRole,
+                    normalizedRoles,
+                    hasRole: normalizedRoles.includes(requiredRole),
+                });
+            }
+
+            if (import.meta.env.DEV) {
+                setDebugInfo(
+                    `requiredRole=${requiredRole}; normalizedRoles=${JSON.stringify(normalizedRoles)}; personId=${person.person_id}`
+                );
+            }
+
+            if (!normalizedRoles.includes(requiredRole)) {
+                throw new Error(`You do not have the ${selectedRole} role on this account.`);
+            }
+
+            if (!person.auth_user_id) {
                 navigate("/set-password", { state: { email } });
             } else {
                 navigate("/login-password", { state: { email, role: selectedRole } });
             }
         } catch (err) {
             console.error(err);
+            if (import.meta.env.DEV) {
+                setDebugInfo((prev) => {
+                    const suffix = err?.message ? `; error=${err.message}` : "; error=unknown";
+                    return prev ? `${prev}${suffix}` : suffix.slice(2);
+                });
+            }
             setError(err.message);
         } finally {
             setIsLoading(false);
@@ -113,6 +155,12 @@ export default function LoginEmailPage() {
                 {error && (
                     <p className="text-sm text-red-600 text-center">
                         {error}
+                    </p>
+                )}
+
+                {import.meta.env.DEV && !!debugInfo && (
+                    <p className="text-xs text-gray-500 text-center break-all">
+                        Debug: {debugInfo}
                     </p>
                 )}
 

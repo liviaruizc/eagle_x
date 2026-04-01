@@ -7,9 +7,8 @@
 // - Provide reusable queue filtering for UI interactions.
 //
 // Notes:
-// - This module orchestrates sync + query + normalization for queue pages.
+// - This module orchestrates query + normalization for queue pages.
 // - Helper functions in this file are intentionally pure where possible.
-import { syncEventAndSubmissionStatusesBySchedule } from "../statusSync/statusSyncService.js";
 import {
     fetchEligibleSubmissionsByTracks,
     fetchFacetOptionsByIds,
@@ -33,14 +32,14 @@ import {
     toUniqueIds,
 } from "./queueUtils.js";
 
+const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
+
 /**
  * Returns the next available submission for a judge.
  * A submission is eligible when status is available and judge has not scored it yet.
  */
 
 export async function pullNext(judgeId) {
-    await syncEventAndSubmissionStatusesBySchedule();
-
     const submissions = await fetchQueueStatusSubmissions();
     if (!submissions.length) return null;
 
@@ -57,7 +56,9 @@ export async function pullNext(judgeId) {
 }
 
 export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstanceId, trackId }) {
-    console.log("Fetching queue submissions with params:", { judgePersonId, eventInstanceId, trackId });
+    if (DEBUG_LOGS) {
+        console.log("Fetching queue submissions with params:", { judgePersonId, eventInstanceId, trackId });
+    }
     if (!judgePersonId) {
         throw new Error("Judge person id is required.");
     }
@@ -65,8 +66,6 @@ export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstan
     if (!eventInstanceId) {
         throw new Error("Event instance id is required.");
     }
-
-    await syncEventAndSubmissionStatusesBySchedule();
 
     let trackIds = [];
     let trackNameById = new Map();
@@ -85,7 +84,9 @@ export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstan
         trackNameById = new Map(tracks.map((track) => [track.track_id, track.name ?? "Track"]));
     }
 
-    console.log("Determined trackIds for queue fetch:", trackIds);
+    if (DEBUG_LOGS) {
+        console.log("Determined trackIds for queue fetch:", trackIds);
+    }
 
     const submissions = await fetchEligibleSubmissionsByTracks({ trackIds: [trackIds], judgePersonId });
     if (!submissions.length) return buildEmptyQueueResult();

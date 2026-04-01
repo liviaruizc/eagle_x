@@ -7,6 +7,8 @@ import {
 } from "../services/queue/queueService.js";
 import { getJudgeSession } from "../services/judgeSession.js";
 
+const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
+
 
 export default function QueuePage() {
     const navigate = useNavigate();
@@ -14,7 +16,9 @@ export default function QueuePage() {
     const [searchParams] = useSearchParams();
     const trackId = String(searchParams.get("trackId") ?? "");
 
-    console.log("QueuePage rendered with trackId:", trackId);
+    if (DEBUG_LOGS) {
+        console.log("QueuePage rendered with trackId:", trackId);
+    }
 
 
     const [allSubmissions, setAllSubmissions] = useState([]);

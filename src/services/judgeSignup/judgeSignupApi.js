@@ -110,14 +110,19 @@ export async function findPersonEventRoleId({ eventInstanceId, personId, eventRo
 }
 
 export async function insertPersonEventRole({ eventInstanceId, personId, eventRoleId }) {
+    const payload = {
+        person_id: personId,
+        event_role_id: eventRoleId,
+        is_active: true,
+    };
+
+    if (eventInstanceId) {
+        payload.event_instance_id = eventInstanceId;
+    }
+
     const { data, error } = await supabase
         .from("person_event_role")
-        .insert({
-            event_instance_id: eventInstanceId,
-            person_id: personId,
-            event_role_id: eventRoleId,
-            is_active: true,
-        })
+        .insert(payload)
         .select("person_event_role_id")
         .single();
 

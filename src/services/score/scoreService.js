@@ -36,6 +36,8 @@ import {
     updateSubmissionStatusIfThresholdReached,
 } from "./scoreWorkflow.js";
 
+const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
+
 export {
     computeCriterionScore,
     validateCriterionResponses,
@@ -63,15 +65,19 @@ export async function fetchScoringContext(submissionId, judgePersonId) {
     const allowedPhases = resolveAllowedScoringPhases(eventStatus);
     const criteriaRows = await fetchRubricCriteria(rubric.rubric_id);
 
-    console.log("[scoring] eventStatus:", eventStatus);
-    console.log("[scoring] allowedPhases:", allowedPhases);
-    console.log("[scoring] criteriaRows (before filter):", criteriaRows.map((r) => ({ name: r.name, scoring_phase: r.scoring_phase })));
+    if (DEBUG_LOGS) {
+        console.log("[scoring] eventStatus:", eventStatus);
+        console.log("[scoring] allowedPhases:", allowedPhases);
+        console.log("[scoring] criteriaRows (before filter):", criteriaRows.map((r) => ({ name: r.name, scoring_phase: r.scoring_phase })));
+    }
 
     const criteria = (criteriaRows ?? [])
         .filter((row) => allowedPhases.includes(row.scoring_phase))
         .map(normalizeCriterion);
 
-    console.log("[scoring] criteria (after filter):", criteria.map((c) => ({ name: c.name })));
+    if (DEBUG_LOGS) {
+        console.log("[scoring] criteria (after filter):", criteria.map((c) => ({ name: c.name })));
+    }
 
     // Hydrate existing responses when judge already scored this submission.
     let existingResponsesByCriterionId = {};

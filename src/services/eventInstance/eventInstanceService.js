@@ -1,5 +1,4 @@
 import { fetchTrackTypes } from "../track/trackService.js";
-import { syncEventAndSubmissionStatusesBySchedule } from "../statusSync/statusSyncService.js";
 import {
     createEvent,
     createEventInstance,
@@ -22,8 +21,6 @@ import {
 
 // Fetches event instances and enriches with umbrella event metadata.
 export async function fetchEventInstances() {
-    await syncEventAndSubmissionStatusesBySchedule();
-
     const instances = await fetchEventInstanceRows();
     if (!instances.length) return [];
 
@@ -35,8 +32,6 @@ export async function fetchEventInstances() {
 
 // Fetches full details for a single event instance including tracks.
 export async function fetchEventInstanceDetails(eventInstanceId) {
-    await syncEventAndSubmissionStatusesBySchedule();
-
     const instance = await fetchEventInstanceById(eventInstanceId);
     const [event, tracks, trackTypes] = await Promise.all([
         fetchEventById(instance.event_id),
