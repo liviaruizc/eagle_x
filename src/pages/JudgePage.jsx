@@ -5,6 +5,23 @@ import EventInstanceCard from "../components/ui/EventInstanceCard.jsx";
 import { fetchJudgeEventInstances } from "../services/judgeSignup/judgeSignupApi.js";
 import { getCurrentUser } from "../services/loginAuth/authService.js";
 
+function isJudgingAllowed(event) {
+    const now = new Date();
+
+    // Check if we're in the event day/time range
+    const eventStart = event.start_at ? new Date(event.start_at) : null;
+    const eventEnd = event.end_at ? new Date(event.end_at) : null;
+    const inEventWindow = eventStart && eventEnd && now >= eventStart && now <= eventEnd;
+
+    // Check if we're in the pre-scoring window
+    const preScoringStart = event.pre_scoring_start_at ? new Date(event.pre_scoring_start_at) : null;
+    const preScoringEnd = event.pre_scoring_end_at ? new Date(event.pre_scoring_end_at) : null;
+    const inPreScoringWindow = preScoringStart && preScoringEnd && now >= preScoringStart && now <= preScoringEnd;
+
+    // Judging is allowed if we're in either the pre-scoring window or the event window
+    return inEventWindow || inPreScoringWindow;
+}
+
 export default function JudgeDashboardPage() {
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
@@ -77,6 +94,7 @@ export default function JudgeDashboardPage() {
                             action={(
                                 <Button
                                     variant="primary"
+                                    disabled={!isJudgingAllowed(event)}
                                     onClick={() => handleStartJudging(event.event_instance_id)}
                                 >
                                     Start Judging

@@ -7,6 +7,7 @@ import {
     createEventHierarchyFromForm,
     ensureDefaultTrackTypes,
     fetchTrackTypes,
+    createTrackType,
 } from "../services/eventAdminService.js";
 
 export default function CreateEventPage() {
@@ -32,6 +33,18 @@ export default function CreateEventPage() {
 
         loadTrackTypes();
     }, []);
+
+    async function handleCreateTrackType(code, name, description) {
+        const newTrackType = await createTrackType(code, name, description);
+
+        // Reload track types to get the ID of the newly created track type
+        const updatedTrackTypes = await fetchTrackTypes();
+        setTrackTypes(updatedTrackTypes);
+
+        // Return the newly created track type with its ID
+        const createdTrackType = updatedTrackTypes.find((t) => t.code === code);
+        return createdTrackType;
+    }
 
     async function handleCreateEvent(formData) {
         setCreateMessage("");
@@ -67,6 +80,7 @@ export default function CreateEventPage() {
                         trackTypes={trackTypes}
                         isSubmitting={isCreatingEvent}
                         onSubmit={handleCreateEvent}
+                        onCreateTrackType={handleCreateTrackType}
                     />
 
                     {createMessage && <p className="text-sm text-gray-700">{createMessage}</p>}

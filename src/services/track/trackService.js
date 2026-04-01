@@ -71,3 +71,14 @@ export async function fetchTrackFacets(trackId) {
 export async function ensureDefaultTrackTypes() {
     await upsertTrackTypes(DEFAULT_TRACK_TYPES);
 }
+
+// Creates a new track type and returns it.
+export async function createTrackType(code, name, description) {
+    const trackType = {
+        code,
+        name,
+        description: description || "",
+    };
+    await upsertTrackTypes([trackType]);
+    return trackType;
+}

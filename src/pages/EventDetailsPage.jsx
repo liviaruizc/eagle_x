@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardBody, CardTitle } from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
+import CreateJudgeForm from "../components/ui/CreateJudgeForm.jsx";
 import { fetchEventInstanceDetails } from "../services/eventAdminService.js";
 
 export default function EventDetailsPage() {
@@ -64,6 +65,31 @@ export default function EventDetailsPage() {
                                 <p className="text-sm text-gray-500">Description: {eventDetails.event.description || "-"}</p>
                             </div>
 
+                            <CreateJudgeForm eventInstanceId={eventInstanceId} />
+
+                            <div className="rounded border p-3">
+                                <p className="mb-2 font-semibold">Event-level Actions</p>
+                                <p className="mb-3 text-xs text-gray-500">
+                                    Judges are managed at the event level, not by track.
+                                </p>
+                                <div className="flex justify-start gap-2">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => navigate(`/admin/events/${eventInstanceId}/judges`)}
+                                    >
+                                        View Judges
+                                    </Button>
+                                    {!eventDetails.tracks.length && (
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => navigate(`/admin/events/${eventInstanceId}/projects`)}
+                                        >
+                                            View Projects
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="rounded border p-3">
                                 <p className="mb-2 font-semibold">Tracks</p>
                                 {!eventDetails.tracks.length && (
@@ -113,6 +139,18 @@ export default function EventDetailsPage() {
                                                             }
                                                         >
                                                             View/Edit Rubrics
+                                                        </Button>
+                                                    </div>
+                                                    <div className="flex justify-start">
+                                                        <Button
+                                                            variant="outline"
+                                                            onClick={() =>
+                                                                navigate(
+                                                                    `/admin/events/${eventInstanceId}/tracks/${track.id}/projects`
+                                                                )
+                                                            }
+                                                        >
+                                                            View Projects
                                                         </Button>
                                                     </div>
                                                     <div className="flex justify-start">
