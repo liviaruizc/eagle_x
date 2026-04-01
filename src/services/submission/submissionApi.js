@@ -156,6 +156,13 @@ export async function fetchAdminProjectRowsByEvent(eventInstanceId) {
                 person_id,
                 display_name,
                 email
+            ),
+            table_assignment:submission_table_assignment (
+                table_id,
+                event_table:table_id (
+                    table_number,
+                    session
+                )
             )
         `)
         .eq("track.event_instance_id", eventInstanceId)
@@ -190,6 +197,13 @@ export async function fetchAdminProjectRowsByTrack(trackId) {
                 person_id,
                 display_name,
                 email
+            ),
+            table_assignment:submission_table_assignment (
+                table_id,
+                event_table:table_id (
+                    table_number,
+                    session
+                )
             )
         `)
         .eq("track_id", trackId)

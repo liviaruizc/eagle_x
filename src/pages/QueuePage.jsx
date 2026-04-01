@@ -208,6 +208,12 @@ export default function QueuePage() {
                                 <p className="text-xs text-gray-500">
                                     Track: {submission.trackName}
                                 </p>
+                                {submission.tableNumber != null && (
+                                    <p className="text-xs font-medium text-blue-600">
+                                        Table {submission.tableNumber}
+                                        {submission.tableSession ? ` · Session ${submission.tableSession}` : ""}
+                                    </p>
+                                )}
                             </div>
 
                             <Button

@@ -173,8 +173,7 @@ export default function TrackResultsPage() {
                                                     <th className="px-2 py-1">Rank</th>
                                                     <th className="px-2 py-1">Submission</th>
                                                     <th className="px-2 py-1"># Evaluations</th>
-                                                    <th className="px-2 py-1">Total Points</th>
-                                                    <th className="px-2 py-1">Average</th>
+                                                    <th className="px-2 py-1">Overall Score</th>
                                                     <th className="px-2 py-1">Phase</th>
                                                 </tr>
                                             </thead>
@@ -188,7 +187,6 @@ export default function TrackResultsPage() {
                                                         <td className="px-2 py-1">{row.rank ?? "-"}</td>
                                                         <td className="px-2 py-1">{row.title}</td>
                                                         <td className="px-2 py-1">{row.scoreCount}</td>
-                                                        <td className="px-2 py-1">{formatScore(row.sumScore)}</td>
                                                         <td className="px-2 py-1">{formatScore(row.totalScore)}</td>
                                                         <td className="px-2 py-1">{row.status}</td>
                                                     </tr>
@@ -289,8 +287,7 @@ export default function TrackResultsPage() {
                                                     <th className="px-2 py-1">Rank</th>
                                                     <th className="px-2 py-1">Submission</th>
                                                     <th className="px-2 py-1"># Evaluations</th>
-                                                    <th className="px-2 py-1">Total Points</th>
-                                                    <th className="px-2 py-1">Average</th>
+                                                    <th className="px-2 py-1">Overall Avg.</th>
                                                     <th className="px-2 py-1">Phase</th>
                                                 </tr>
                                             </thead>
@@ -304,7 +301,6 @@ export default function TrackResultsPage() {
                                                         <td className="px-2 py-1">{row.rank ?? "-"}</td>
                                                         <td className="px-2 py-1">{row.title}</td>
                                                         <td className="px-2 py-1">{row.scoreCount}</td>
-                                                        <td className="px-2 py-1">{formatScore(row.sumScore)}</td>
                                                         <td className="px-2 py-1">{formatScore(row.totalScore)}</td>
                                                         <td className="px-2 py-1">{row.status}</td>
                                                     </tr>

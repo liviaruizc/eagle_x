@@ -3,6 +3,11 @@ import {
     fetchAdminProjectRowsByEvent,
     fetchAdminProjectRowsByTrack,
 } from "../submission/submissionApi.js";
+import {
+    createEventTable,
+    fetchEventTableByNumber,
+    upsertSubmissionTableAssignment,
+} from "../tables/tablesApi.js";
 
 function mapProjectRow(row) {
     const participants = (row.submission_author ?? [])
@@ -13,6 +18,11 @@ function mapProjectRow(row) {
             displayName: person.display_name || "Unknown",
             email: person.email || "",
         }));
+
+    const tableAssignment = Array.isArray(row.table_assignment)
+        ? row.table_assignment[0]
+        : row.table_assignment;
+    const tableInfo = tableAssignment?.event_table ?? null;
 
     return {
         submissionId: row.submission_id,
@@ -35,6 +45,8 @@ function mapProjectRow(row) {
                   email: row.supervisor.email || "",
               }
             : null,
+        tableNumber: tableInfo?.table_number ?? null,
+        tableSession: tableInfo?.session ?? null,
     };
 }
 
@@ -46,6 +58,16 @@ export async function fetchAdminProjectsByEvent(eventInstanceId) {
 export async function fetchAdminProjectsByTrack(trackId) {
     const rows = await fetchAdminProjectRowsByTrack(trackId);
     return rows.map(mapProjectRow);
+}
+
+export async function assignTableToSubmission({ submissionId, eventInstanceId, trackId, tableNumber, session }) {
+    let table = await fetchEventTableByNumber(eventInstanceId, trackId, tableNumber, session);
+
+    if (!table) {
+        table = await createEventTable(eventInstanceId, trackId, tableNumber, session);
+    }
+
+    await upsertSubmissionTableAssignment(submissionId, table.table_id);
 }
 
 export async function fetchAdminJudgesByEvent(eventInstanceId) {

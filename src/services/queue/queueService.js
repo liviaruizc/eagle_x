@@ -17,6 +17,7 @@ import {
     fetchQueueStatusSubmissions,
     fetchScoredSubmissionRows,
     fetchSubmissionFacetValues,
+    fetchTableAssignmentsBySubmissions,
     fetchTracksByEventInstance,
     hasJudgeScoreSheet,
 } from "./queueApi.js";
@@ -104,10 +105,15 @@ export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstan
     if (!unscoredSubmissions.length) return buildEmptyQueueResult();
 
     const eligibleSubmissionIds = unscoredSubmissions.map((submission) => submission.submission_id);
-    const [submissionFacetValues, judgeFacetValues] = await Promise.all([
+    const [submissionFacetValues, judgeFacetValues, tableAssignmentRows] = await Promise.all([
         fetchSubmissionFacetValues(eligibleSubmissionIds),
         fetchJudgeFacetValuesForEvent({ judgePersonId, eventInstanceId }),
+        fetchTableAssignmentsBySubmissions(eligibleSubmissionIds),
     ]);
+
+    const tableBySubmissionId = new Map(
+        tableAssignmentRows.map((row) => [row.submission_id, row.event_table ?? null])
+    );
 
     const facetIds = toUniqueIds([
         ...(submissionFacetValues ?? []).map((row) => row.facet_id),
@@ -141,6 +147,7 @@ export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstan
         facetTokensBySubmissionId,
         displayFacetsBySubmissionId,
         trackNameById,
+        tableBySubmissionId,
     });
 
     const filterFacets = buildFilterFacets({
