@@ -5,15 +5,33 @@
 // - Build category/overall rankings and facet-driven filter metadata.
 // - Keep business transforms side-effect free and reusable.
 
+const EMPTY_PHASE_RANKINGS = { overallRankings: [], categoryRankingsByCategory: {}, categories: [] };
+
 export function buildEmptyResultsReport() {
     return {
         submissions: [],
-        overallRankings: [],
-        categoryRankingsByCategory: {},
-        categories: [],
+        rankingsByPhase: { all: EMPTY_PHASE_RANKINGS, pre_scoring: EMPTY_PHASE_RANKINGS, event_scoring: EMPTY_PHASE_RANKINGS },
         filterFacets: [],
         defaultSelectedFiltersByFacetId: {},
     };
+}
+
+export function filterCriteriaByPhase(criteria, phase) {
+    if (!phase || phase === "all") return criteria;
+    return (criteria ?? []).filter(
+        (c) => c.scoring_phase === phase || c.scoring_phase === "both"
+    );
+}
+
+export function computePhaseRankings(phase, { scoreItems, criteria, scoreSheetRows, submissionRows, facetTokensBySubmissionId, displayFacetsBySubmissionId }) {
+    const phaseCriteria = filterCriteriaByPhase(criteria, phase);
+    const criterionCategoryById = buildCriterionCategoryById(phaseCriteria);
+    const { sheetTotalById, sheetCategoryTotalsById } = buildSheetTotals(scoreItems, criterionCategoryById);
+    const aggregateBySubmissionId = buildSubmissionAggregate(submissionRows, scoreSheetRows, sheetTotalById, sheetCategoryTotalsById);
+    const normalizedSubs = buildNormalizedSubmissions(aggregateBySubmissionId, facetTokensBySubmissionId, displayFacetsBySubmissionId);
+    const overallRankings = buildOverallRankings(normalizedSubs);
+    const { categories, categoryRankingsByCategory } = buildCategoryRankings(normalizedSubs);
+    return { overallRankings, categoryRankingsByCategory, categories };
 }
 
 function average(values) {
@@ -116,14 +134,16 @@ export function buildSheetTotals(scoreItems, criterionCategoryById) {
     const sheetCategoryTotalsById = new Map();
 
     for (const item of scoreItems ?? []) {
-        const sheetId = item.score_sheet_id;
-        const currentTotal = sheetTotalById.get(sheetId) ?? 0;
-        sheetTotalById.set(sheetId, currentTotal + Number(item.score_value || 0));
+        const category = criterionCategoryById.get(item.criterion_id);
+        if (!category) continue; // skip items whose criterion is not in the active phase
 
-        const category = criterionCategoryById.get(item.criterion_id) || "uncategorized";
+        const sheetId = item.score_sheet_id;
+        const points = Number(item.score_value || 0);
+
+        sheetTotalById.set(sheetId, (sheetTotalById.get(sheetId) ?? 0) + points);
+
         const categoryTotals = sheetCategoryTotalsById.get(sheetId) ?? new Map();
-        const currentCategoryTotal = categoryTotals.get(category) ?? 0;
-        categoryTotals.set(category, currentCategoryTotal + Number(item.score_value || 0));
+        categoryTotals.set(category, (categoryTotals.get(category) ?? 0) + points);
         sheetCategoryTotalsById.set(sheetId, categoryTotals);
     }
 
@@ -223,11 +243,17 @@ export function buildFacetMaps(submissionFacetRows, facetById, optionById) {
 
 export function buildNormalizedSubmissions(aggregateBySubmissionId, facetTokensBySubmissionId, displayFacetsBySubmissionId) {
     return [...aggregateBySubmissionId.values()].map((aggregate) => {
-        const totalScore = average(aggregate.sheetTotals);
+        const scoreCount = aggregate.sheetTotals.length;
+        const sumScore = aggregate.sheetTotals.reduce((s, v) => s + v, 0);
+        const avgScore = average(aggregate.sheetTotals);
 
         const categoryScores = {};
+        const categorySums = {};
+        const categoryCounts = {};
         aggregate.categorySheetTotals.forEach((categoryValues, category) => {
             categoryScores[category] = average(categoryValues);
+            categorySums[category] = categoryValues.reduce((s, v) => s + v, 0);
+            categoryCounts[category] = categoryValues.length;
         });
 
         return {
@@ -235,9 +261,12 @@ export function buildNormalizedSubmissions(aggregateBySubmissionId, facetTokensB
             title: aggregate.title,
             status: aggregate.status,
             createdAt: aggregate.createdAt,
-            scoreCount: aggregate.judgeIds.size,
-            totalScore,
+            scoreCount,
+            sumScore,
+            totalScore: avgScore,
             categoryScores,
+            categorySums,
+            categoryCounts,
             facetTokensByFacetId: facetTokensBySubmissionId.get(aggregate.submissionId) ?? {},
             facets: displayFacetsBySubmissionId.get(aggregate.submissionId) ?? [],
         };
@@ -245,7 +274,8 @@ export function buildNormalizedSubmissions(aggregateBySubmissionId, facetTokensB
 }
 
 export function buildOverallRankings(normalizedSubmissions) {
-    return rankRows(sortByScoreDesc(normalizedSubmissions, "totalScore"), "totalScore");
+    const scored = normalizedSubmissions.filter((s) => s.scoreCount > 0);
+    return rankRows(sortByScoreDesc(scored, "totalScore"), "totalScore");
 }
 
 export function buildCategoryRankings(normalizedSubmissions) {
@@ -256,10 +286,14 @@ export function buildCategoryRankings(normalizedSubmissions) {
     const categoryRankingsByCategory = {};
 
     for (const category of categories) {
-        const rows = normalizedSubmissions.map((submission) => ({
-            ...submission,
-            categoryScore: submission.categoryScores?.[category] ?? null,
-        }));
+        const rows = normalizedSubmissions
+            .filter((submission) => submission.scoreCount > 0)
+            .map((submission) => ({
+                ...submission,
+                categoryScore: submission.categoryScores?.[category] ?? null,
+                categorySum: submission.categorySums?.[category] ?? null,
+                categoryCount: submission.categoryCounts?.[category] ?? 0,
+            }));
 
         categoryRankingsByCategory[category] = rankRows(
             sortByScoreDesc(rows, "categoryScore"),

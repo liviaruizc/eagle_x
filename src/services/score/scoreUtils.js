@@ -10,6 +10,12 @@ function toNumber(value, fallback = 0) {
     return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+export function resolveAllowedScoringPhases(eventStatus) {
+    if (eventStatus === "pre-scoring") return ["pre_scoring", "both"];
+    if (eventStatus === "event_scoring") return ["event_scoring", "both"];
+    return ["both"];
+}
+
 export function resolveTrackRubric(trackRubrics) {
     if (!trackRubrics?.length) return null;
     const defaultRubric = trackRubrics.find((item) => item.is_default);

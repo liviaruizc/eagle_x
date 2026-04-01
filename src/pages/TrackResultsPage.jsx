@@ -10,15 +10,20 @@ function formatScore(value) {
     return Number(value).toFixed(2);
 }
 
+const PHASE_OPTIONS = [
+    { value: "all", label: "All Questions" },
+    { value: "pre_scoring", label: "Pre-Scoring Only" },
+    { value: "event_scoring", label: "Event Scoring Only" },
+];
+
 export default function TrackResultsPage() {
     const navigate = useNavigate();
     const { eventInstanceId, trackId } = useParams();
 
     const [trackName, setTrackName] = useState("Track");
     const [submissions, setSubmissions] = useState([]);
-    const [overallRankings, setOverallRankings] = useState([]);
-    const [categoryRankingsByCategory, setCategoryRankingsByCategory] = useState({});
-    const [categories, setCategories] = useState([]);
+    const [rankingsByPhase, setRankingsByPhase] = useState({});
+    const [selectedPhase, setSelectedPhase] = useState("pre_scoring");
     const [selectedCategory, setSelectedCategory] = useState("");
     const [filterFacets, setFilterFacets] = useState([]);
     const [selectedFiltersByFacetId, setSelectedFiltersByFacetId] = useState({});
@@ -39,10 +44,8 @@ export default function TrackResultsPage() {
 
                 setTrackName(name || "Track");
                 setSubmissions(report.submissions ?? []);
-                setOverallRankings(report.overallRankings ?? []);
-                setCategoryRankingsByCategory(report.categoryRankingsByCategory ?? {});
-                setCategories(report.categories ?? []);
-                setSelectedCategory((report.categories ?? [])[0] ?? "");
+                setRankingsByPhase(report.rankingsByPhase ?? {});
+                setSelectedCategory((report.rankingsByPhase?.all?.categories ?? [])[0] ?? "");
                 setFilterFacets(report.filterFacets ?? []);
                 setSelectedFiltersByFacetId(report.defaultSelectedFiltersByFacetId ?? {});
             } catch (loadError) {
@@ -57,6 +60,9 @@ export default function TrackResultsPage() {
             loadTrackResults();
         }
     }, [trackId]);
+
+    const allRankings = rankingsByPhase.all ?? { overallRankings: [], categoryRankingsByCategory: {}, categories: [] };
+    const phaseRankings = rankingsByPhase[selectedPhase] ?? { overallRankings: [], categoryRankingsByCategory: {}, categories: [] };
 
     function setFacetFilter(facetId, token) {
         setSelectedFiltersByFacetId((prev) => ({
@@ -75,14 +81,19 @@ export default function TrackResultsPage() {
     }, [submissions, selectedFiltersByFacetId]);
 
     const filteredOverallRankings = useMemo(
-        () => overallRankings.filter((row) => filteredSubmissionIdSet.has(row.submissionId)),
-        [overallRankings, filteredSubmissionIdSet]
+        () => allRankings.overallRankings.filter((row) => filteredSubmissionIdSet.has(row.submissionId)),
+        [allRankings, filteredSubmissionIdSet]
     );
 
     const filteredCategoryRankings = useMemo(() => {
-        const selectedRows = categoryRankingsByCategory[selectedCategory] ?? [];
+        const selectedRows = allRankings.categoryRankingsByCategory[selectedCategory] ?? [];
         return selectedRows.filter((row) => filteredSubmissionIdSet.has(row.submissionId));
-    }, [categoryRankingsByCategory, filteredSubmissionIdSet, selectedCategory]);
+    }, [allRankings, filteredSubmissionIdSet, selectedCategory]);
+
+    const filteredPhaseRankings = useMemo(
+        () => phaseRankings.overallRankings.filter((row) => filteredSubmissionIdSet.has(row.submissionId)),
+        [phaseRankings, filteredSubmissionIdSet]
+    );
 
     return (
         <div className="text-center text-bold text-5xl">
@@ -146,7 +157,10 @@ export default function TrackResultsPage() {
                             </section>
 
                             <section className="rounded border p-3">
-                                <p className="mb-2 font-semibold">Overall Rankings</p>
+                                <div className="mb-2 flex items-center justify-between gap-3">
+                                    <p className="font-semibold">Overall Rankings</p>
+                                </div>
+
                                 {!filteredOverallRankings.length && (
                                     <p className="text-sm text-gray-500">No ranked submissions for current filters.</p>
                                 )}
@@ -158,18 +172,24 @@ export default function TrackResultsPage() {
                                                 <tr className="border-b text-left">
                                                     <th className="px-2 py-1">Rank</th>
                                                     <th className="px-2 py-1">Submission</th>
-                                                    <th className="px-2 py-1">Total Score</th>
-                                                    <th className="px-2 py-1"># Scores</th>
-                                                    <th className="px-2 py-1">Status</th>
+                                                    <th className="px-2 py-1"># Evaluations</th>
+                                                    <th className="px-2 py-1">Total Points</th>
+                                                    <th className="px-2 py-1">Average</th>
+                                                    <th className="px-2 py-1">Phase</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {filteredOverallRankings.map((row) => (
-                                                    <tr key={`overall-${row.submissionId}`} className="border-b">
+                                                    <tr
+                                                        key={`overall-${row.submissionId}`}
+                                                        className="cursor-pointer border-b hover:bg-gray-50"
+                                                        onClick={() => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/submissions/${row.submissionId}/evaluations`)}
+                                                    >
                                                         <td className="px-2 py-1">{row.rank ?? "-"}</td>
                                                         <td className="px-2 py-1">{row.title}</td>
-                                                        <td className="px-2 py-1">{formatScore(row.totalScore)}</td>
                                                         <td className="px-2 py-1">{row.scoreCount}</td>
+                                                        <td className="px-2 py-1">{formatScore(row.sumScore)}</td>
+                                                        <td className="px-2 py-1">{formatScore(row.totalScore)}</td>
                                                         <td className="px-2 py-1">{row.status}</td>
                                                     </tr>
                                                 ))}
@@ -186,10 +206,10 @@ export default function TrackResultsPage() {
                                         className="rounded border p-2 text-sm"
                                         value={selectedCategory}
                                         onChange={(event) => setSelectedCategory(event.target.value)}
-                                        disabled={!categories.length}
+                                        disabled={!allRankings.categories.length}
                                     >
-                                        {!categories.length && <option value="">No categories</option>}
-                                        {categories.map((category) => (
+                                        {!allRankings.categories.length && <option value="">No categories</option>}
+                                        {allRankings.categories.map((category) => (
                                             <option key={category} value={category}>
                                                 {category}
                                             </option>
@@ -212,19 +232,81 @@ export default function TrackResultsPage() {
                                                 <tr className="border-b text-left">
                                                     <th className="px-2 py-1">Rank</th>
                                                     <th className="px-2 py-1">Submission</th>
-                                                    <th className="px-2 py-1">Category Score</th>
-                                                    <th className="px-2 py-1">Total Score</th>
-                                                    <th className="px-2 py-1"># Scores</th>
+                                                    <th className="px-2 py-1"># Evaluations</th>
+                                                    <th className="px-2 py-1">Category Total</th>
+                                                    <th className="px-2 py-1">Category Avg</th>
+                                                    <th className="px-2 py-1">Overall Avg</th>
+                                                    <th className="px-2 py-1">Phase</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {filteredCategoryRankings.map((row) => (
-                                                    <tr key={`category-${selectedCategory}-${row.submissionId}`} className="border-b">
+                                                    <tr
+                                                        key={`category-${selectedCategory}-${row.submissionId}`}
+                                                        className="cursor-pointer border-b hover:bg-gray-50"
+                                                        onClick={() => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/submissions/${row.submissionId}/evaluations`)}
+                                                    >
                                                         <td className="px-2 py-1">{row.rank ?? "-"}</td>
                                                         <td className="px-2 py-1">{row.title}</td>
+                                                        <td className="px-2 py-1">{row.categoryCount}</td>
+                                                        <td className="px-2 py-1">{formatScore(row.categorySum)}</td>
                                                         <td className="px-2 py-1">{formatScore(row.categoryScore)}</td>
                                                         <td className="px-2 py-1">{formatScore(row.totalScore)}</td>
+                                                        <td className="px-2 py-1">{row.status}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </section>
+
+                            <section className="rounded border p-3">
+                                <div className="mb-2 flex items-center justify-between gap-3">
+                                    <p className="font-semibold">Phase Rankings</p>
+                                    <select
+                                        className="rounded border p-2 text-sm"
+                                        value={selectedPhase}
+                                        onChange={(event) => setSelectedPhase(event.target.value)}
+                                    >
+                                        {PHASE_OPTIONS.filter((o) => o.value !== "all").map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {!filteredPhaseRankings.length && (
+                                    <p className="text-sm text-gray-500">No ranked submissions for current filters.</p>
+                                )}
+
+                                {!!filteredPhaseRankings.length && (
+                                    <div className="overflow-x-auto">
+                                        <table className="min-w-full border-collapse text-sm">
+                                            <thead>
+                                                <tr className="border-b text-left">
+                                                    <th className="px-2 py-1">Rank</th>
+                                                    <th className="px-2 py-1">Submission</th>
+                                                    <th className="px-2 py-1"># Evaluations</th>
+                                                    <th className="px-2 py-1">Total Points</th>
+                                                    <th className="px-2 py-1">Average</th>
+                                                    <th className="px-2 py-1">Phase</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {filteredPhaseRankings.map((row) => (
+                                                    <tr
+                                                        key={`phase-${row.submissionId}`}
+                                                        className="cursor-pointer border-b hover:bg-gray-50"
+                                                        onClick={() => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/submissions/${row.submissionId}/evaluations`)}
+                                                    >
+                                                        <td className="px-2 py-1">{row.rank ?? "-"}</td>
+                                                        <td className="px-2 py-1">{row.title}</td>
                                                         <td className="px-2 py-1">{row.scoreCount}</td>
+                                                        <td className="px-2 py-1">{formatScore(row.sumScore)}</td>
+                                                        <td className="px-2 py-1">{formatScore(row.totalScore)}</td>
+                                                        <td className="px-2 py-1">{row.status}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>

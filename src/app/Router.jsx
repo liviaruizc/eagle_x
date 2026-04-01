@@ -31,6 +31,7 @@ import RoleRoute from "./RoleRoute.jsx";
 import UnauthorizedPage from '../pages/UnauthorizedPage.jsx';
 
 import AppLayout from "../components/layout/AppLayout.jsx";
+import SubmissionEvaluationsPage from '../pages/SubmissionEvaluationsPage.jsx';
 
 export default function AppRouter() {
     return (
@@ -96,6 +97,9 @@ export default function AppRouter() {
                             <Route
                                 path="/admin/events/:eventInstanceId/tracks/:trackId/results"
                                 element={<TrackResultsPage />}
+                            />
+                            <Route path="/admin/events/:eventInstanceId/tracks/:trackId/submissions/:submissionId/evaluations"
+                                element={<SubmissionEvaluationsPage />} 
                             />
                         </Route>
 

@@ -18,6 +18,7 @@ const DEFAULT_WEIGHT = 1;
 const DEFAULT_SCORE_MIN = 0;
 const DEFAULT_SCORE_MAX = 5;
 const EMPTY_DROPDOWN_OPTION = { label: "", points: 0 };
+const DEFAULT_PHASE = "both";
 
 // Helper to always provide at least one dropdown option row in form state.
 function ensureAtLeastOneDropdownOption(options) {
@@ -43,6 +44,7 @@ export function emptyCriterion() {
         weight: DEFAULT_WEIGHT,
         scoreMin: DEFAULT_SCORE_MIN,
         scoreMax: DEFAULT_SCORE_MAX,
+        scoringPhase: DEFAULT_PHASE,
     };
 }
 
@@ -74,6 +76,7 @@ export function toFormCriterion(criterion) {
         weight: toNumber(criterion.weight, DEFAULT_WEIGHT),
         scoreMin: toNumber(criterion.scoreMin, DEFAULT_SCORE_MIN),
         scoreMax: toNumber(criterion.scoreMax, DEFAULT_SCORE_MAX),
+        scoringPhase: criterion.scoringPhase ?? DEFAULT_PHASE,
     };
 }
 
@@ -158,6 +161,7 @@ export function normalizeCriteria(criteria) {
             weight: toNumber(criterion.weight, 0),
             scoreMin: resolvedScoreMin,
             scoreMax: resolvedScoreMax,
+            scoringPhase: criterion.scoringPhase,
         };
     });
 }

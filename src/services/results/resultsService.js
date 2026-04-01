@@ -18,16 +18,11 @@ import {
     fetchTrackSubmissions,
 } from "./resultsApi.js";
 import {
-    buildCategoryRankings,
-    buildCriterionCategoryById,
     buildEmptyResultsReport,
     buildFacetMaps,
     buildFilterFacets,
-    buildNormalizedSubmissions,
-    buildOverallRankings,
-    buildSheetTotals,
-    buildSubmissionAggregate,
     collectFacetAndOptionIds,
+    computePhaseRankings,
     filterTrackResults,
 } from "./resultsUtils.js";
 
@@ -43,18 +38,9 @@ export async function fetchTrackResultsReport(trackId) {
     const scoreSheetIds = scoreSheetRows.map((scoreSheet) => scoreSheet.score_sheet_id);
     const scoreItems = await fetchScoreItems(scoreSheetIds);
 
-    // Build score totals from criterion categories.
+    // Fetch criteria with scoring_phase for phase-aware ranking.
     const criterionIds = [...new Set(scoreItems.map((item) => item.criterion_id).filter(Boolean))];
     const criteria = await fetchRubricCriteria(criterionIds);
-    const criterionCategoryById = buildCriterionCategoryById(criteria);
-    const { sheetTotalById, sheetCategoryTotalsById } = buildSheetTotals(scoreItems, criterionCategoryById);
-
-    const aggregateBySubmissionId = buildSubmissionAggregate(
-        submissionRows,
-        scoreSheetRows,
-        sheetTotalById,
-        sheetCategoryTotalsById
-    );
 
     // Attach facet metadata for filtering and segmented views.
     const submissionFacetRows = await fetchSubmissionFacetValues(submissionIds);
@@ -71,21 +57,24 @@ export async function fetchTrackResultsReport(trackId) {
     const { facetTokensBySubmissionId, displayFacetsBySubmissionId, filterOptionsByFacetId } =
         buildFacetMaps(submissionFacetRows, facetById, optionById);
 
-    // Build final rankings and response payload.
-    const normalizedSubmissions = buildNormalizedSubmissions(
-        aggregateBySubmissionId,
-        facetTokensBySubmissionId,
-        displayFacetsBySubmissionId
-    );
-    const overallRankings = buildOverallRankings(normalizedSubmissions);
-    const { categories, categoryRankingsByCategory } = buildCategoryRankings(normalizedSubmissions);
+    const phaseArgs = { scoreItems, criteria, scoreSheetRows, submissionRows, facetTokensBySubmissionId, displayFacetsBySubmissionId };
+    const rankingsByPhase = {
+        all: computePhaseRankings("all", phaseArgs),
+        pre_scoring: computePhaseRankings("pre_scoring", phaseArgs),
+        event_scoring: computePhaseRankings("event_scoring", phaseArgs),
+    };
+
+    // Use "all" phase submissions for facet filter counts.
+    const { overallRankings } = rankingsByPhase.all;
+    const submissionsForFilter = overallRankings.map((r) => ({
+        submissionId: r.submissionId,
+        facetTokensByFacetId: facetTokensBySubmissionId.get(r.submissionId) ?? {},
+    }));
     const filterFacets = buildFilterFacets(filterOptionsByFacetId, facetById);
 
     return {
-        submissions: normalizedSubmissions,
-        overallRankings,
-        categoryRankingsByCategory,
-        categories,
+        submissions: submissionsForFilter,
+        rankingsByPhase,
         filterFacets,
         defaultSelectedFiltersByFacetId: {},
     };

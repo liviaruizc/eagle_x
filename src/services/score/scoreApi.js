@@ -38,11 +38,30 @@ export async function fetchRubricById(rubricId) {
     return data;
 }
 
+export async function fetchEventInstanceStatusByTrack(trackId) {
+    const { data: trackData, error: trackError } = await supabase
+        .from("track")
+        .select("event_instance_id")
+        .eq("track_id", trackId)
+        .single();
+
+    if (trackError) throw trackError;
+
+    const { data, error } = await supabase
+        .from("event_instance")
+        .select("status")
+        .eq("event_instance_id", trackData.event_instance_id)
+        .single();
+
+    if (error) throw error;
+    return data?.status ?? null;
+}
+
 export async function fetchRubricCriteria(rubricId) {
     const { data, error } = await supabase
         .from("rubric_criterion")
         .select(
-            "criterion_id, name, description, criterion_category, answer_type, answer_config_json, weight, score_min, score_max, display_order"
+            "criterion_id, name, description, criterion_category, answer_type, answer_config_json, weight, score_min, score_max, display_order, scoring_phase"
         )
         .eq("rubric_id", rubricId)
         .order("display_order", { ascending: true });

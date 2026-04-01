@@ -96,6 +96,8 @@ export async function updateRubricAndTrackAssignment({
     isDefault,
     criteria,
 }) {
+
+    alert(JSON.stringify(criteria));
     // Update rubric metadata and replace criteria set.
     const computedMaxTotalPoints = computeRubricMaxPoints(criteria);
     await updateRubricById(rubricId, {

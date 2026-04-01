@@ -44,6 +44,7 @@ export function normalizeCriteriaPayload(rubricId, criteria) {
         weight: criterion.weight,
         score_min: criterion.scoreMin,
         score_max: criterion.scoreMax,
+        scoring_phase: criterion.scoringPhase,
         display_order: index + 1,
     }));
 }
@@ -64,6 +65,7 @@ export function mapTrackRubrics(trackRubrics, rubrics, criteria) {
             weight: criterion.weight,
             scoreMin: criterion.score_min,
             scoreMax: criterion.score_max,
+            scoringPhase: criterion.scoring_phase ?? "both",
             displayOrder: criterion.display_order,
         });
         criteriaByRubricId.set(criterion.rubric_id, current);
