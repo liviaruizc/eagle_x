@@ -22,9 +22,20 @@ import {
     findOrCreatePersonByEmail,
 } from "./submissionWorkflow.js";
 
+function parseDelimitedEmails(value) {
+    if (!value) return [];
+
+    const emails = String(value)
+        .split(/[|,;\n]+/)
+        .map((item) => item.trim().toLowerCase())
+        .filter(Boolean);
+
+    return [...new Set(emails)];
+}
+
 // Creates one submission, author link, and facet values.
 export async function createSubmissionForTrack(trackId, submission) {
-    // Resolve author and ensure student role when author is newly created.
+    // Resolve primary author and ensure student role when author is newly created.
     const personResult = await findOrCreatePersonByEmail(submission.created_by_email);
     const personId = personResult.personId;
 
@@ -33,6 +44,24 @@ export async function createSubmissionForTrack(trackId, submission) {
             trackId,
             personId,
         });
+    }
+
+    const primaryEmail = String(submission.created_by_email || "").trim().toLowerCase();
+    const coAuthorEmails = parseDelimitedEmails(submission.co_author_emails).filter(
+        (email) => email !== primaryEmail
+    );
+    const coAuthorPersonIds = [];
+
+    for (const coAuthorEmail of coAuthorEmails) {
+        const coAuthorResult = await findOrCreatePersonByEmail(coAuthorEmail);
+        if (coAuthorResult.wasCreated) {
+            await ensureStudentRoleForPersonInEvent({
+                trackId,
+                personId: coAuthorResult.personId,
+            });
+        }
+
+        coAuthorPersonIds.push(coAuthorResult.personId);
     }
 
     // Resolve optional supervisor and insert base submission row.
@@ -48,7 +77,7 @@ export async function createSubmissionForTrack(trackId, submission) {
     try {
         await createSubmissionRelations({
             submissionId: data.submission_id,
-            personId,
+            authorPersonIds: [personId, ...coAuthorPersonIds],
             facetValues: submission.facet_values ?? [],
         });
     } catch (insertError) {

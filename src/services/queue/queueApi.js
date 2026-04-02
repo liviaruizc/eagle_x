@@ -141,7 +141,8 @@ export async function fetchTableAssignmentsBySubmissions(submissionIds) {
             submission_id,
             event_table:table_id (
                 table_number,
-                session
+                session,
+                location_description
             )
         `)
         .in("submission_id", submissionIds);

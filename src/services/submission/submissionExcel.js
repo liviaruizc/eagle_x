@@ -40,6 +40,9 @@ function mapExcelRowToSubmission(row) {
         keywords: String(getRowValue(normalizedRow, ["keywords"]))?.trim(),
         status: String(getRowValue(normalizedRow, ["status", "submittedstatus"]))?.trim() || "submitted",
         created_by_email: String(getRowValue(normalizedRow, ["createdbyemail", "createdbypersonid"]))?.trim(),
+        co_author_emails: String(
+            getRowValue(normalizedRow, ["coauthoremails", "coauthors", "copresenteremails"])
+        )?.trim(),
         supervisor_email: String(getRowValue(normalizedRow, ["supervisoremail", "supervisor"]))?.trim(),
         college: String(getRowValue(normalizedRow, ["college"]))?.trim(),
         degree: String(getRowValue(normalizedRow, ["degree"]))?.trim(),

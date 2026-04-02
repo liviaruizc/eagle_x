@@ -99,8 +99,12 @@ export async function ensureStudentRoleForPersonInEvent({ trackId, personId }) {
     });
 }
 
-export async function createSubmissionRelations({ submissionId, personId, facetValues }) {
-    await insertSubmissionAuthor({ submissionId, personId });
+export async function createSubmissionRelations({ submissionId, authorPersonIds, facetValues }) {
+    const uniquePersonIds = [...new Set((authorPersonIds ?? []).filter(Boolean))];
+
+    for (const personId of uniquePersonIds) {
+        await insertSubmissionAuthor({ submissionId, personId });
+    }
 
     const payloads = (facetValues ?? []).map((facetValue) =>
         normalizeFacetValuePayload(submissionId, facetValue)

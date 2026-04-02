@@ -12,6 +12,9 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
     const [isExcelImporting, setIsExcelImporting] = useState(false);
+    const [collegeCodesInput, setCollegeCodesInput] = useState("");
+    const [classCodesInput, setClassCodesInput] = useState("");
+    const [sessionCodesInput, setSessionCodesInput] = useState("");
     const [bulkInput, setBulkInput] = useState("");
     const [bulkResultMessage, setBulkResultMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
@@ -31,12 +34,20 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
                 role,
                 eventInstanceId,
                 isGlobalAdmin,
+                collegeCodesInput,
+                classCodesInput,
+                sessionCodesInput,
             });
+
+            const unmatched = result.unmatched ?? [];
+            const unmatchedSummary = unmatched.length
+                ? ` Unmatched codes: ${unmatched.map((item) => `${item.column}:${item.code}`).join(", ")}.`
+                : "";
 
             setSuccessMessage(
                 role === "admin" && isGlobalAdmin
                     ? `Created global admin "${displayName}" (${email}). They can now log in and set their password.`
-                    : `Created ${role === "admin" ? "event admin" : "judge"} "${displayName}" (${email}). They can now log in and set their password.`
+                    : `Created ${role === "admin" ? "event admin" : "judge"} "${displayName}" (${email}). They can now log in and set their password.${unmatchedSummary}`
             );
 
             // Reset form
@@ -44,6 +55,9 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
             setDisplayName("");
             setRole("judge");
             setIsGlobalAdmin(false);
+            setCollegeCodesInput("");
+            setClassCodesInput("");
+            setSessionCodesInput("");
 
             // Notify parent if callback provided
             if (onJudgeCreated) {
@@ -226,6 +240,48 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
                             />
                             Create as global admin (not tied to this event)
                         </label>
+                    )}
+
+                    {role === "judge" && (
+                        <div className="space-y-3 rounded border bg-gray-50 p-3">
+                            <p className="text-sm font-semibold text-gray-700">Judge matching info</p>
+                            <p className="text-xs text-gray-500">
+                                Enter normalized codes from your cleaned sheet. Use | to separate multiple codes.
+                            </p>
+                            <div>
+                                <label className="text-sm text-gray-700">College Codes</label>
+                                <input
+                                    type="text"
+                                    value={collegeCodesInput}
+                                    onChange={(e) => setCollegeCodesInput(e.target.value)}
+                                    placeholder="COLLEGE_OF_ARTS_AND_SCIENCES|WHITAKER_COLLEGE_OF_ENGINEERING"
+                                    className="mt-1 w-full rounded border p-2"
+                                    disabled={isSubmitting || isBulkSubmitting || isExcelImporting}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-700">Class Codes</label>
+                                <input
+                                    type="text"
+                                    value={classCodesInput}
+                                    onChange={(e) => setClassCodesInput(e.target.value)}
+                                    placeholder="COMPUTER_SCIENCE|SOFTWARE_ENGINEERING"
+                                    className="mt-1 w-full rounded border p-2"
+                                    disabled={isSubmitting || isBulkSubmitting || isExcelImporting}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-700">Session Code(s)</label>
+                                <input
+                                    type="text"
+                                    value={sessionCodesInput}
+                                    onChange={(e) => setSessionCodesInput(e.target.value)}
+                                    placeholder="A|B"
+                                    className="mt-1 w-full rounded border p-2"
+                                    disabled={isSubmitting || isBulkSubmitting || isExcelImporting}
+                                />
+                            </div>
+                        </div>
                     )}
 
                     <div className="flex justify-start gap-2 pt-2">

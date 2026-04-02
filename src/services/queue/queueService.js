@@ -34,6 +34,101 @@ import {
 } from "./queueUtils.js";
 
 const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
+const SESSION_FILTER_FACET_ID = "__SESSION_FILTER__";
+
+function normalizeSessionCode(value) {
+    const text = String(value ?? "").trim().toUpperCase();
+    if (!text) return "";
+
+    const match = text.match(/[A-Z]/);
+    return match ? match[0] : "";
+}
+
+function deriveSessionCodeFromTable(tableInfo) {
+    if (!tableInfo) return "";
+
+    const explicitSession = normalizeSessionCode(tableInfo.session);
+    if (explicitSession) return explicitSession;
+
+    const assignmentNameCandidates = [tableInfo.table_number, tableInfo.location_description];
+    for (const candidate of assignmentNameCandidates) {
+        const derived = normalizeSessionCode(candidate);
+        if (derived) return derived;
+    }
+
+    return "";
+}
+
+function attachSessionFilters({
+    eligibleSubmissionIds,
+    tableBySubmissionId,
+    facetTokensBySubmissionId,
+    displayFacetsBySubmissionId,
+    facetById,
+}) {
+    facetById.set(SESSION_FILTER_FACET_ID, {
+        facet_id: SESSION_FILTER_FACET_ID,
+        code: "SESSION",
+        name: "Session",
+    });
+
+    for (const submissionId of eligibleSubmissionIds) {
+        const tableInfo = tableBySubmissionId.get(submissionId) ?? null;
+        const sessionCode = deriveSessionCodeFromTable(tableInfo);
+        if (!sessionCode) continue;
+
+        const token = `session:${sessionCode}`;
+
+        if (!facetTokensBySubmissionId.has(submissionId)) {
+            facetTokensBySubmissionId.set(submissionId, new Map());
+        }
+
+        const tokenMap = facetTokensBySubmissionId.get(submissionId);
+        const existingTokenSet = tokenMap.get(SESSION_FILTER_FACET_ID) ?? new Set();
+        existingTokenSet.add(token);
+        tokenMap.set(SESSION_FILTER_FACET_ID, existingTokenSet);
+
+        if (!displayFacetsBySubmissionId.has(submissionId)) {
+            displayFacetsBySubmissionId.set(submissionId, []);
+        }
+
+        const displayFacets = displayFacetsBySubmissionId.get(submissionId);
+        if (!displayFacets.some((item) => item.facetId === SESSION_FILTER_FACET_ID && item.token === token)) {
+            displayFacets.push({
+                facetId: SESSION_FILTER_FACET_ID,
+                facetOptionId: null,
+                token,
+                label: `Session ${sessionCode}`,
+            });
+        }
+    }
+}
+
+function attachSessionDefaults({ defaultFiltersMap, judgeFacetValues, optionById, facetById }) {
+    const sessionDefaults = [];
+
+    for (const valueRow of judgeFacetValues) {
+        const facetMeta = facetById.get(valueRow.facet_id);
+        const facetCode = String(facetMeta?.code || "").toUpperCase();
+        if (!facetCode.includes("SESSION")) continue;
+
+        const option = valueRow.facet_option_id ? optionById.get(valueRow.facet_option_id) : null;
+        const sessionCode = normalizeSessionCode(option?.value || option?.label || valueRow.value_text || "");
+        if (!sessionCode) continue;
+
+        const token = `session:${sessionCode}`;
+        if (!sessionDefaults.some((item) => item.token === token)) {
+            sessionDefaults.push({ token, label: `Session ${sessionCode}` });
+        }
+    }
+
+    if (sessionDefaults.length) {
+        const current = defaultFiltersMap[SESSION_FILTER_FACET_ID] ?? [];
+        defaultFiltersMap[SESSION_FILTER_FACET_ID] = [...current, ...sessionDefaults].filter(
+            (item, index, arr) => arr.findIndex((next) => next.token === item.token) === index
+        );
+    }
+}
 
 /**
  * Returns the next available submission for a judge.
@@ -134,12 +229,21 @@ export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstan
     const optionById = new Map(optionRows.map((option) => [option.facet_option_id, option]));
 
     const defaultFiltersMap = buildSelectedFiltersMap(judgeFacetValues, optionById);
+    attachSessionDefaults({ defaultFiltersMap, judgeFacetValues, optionById, facetById });
     const defaultSelectedTokensByFacetId = buildDefaultSelectedTokensByFacetId(defaultFiltersMap);
 
     const { facetTokensBySubmissionId, displayFacetsBySubmissionId } = buildSubmissionFacetMaps(
         submissionFacetValues ?? [],
         optionById
     );
+
+    attachSessionFilters({
+        eligibleSubmissionIds,
+        tableBySubmissionId,
+        facetTokensBySubmissionId,
+        displayFacetsBySubmissionId,
+        facetById,
+    });
 
     const normalizedSubmissions = buildNormalizedSubmissions({
         submissions: unscoredSubmissions,
