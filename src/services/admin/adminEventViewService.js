@@ -2,12 +2,14 @@ import { fetchJudgesForEvent } from "../judgeSignup/judgeSignupApi.js";
 import {
     fetchAdminProjectRowsByEvent,
     fetchAdminProjectRowsByTrack,
+    fetchSubmissionIdsByEvent,
 } from "../submission/submissionApi.js";
 import {
     createEventTable,
     fetchEventTableByNumber,
     upsertSubmissionTableAssignment,
 } from "../tables/tablesApi.js";
+import { fetchScoreSheetsBySubmissionIds } from "../score/scoreApi.js";
 
 function mapProjectRow(row) {
     const participants = (row.submission_author ?? [])
@@ -47,6 +49,7 @@ function mapProjectRow(row) {
             : null,
         tableNumber: tableInfo?.table_number ?? null,
         tableSession: tableInfo?.session ?? null,
+        scoreCount: (row.score_sheet ?? []).length,
     };
 }
 
@@ -71,15 +74,32 @@ export async function assignTableToSubmission({ submissionId, eventInstanceId, t
 }
 
 export async function fetchAdminJudgesByEvent(eventInstanceId) {
-    const rows = await fetchJudgesForEvent(eventInstanceId);
+    const [rows, submissionIds] = await Promise.all([
+        fetchJudgesForEvent(eventInstanceId),
+        fetchSubmissionIdsByEvent(eventInstanceId),
+    ]);
 
+    const scoreSheets = await fetchScoreSheetsBySubmissionIds(submissionIds);
+
+    const scoreCountByJudge = new Map();
+    for (const sheet of scoreSheets) {
+        const id = sheet.judge_person_id;
+        scoreCountByJudge.set(id, (scoreCountByJudge.get(id) ?? 0) + 1);
+    }
+
+    const seen = new Set();
     return (rows ?? [])
         .map((row) => ({
             personEventRoleId: row.person_event_role_id,
             personId: row.person?.person_id,
             displayName: row.person?.display_name || "Unknown",
             email: row.person?.email || "",
+            scoreCount: scoreCountByJudge.get(row.person?.person_id) ?? 0,
         }))
-        .filter((judge) => Boolean(judge.personId))
+        .filter((judge) => {
+            if (!judge.personId || seen.has(judge.personId)) return false;
+            seen.add(judge.personId);
+            return true;
+        })
         .sort((a, b) => a.displayName.localeCompare(b.displayName));
 }

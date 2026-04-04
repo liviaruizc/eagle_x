@@ -58,7 +58,12 @@ export default function AdminJudgesPage() {
                     <ul className="space-y-3 text-left">
                         {judges.map((judge) => (
                             <li key={judge.personEventRoleId} className="rounded border p-3">
-                                <p className="font-semibold text-gray-900">{judge.displayName}</p>
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="font-semibold text-gray-900">{judge.displayName}</p>
+                                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${judge.scoreCount === 0 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
+                                        {judge.scoreCount} {judge.scoreCount === 1 ? "score" : "scores"}
+                                    </span>
+                                </div>
                                 <p className="text-sm text-gray-600">{judge.email || "No email available"}</p>
                             </li>
                         ))}

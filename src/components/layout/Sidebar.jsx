@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { HiHome, HiPlus, HiClipboardList, HiLogout } from "react-icons/hi";
+import { HiHome, HiPlus, HiClipboardList, HiLogout, HiUser, HiClipboardCheck } from "react-icons/hi";
 import FGCUlogo from "../../assets/FGCU logo.jpg";
 
 export default function Sidebar({ isOpen, setIsOpen }) {
@@ -23,7 +23,11 @@ export default function Sidebar({ isOpen, setIsOpen }) {
               ]
             : []),
         ...(role === "judge"
-            ? [{ icon: HiClipboardList, label: "Judge Panel", path: "/judge" }]
+            ? [
+                { icon: HiClipboardList, label: "Judge Panel", path: "/judge" },
+                { icon: HiUser, label: "My Profile", path: "/judge/profile" },
+                { icon: HiClipboardCheck, label: "My Scores", path: "/judge/scores" },
+            ]
             : []),
     ];
 
