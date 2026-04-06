@@ -10,7 +10,8 @@ export async function findPersonByEmail(email) {
     const { data, error } = await supabase
         .from("person")
         .select("person_id")
-        .eq("email", email)
+        .ilike("email", email)
+        .limit(1)
         .maybeSingle();
 
     if (error) throw error;

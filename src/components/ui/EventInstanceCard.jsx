@@ -11,6 +11,12 @@ export default function EventInstanceCard({ event, onClick, action }) {
                     {event.name}
                 </h2>
 
+                {event.action_needed && (
+                    <p className="inline-flex w-fit rounded bg-[#CCAB00]/15 px-2 py-1 text-xs font-semibold text-[#8A7400]">
+                        Action Needed{event.missing_submission_count ? ` (${event.missing_submission_count})` : ""}
+                    </p>
+                )}
+
                 {/* Date */}
                 {event.start_at && (
                     <p className="text-md text-[#55616D]">

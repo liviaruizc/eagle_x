@@ -50,6 +50,13 @@ export default function TrackSubmissionManualFields({
                 required
             />
             <input
+                type="text"
+                placeholder="Co-author emails (separate with |)"
+                className="rounded border p-2 text-sm"
+                value={formData.co_author_emails}
+                onChange={(event) => onFieldChange("co_author_emails", event.target.value)}
+            />
+            <input
                 type="email"
                 placeholder="Supervisor email"
                 className="rounded border p-2 text-sm"

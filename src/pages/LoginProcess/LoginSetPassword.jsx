@@ -97,6 +97,8 @@ export default function SetPasswordPage() {
                     {/* Password Input */}
                     <input
                         type="password"
+                        name="new-password"
+                        autoComplete="new-password"
                         placeholder="Enter your new password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}

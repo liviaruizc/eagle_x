@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { fetchStudentEventInstances } from "../services/studentProjects/studentApi.js";
 import Button from "../components/ui/Button.jsx";
 import EventInstanceCard from "../components/ui/EventInstanceCard.jsx";
 
 export default function StudentDashboard() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -25,12 +26,7 @@ export default function StudentDashboard() {
                 }
 
                 const result = await fetchStudentEventInstances(personId);
-
-                const activeEvents = result.filter(
-                    event => event.status === "pre-scoring" || event.status === "event_scoring"
-                );
-
-                setEvents(activeEvents);
+                setEvents(result);
 
             } catch (err) {
                 console.error(err);
@@ -41,10 +37,14 @@ export default function StudentDashboard() {
         }
 
         loadEvents();
-    }, []);
+    }, [location.key]);
 
     function handleViewDetails(eventInstanceId) {
         navigate(`/students/${eventInstanceId}/projects`);
+    }
+
+    function handleCompleteDetails(eventInstanceId) {
+        navigate(`/students/${eventInstanceId}/complete-data`);
     }
 
     return (
@@ -58,7 +58,7 @@ export default function StudentDashboard() {
             {error && <p className="text-[#CCAB00] text-center">{error}</p>}
             {!loading && !events.length && (
                 <p className="text-[#55616D] text-center py-10">
-                    You are not registered for any active events.
+                    You have no projects linked to any events.
                 </p>
             )}
 
@@ -69,16 +69,30 @@ export default function StudentDashboard() {
                         event={event}
                         onClick={() => handleViewDetails(event.event_instance_id)}
                         action={
-                            <Button
-                                variant="primary"
-                                size="sm"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleViewDetails(event.event_instance_id);
-                                }}
-                            >
-                                View Event
-                            </Button>
+                            <div className="flex gap-2">
+                                {event.action_needed && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleCompleteDetails(event.event_instance_id);
+                                        }}
+                                    >
+                                        Action Needed
+                                    </Button>
+                                )}
+                                <Button
+                                    variant="primary"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleViewDetails(event.event_instance_id);
+                                    }}
+                                >
+                                    View Event
+                                </Button>
+                            </div>
                         }
                     />
                 ))}

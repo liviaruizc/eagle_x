@@ -35,16 +35,20 @@ export async function fetchJudgeEventInstances(personId) {
                 pre_scoring_end_at,
                 location
             ),
-            event_role (code)
+            event_role (code, name)
         `)
         .eq("person_id", personId)
-        .eq("is_active", true)
-        .eq("event_role.code", "judge");
+        .eq("is_active", true);
 
     if (error) throw error;
 
     return (data ?? [])
-        .map(row => row.event_instance)
+        .filter((row) => {
+            const code = String(row.event_role?.code || "").trim().toUpperCase();
+            const name = String(row.event_role?.name || "").trim().toUpperCase();
+            return code === "JUDGE" || name.includes("JUDGE");
+        })
+        .map((row) => row.event_instance)
         .filter(Boolean);
 }
 
@@ -75,7 +79,8 @@ export async function findPersonIdByEmail(email) {
     const { data, error } = await supabase
         .from("person")
         .select("person_id")
-        .eq("email", email)
+        .ilike("email", email)
+        .limit(1)
         .maybeSingle();
 
     if (error) throw error;
@@ -97,13 +102,19 @@ export async function insertPerson({ email, displayName }) {
 }
 
 export async function findPersonEventRoleId({ eventInstanceId, personId, eventRoleId }) {
-    const { data, error } = await supabase
+    let query = supabase
         .from("person_event_role")
         .select("person_event_role_id")
-        .eq("event_instance_id", eventInstanceId)
         .eq("person_id", personId)
-        .eq("event_role_id", eventRoleId)
-        .maybeSingle();
+        .eq("event_role_id", eventRoleId);
+
+    if (eventInstanceId === null || eventInstanceId === undefined) {
+        query = query.is("event_instance_id", null);
+    } else {
+        query = query.eq("event_instance_id", eventInstanceId);
+    }
+
+    const { data, error } = await query.maybeSingle();
 
     if (error) throw error;
     return data?.person_event_role_id ?? null;

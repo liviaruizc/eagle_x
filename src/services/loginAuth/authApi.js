@@ -13,6 +13,37 @@ export async function fetchPersonByEmail(email) {
   return data;
 }
 
+export async function fetchPersonById(personId) {
+  const { data, error } = await supabase
+    .from("person")
+    .select("person_id, email, first_name, last_name, display_name")
+    .eq("person_id", personId)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updatePersonBasicProfile(personId, firstName, lastName) {
+  const normalizedFirstName = String(firstName || "").trim();
+  const normalizedLastName = String(lastName || "").trim();
+
+  if (!normalizedFirstName || !normalizedLastName) {
+    throw new Error("First name and last name are required.");
+  }
+
+  const { error } = await supabase
+    .from("person")
+    .update({
+      first_name: normalizedFirstName,
+      last_name: normalizedLastName,
+      display_name: `${normalizedFirstName} ${normalizedLastName}`.trim(),
+    })
+    .eq("person_id", personId);
+
+  if (error) throw error;
+}
+
 export async function linkAuthUserToPerson(personId, authUserId) {
   const { error } = await supabase
     .from("person")

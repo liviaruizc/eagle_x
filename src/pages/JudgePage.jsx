@@ -44,11 +44,10 @@ export default function JudgeDashboardPage() {
 
                 const judgeEvents = await fetchJudgeEventInstances(user.person_id);
 
-                const openEvents = judgeEvents.filter(
-                    event =>
-                        event.status === "pre-scoring" ||
-                        event.status === "event_scoring"
-                );
+                const openEvents = judgeEvents.filter((event) => {
+                    const status = String(event.status || "").trim().toLowerCase();
+                    return status === "pre-scoring" || status === "pre_scoring" || status === "event_scoring";
+                });
 
                 setEvents(openEvents);
             } catch (err) {
