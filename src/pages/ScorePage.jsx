@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
     calculateScoreTotal,
+    clearJudgeScoringActivity,
     fetchScoringContext,
+    markJudgeScoringActivity,
     submitScoreSheet,
     validateCriterionResponses,
 } from "../services/score/scoreService.js";
@@ -16,6 +18,7 @@ export default function ScorePage() {
     const [rubricId, setRubricId] = useState(null);
     const [tableNumber, setTableNumber] = useState(null);
     const [tableSession, setTableSession] = useState(null);
+    const [posterFileUrl, setPosterFileUrl] = useState(null);
     const [rubricName, setRubricName] = useState("Rubric");
     const [criteria, setCriteria] = useState([]);
     const [responsesByCriterionId, setResponsesByCriterionId] = useState({});
@@ -57,6 +60,7 @@ export default function ScorePage() {
                 setRubricName(context.rubricName || "Rubric");
                 setTableNumber(context.tableNumber ?? null);
                 setTableSession(context.tableSession ?? null);
+                setPosterFileUrl(context.posterFileUrl ?? null);
                 setCriteria(context.criteria || []);
 
                 const initialResponses = (context.criteria || []).reduce((acc, criterion) => {
@@ -78,6 +82,41 @@ export default function ScorePage() {
 
         loadScoringContext();
     }, [submissionId]);
+
+    useEffect(() => {
+        if (!judgeId || !trackId || !submissionId) return;
+
+        let isDisposed = false;
+
+        async function markActive() {
+            try {
+                await markJudgeScoringActivity({
+                    trackId,
+                    judgePersonId: judgeId,
+                    submissionId,
+                });
+            } catch (activityError) {
+                if (!isDisposed) {
+                    console.error("[ScorePage] Could not update scoring activity:", activityError);
+                }
+            }
+        }
+
+        markActive();
+        const heartbeatId = window.setInterval(markActive, 2 * 60 * 1000);
+
+        return () => {
+            isDisposed = true;
+            window.clearInterval(heartbeatId);
+            clearJudgeScoringActivity({
+                trackId,
+                judgePersonId: judgeId,
+                submissionId,
+            }).catch((activityError) => {
+                console.error("[ScorePage] Could not clear scoring activity:", activityError);
+            });
+        };
+    }, [judgeId, trackId, submissionId]);
 
     function handleValueChange(criterionId, value) {
         setResponsesByCriterionId((prev) => ({
@@ -127,6 +166,12 @@ export default function ScorePage() {
                 overallComment,
             });
 
+            await clearJudgeScoringActivity({
+                trackId,
+                judgePersonId: judgeId,
+                submissionId,
+            });
+
             alert("Submitted!");
             navigate(`/queue?trackId=${trackId}`);
         } catch (submitError) {
@@ -143,6 +188,7 @@ export default function ScorePage() {
             rubricName={rubricName}
             tableNumber={tableNumber}
             tableSession={tableSession}
+            posterFileUrl={posterFileUrl}
             total={total}
             isLoading={isLoading}
             criteria={criteria}

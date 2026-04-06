@@ -1,13 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../components/ui/Button.jsx";
 import {
     fetchQueueSubmissionsForJudge,
     filterQueueSubmissions,
 } from "../services/queue/queueService.js";
-import { getJudgeSession } from "../services/judgeSession.js";
 
 const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
+const QUEUE_REFRESH_INTERVAL_MS = 1000;
+
+function cloneFiltersMap(filters) {
+    if (!filters || typeof filters !== "object") return {};
+    return JSON.parse(JSON.stringify(filters));
+}
 
 
 export default function QueuePage() {
@@ -29,23 +34,98 @@ export default function QueuePage() {
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [judgePersonId, setJudgePersonId] = useState("");
+    const hasInitializedFiltersRef = useRef(false);
+
+    const availableFilterFacets = useMemo(() => {
+        const facetMap = new Map();
+
+        // Build options from all currently loaded submissions, not from selected/default filters.
+        for (const submission of allSubmissions) {
+            for (const facet of submission.facets ?? []) {
+                const facetId = facet.facetId;
+                if (!facetId) continue;
+
+                if (!facetMap.has(facetId)) {
+                    facetMap.set(facetId, {
+                        facetId,
+                        code: facet.code || "",
+                        name: facet.name || "",
+                        optionsMap: new Map(),
+                    });
+                }
+
+                const facetEntry = facetMap.get(facetId);
+                const existing = facetEntry.optionsMap.get(facet.token);
+                facetEntry.optionsMap.set(facet.token, {
+                    token: facet.token,
+                    label: facet.label,
+                    count: (existing?.count ?? 0) + 1,
+                });
+            }
+        }
+
+        // Preserve zero-count defaults already sent by service (for reset-to-assigned behavior).
+        for (const serviceFacet of filterFacets) {
+            if (!facetMap.has(serviceFacet.facetId)) {
+                facetMap.set(serviceFacet.facetId, {
+                    facetId: serviceFacet.facetId,
+                    code: serviceFacet.code || "",
+                    name: serviceFacet.name || "",
+                    optionsMap: new Map(),
+                });
+            }
+
+            const facetEntry = facetMap.get(serviceFacet.facetId);
+            for (const option of serviceFacet.options ?? []) {
+                if (!facetEntry.optionsMap.has(option.token)) {
+                    facetEntry.optionsMap.set(option.token, {
+                        token: option.token,
+                        label: option.label,
+                        count: option.count ?? 0,
+                    });
+                }
+            }
+        }
+
+        return [...facetMap.values()]
+            .map((facet) => ({
+                facetId: facet.facetId,
+                code: facet.code,
+                name: facet.name,
+                options: [...facet.optionsMap.values()].sort((a, b) => a.label.localeCompare(b.label)),
+            }))
+            .sort((a, b) => (a.name || a.code).localeCompare(b.name || b.code));
+    }, [allSubmissions, filterFacets]);
 
     const filteredSubmissions = useMemo(() => {
         const byFacetFilters = filterQueueSubmissions(allSubmissions, selectedFiltersByFacetId);
 
-        if (!judgePersonId) {
-            return byFacetFilters;
-        }
-
-        return byFacetFilters.filter(
+        const visible = !judgePersonId
+            ? byFacetFilters
+            : byFacetFilters.filter(
             (submission) => submission.supervisorPersonId !== judgePersonId
         );
+
+        return [...visible].sort((a, b) => {
+            if (a.isBeingScored !== b.isBeingScored) {
+                return a.isBeingScored ? 1 : -1;
+            }
+
+            const scoreCountDelta = (a.scoreCount ?? 0) - (b.scoreCount ?? 0);
+            if (scoreCountDelta !== 0) return scoreCountDelta;
+
+            const aTime = new Date(a.createdAt || 0).getTime();
+            const bTime = new Date(b.createdAt || 0).getTime();
+            return aTime - bTime;
+        });
     }, [allSubmissions, selectedFiltersByFacetId, judgePersonId]);
 
     useEffect(() => {
-        async function loadQueueSubmissions() {
-            setError("");
-            setIsLoading(true);
+        async function loadQueueSubmissions({ showLoading }) {
+            if (showLoading) {
+                setError("");
+                setIsLoading(true);
+            }
 
             if (!trackId) {
                 setError("No track selected. Please choose a track to judge.");
@@ -74,24 +154,41 @@ export default function QueuePage() {
                     trackId,
                 });
 
+                const judgeDefaults = cloneFiltersMap(queueData.defaultSelectedTokensByFacetId ?? {});
+
                 setAllSubmissions(queueData.submissions ?? []);
                 setFilterFacets(queueData.filterFacets ?? []);
-                setDefaultSelectedFiltersByFacetId(queueData.defaultSelectedTokensByFacetId ?? {});
+                setDefaultSelectedFiltersByFacetId(judgeDefaults);
+                sessionStorage.setItem(`queue_default_filters_${trackId}`, JSON.stringify(judgeDefaults));
 
-                const storageKey = `queue_filters_${trackId}`;
-                const savedFilters = sessionStorage.getItem(storageKey);
-                setSelectedFiltersByFacetId(
-                    savedFilters ? JSON.parse(savedFilters) : (queueData.defaultSelectedTokensByFacetId ?? {})
-                );
+                if (!hasInitializedFiltersRef.current) {
+                    const storageKey = `queue_filters_${trackId}`;
+                    const savedFilters = sessionStorage.getItem(storageKey);
+                    setSelectedFiltersByFacetId(
+                        savedFilters ? JSON.parse(savedFilters) : judgeDefaults
+                    );
+                    hasInitializedFiltersRef.current = true;
+                }
             } catch (loadError) {
                 console.error(loadError);
                 setError("Could not load eligible submissions right now.");
             } finally {
-                setIsLoading(false);
+                if (showLoading) {
+                    setIsLoading(false);
+                }
             }
         }
 
-        loadQueueSubmissions();
+        hasInitializedFiltersRef.current = false;
+        loadQueueSubmissions({ showLoading: true });
+
+        const refreshId = window.setInterval(() => {
+            loadQueueSubmissions({ showLoading: false });
+        }, QUEUE_REFRESH_INTERVAL_MS);
+
+        return () => {
+            window.clearInterval(refreshId);
+        };
     }, [trackId]);
 
 
@@ -108,13 +205,18 @@ export default function QueuePage() {
     }
 
     function clearFilters() {
-        persistFilters({});
+        sessionStorage.removeItem(`queue_filters_${trackId}`);
         setSelectedFiltersByFacetId({});
     }
 
     function resetToAssignedFilters() {
-        persistFilters(defaultSelectedFiltersByFacetId);
-        setSelectedFiltersByFacetId(defaultSelectedFiltersByFacetId);
+        const storedDefaults = sessionStorage.getItem(`queue_default_filters_${trackId}`);
+        const resolvedDefaults = storedDefaults
+            ? cloneFiltersMap(JSON.parse(storedDefaults))
+            : cloneFiltersMap(defaultSelectedFiltersByFacetId);
+
+        persistFilters(resolvedDefaults);
+        setSelectedFiltersByFacetId(resolvedDefaults);
     }
 
     function hasAnySelectedFilters() {
@@ -166,15 +268,15 @@ export default function QueuePage() {
                     </div>
                 </div>
 
-                {!filterFacets.length && (
+                {!availableFilterFacets.length && (
                     <p className="text-sm text-gray-500">
                         No filter facets configured for current submissions.
                     </p>
                 )}
 
-                {!!filterFacets.length && (
+                {!!availableFilterFacets.length && (
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        {filterFacets.map((facet) => (
+                        {availableFilterFacets.map((facet) => (
                             <div key={facet.facetId} className="rounded border p-3">
                                 <p className="text-sm font-medium">
                                     {facet.name || facet.code}
@@ -221,6 +323,14 @@ export default function QueuePage() {
                                 <p className="text-xs text-gray-500">
                                     Track: {submission.trackName}
                                 </p>
+                                <p className="text-xs text-gray-500">
+                                    Scores received: {submission.scoreCount ?? 0}
+                                </p>
+                                {submission.isBeingScored && (
+                                    <p className="text-xs font-medium text-amber-700">
+                                        Currently being scored
+                                    </p>
+                                )}
                                 {submission.tableNumber != null && (
                                     <p className="text-xs font-medium text-blue-600">
                                         Table {submission.tableNumber}

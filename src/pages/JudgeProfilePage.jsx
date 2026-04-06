@@ -157,8 +157,11 @@ export default function JudgeProfilePage() {
         setIsSaving(true);
         try {
             await updateJudgeProfileFacets(personEventRoleId, selectedFacetOptionByFacetId);
+            if (selectedEventId) {
+                sessionStorage.setItem("judge_event_instance_id", String(selectedEventId));
+            }
             Object.keys(sessionStorage)
-                .filter((key) => key.startsWith("queue_filters_"))
+                .filter((key) => key.startsWith("queue_filters_") || key.startsWith("queue_default_filters_"))
                 .forEach((key) => sessionStorage.removeItem(key));
             setMessage("Profile updated. Your queue filters will reflect these changes on the next load.");
         } catch (err) {

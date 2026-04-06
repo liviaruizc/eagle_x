@@ -231,6 +231,7 @@ export async function fetchPersonEventRoleWithFacets(personId, eventInstanceId) 
         .select(`
             person_event_role_id,
             event_instance_id,
+            event_role (code, name),
             person_event_role_facet_value (
                 facet_id,
                 facet_option_id
@@ -243,10 +244,18 @@ export async function fetchPersonEventRoleWithFacets(personId, eventInstanceId) 
         query = query.eq("event_instance_id", eventInstanceId);
     }
 
-    const { data, error } = await query.order("person_event_role_id", { ascending: false }).limit(1);
+    const { data, error } = await query.order("person_event_role_id", { ascending: false });
 
     if (error) throw error;
-    return data?.[0] ?? null;
+
+    const rows = data ?? [];
+    const judgeRows = rows.filter((row) => {
+        const code = String(row.event_role?.code || "").trim().toUpperCase();
+        const name = String(row.event_role?.name || "").trim().toUpperCase();
+        return code === "JUDGE" || name.includes("JUDGE");
+    });
+
+    return judgeRows[0] ?? rows[0] ?? null;
 }
 
 export async function deletePersonEventRoleFacetValues(personEventRoleId, facetIds) {

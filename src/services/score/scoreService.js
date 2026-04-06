@@ -15,6 +15,7 @@ import {
     fetchRubricById,
     fetchRubricCriteria,
     fetchScoreItems,
+    fetchSubmissionPosterFileUrl,
     fetchSubmissionForScoring,
     fetchSubmissionTableAssignment,
     fetchTrackRubrics,
@@ -33,7 +34,9 @@ import {
 } from "./scoreUtils.js";
 import {
     assertJudgeCanScoreSubmission,
+    clearJudgeScoringActivity,
     ensureJudgeAssignment,
+    markJudgeScoringActivity,
     updateSubmissionStatusIfThresholdReached,
 } from "./scoreWorkflow.js";
 
@@ -43,6 +46,11 @@ export {
     computeCriterionScore,
     validateCriterionResponses,
     calculateScoreTotal,
+};
+
+export {
+    markJudgeScoringActivity,
+    clearJudgeScoringActivity,
 };
 
 export async function fetchScoringContext(submissionId, judgePersonId) {
@@ -58,10 +66,11 @@ export async function fetchScoringContext(submissionId, judgePersonId) {
         throw new Error("No rubric is linked to this submission's track.");
     }
 
-    const [rubric, eventStatus, tableInfo] = await Promise.all([
+    const [rubric, eventStatus, tableInfo, posterFileUrl] = await Promise.all([
         fetchRubricById(selectedTrackRubric.rubric_id),
         fetchEventInstanceStatusByTrack(submission.track_id),
         fetchSubmissionTableAssignment(submissionId),
+        fetchSubmissionPosterFileUrl(submissionId),
     ]);
 
     const allowedPhases = resolveAllowedScoringPhases(eventStatus);
@@ -102,6 +111,7 @@ export async function fetchScoringContext(submissionId, judgePersonId) {
         existingResponsesByCriterionId,
         tableNumber: tableInfo?.table_number ?? null,
         tableSession: tableInfo?.session ?? null,
+        posterFileUrl,
     };
 }
 
