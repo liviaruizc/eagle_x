@@ -6,11 +6,11 @@ export async function fetchPersonByEmail(email) {
   const { data, error } = await supabase
     .from("person")
     .select("*")
-    .eq("email", email)
-    .single();
+    .ilike("email", email.trim())
+    .limit(1);
 
   if (error) throw error;
-  return data;
+  return data?.[0] ?? null;
 }
 
 export async function linkAuthUserToPerson(personId, authUserId) {
