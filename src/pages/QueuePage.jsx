@@ -66,6 +66,7 @@ export default function QueuePage() {
                 }
 
                 setJudgePersonId(judgePersonId);
+                sessionStorage.setItem("judge_track_id", trackId);
 
                 const queueData = await fetchQueueSubmissionsForJudge({
                     judgePersonId,
@@ -76,7 +77,12 @@ export default function QueuePage() {
                 setAllSubmissions(queueData.submissions ?? []);
                 setFilterFacets(queueData.filterFacets ?? []);
                 setDefaultSelectedFiltersByFacetId(queueData.defaultSelectedTokensByFacetId ?? {});
-                setSelectedFiltersByFacetId(queueData.defaultSelectedTokensByFacetId ?? {});
+
+                const storageKey = `queue_filters_${trackId}`;
+                const savedFilters = sessionStorage.getItem(storageKey);
+                setSelectedFiltersByFacetId(
+                    savedFilters ? JSON.parse(savedFilters) : (queueData.defaultSelectedTokensByFacetId ?? {})
+                );
             } catch (loadError) {
                 console.error(loadError);
                 setError("Could not load eligible submissions right now.");
@@ -89,18 +95,25 @@ export default function QueuePage() {
     }, [trackId]);
 
 
+    function persistFilters(filters) {
+        sessionStorage.setItem(`queue_filters_${trackId}`, JSON.stringify(filters));
+    }
+
     function setFacetFilterToken(facetId, token) {
-        setSelectedFiltersByFacetId((prev) => ({
-            ...prev,
-            [facetId]: token ? [token] : [],
-        }));
+        setSelectedFiltersByFacetId((prev) => {
+            const next = { ...prev, [facetId]: token ? [token] : [] };
+            persistFilters(next);
+            return next;
+        });
     }
 
     function clearFilters() {
+        persistFilters({});
         setSelectedFiltersByFacetId({});
     }
 
     function resetToAssignedFilters() {
+        persistFilters(defaultSelectedFiltersByFacetId);
         setSelectedFiltersByFacetId(defaultSelectedFiltersByFacetId);
     }
 

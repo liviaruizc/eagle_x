@@ -225,6 +225,30 @@ export async function fetchFacetOptionsByIds(facetOptionIds) {
     return data ?? [];
 }
 
+export async function fetchPersonEventRoleWithFacets(personId, eventInstanceId) {
+    let query = supabase
+        .from("person_event_role")
+        .select(`
+            person_event_role_id,
+            event_instance_id,
+            person_event_role_facet_value (
+                facet_id,
+                facet_option_id
+            )
+        `)
+        .eq("person_id", personId)
+        .eq("is_active", true);
+
+    if (eventInstanceId) {
+        query = query.eq("event_instance_id", eventInstanceId);
+    }
+
+    const { data, error } = await query.order("person_event_role_id", { ascending: false }).limit(1);
+
+    if (error) throw error;
+    return data?.[0] ?? null;
+}
+
 export async function deletePersonEventRoleFacetValues(personEventRoleId, facetIds) {
     if (!facetIds?.length) return;
 

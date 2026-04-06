@@ -132,6 +132,16 @@ export async function insertSubmissionFacetValues(payloads) {
     if (error) throw error;
 }
 
+export async function fetchSubmissionIdsByEvent(eventInstanceId) {
+    const { data, error } = await supabase
+        .from("submission")
+        .select("submission_id, track:track_id!inner(event_instance_id)")
+        .eq("track.event_instance_id", eventInstanceId);
+
+    if (error) throw error;
+    return (data ?? []).map((r) => r.submission_id);
+}
+
 export async function fetchAdminProjectRowsByEvent(eventInstanceId) {
     const { data, error } = await supabase
         .from("submission")
@@ -164,7 +174,8 @@ export async function fetchAdminProjectRowsByEvent(eventInstanceId) {
                     table_number,
                     session
                 )
-            )
+            ),
+            score_sheet (score_sheet_id)
         `)
         .eq("track.event_instance_id", eventInstanceId)
         .order("created_at", { ascending: false });
@@ -205,7 +216,8 @@ export async function fetchAdminProjectRowsByTrack(trackId) {
                     table_number,
                     session
                 )
-            )
+            ),
+            score_sheet (score_sheet_id)
         `)
         .eq("track_id", trackId)
         .order("created_at", { ascending: false });

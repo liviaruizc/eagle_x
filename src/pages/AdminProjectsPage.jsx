@@ -145,6 +145,39 @@ export default function AdminProjectsPage() {
                         <p className="text-sm text-gray-500 text-left">No projects found for this scope.</p>
                     )}
 
+                    {!isLoading && !error && !!projects.length && (() => {
+                        const unscored = projects.filter((p) => p.scoreCount === 0);
+                        const byTrack = unscored.reduce((acc, p) => {
+                            const key = p.track?.name ?? "Unknown Track";
+                            if (!acc[key]) acc[key] = [];
+                            acc[key].push(p);
+                            return acc;
+                        }, {});
+
+                        return (
+                            <div className="mb-5 rounded border border-yellow-300 bg-yellow-50 p-3 text-left">
+                                <p className="mb-2 font-semibold text-yellow-800">
+                                    Unscored Projects ({unscored.length} of {projects.length})
+                                </p>
+                                {!unscored.length && (
+                                    <p className="text-sm text-green-700">All projects have at least one score.</p>
+                                )}
+                                {!!unscored.length && Object.entries(byTrack).map(([trackName, trackProjects]) => (
+                                    <div key={trackName} className="mb-2">
+                                        {viewMode === "event" && (
+                                            <p className="text-xs font-semibold text-yellow-700">{trackName}</p>
+                                        )}
+                                        <ul className="ml-2 list-disc pl-3">
+                                            {trackProjects.map((p) => (
+                                                <li key={p.submissionId} className="text-sm text-yellow-900">{p.title}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    })()}
+
                     <ul className="space-y-3 text-left">
                         {projects.map((project) => {
                             const input = getTableInput(project.submissionId, project);
@@ -153,7 +186,12 @@ export default function AdminProjectsPage() {
 
                             return (
                                 <li key={project.submissionId} className="rounded border p-3">
-                                    <p className="font-semibold text-gray-900">{project.title}</p>
+                                    <div className="flex items-start justify-between gap-2">
+                                        <p className="font-semibold text-gray-900">{project.title}</p>
+                                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${project.scoreCount === 0 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
+                                            {project.scoreCount} {project.scoreCount === 1 ? "score" : "scores"}
+                                        </span>
+                                    </div>
                                     {project.description && (
                                         <p className="mt-1 text-sm text-gray-600">{project.description}</p>
                                     )}

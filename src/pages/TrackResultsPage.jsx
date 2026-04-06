@@ -10,6 +10,23 @@ function formatScore(value) {
     return Number(value).toFixed(2);
 }
 
+function downloadCsv(filename, headers, rows) {
+    const escape = (val) => {
+        const str = val == null ? "" : String(val);
+        return str.includes(",") || str.includes('"') || str.includes("\n")
+            ? `"${str.replace(/"/g, '""')}"`
+            : str;
+    };
+    const lines = [headers, ...rows].map((row) => row.map(escape).join(","));
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
 const PHASE_OPTIONS = [
     { value: "all", label: "All Questions" },
     { value: "pre_scoring", label: "Pre-Scoring Only" },
@@ -159,6 +176,18 @@ export default function TrackResultsPage() {
                             <section className="rounded border p-3">
                                 <div className="mb-2 flex items-center justify-between gap-3">
                                     <p className="font-semibold">Overall Rankings</p>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={!filteredOverallRankings.length}
+                                        onClick={() => downloadCsv(
+                                            `${trackName}-overall-rankings.csv`,
+                                            ["Rank", "Submission", "# Evaluations", "Overall Score", "Phase"],
+                                            filteredOverallRankings.map((row) => [row.rank ?? "", row.title, row.scoreCount, formatScore(row.totalScore), row.status])
+                                        )}
+                                    >
+                                        Export CSV
+                                    </Button>
                                 </div>
 
                                 {!filteredOverallRankings.length && (
@@ -200,19 +229,33 @@ export default function TrackResultsPage() {
                             <section className="rounded border p-3">
                                 <div className="mb-2 flex items-center justify-between gap-3">
                                     <p className="font-semibold">Category-Based Report</p>
-                                    <select
-                                        className="rounded border p-2 text-sm"
-                                        value={selectedCategory}
-                                        onChange={(event) => setSelectedCategory(event.target.value)}
-                                        disabled={!allRankings.categories.length}
-                                    >
-                                        {!allRankings.categories.length && <option value="">No categories</option>}
-                                        {allRankings.categories.map((category) => (
-                                            <option key={category} value={category}>
-                                                {category}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            disabled={!filteredCategoryRankings.length}
+                                            onClick={() => downloadCsv(
+                                                `${trackName}-category-${selectedCategory}-rankings.csv`,
+                                                ["Rank", "Submission", "# Evaluations", "Category Total", "Category Avg", "Overall Avg", "Phase"],
+                                                filteredCategoryRankings.map((row) => [row.rank ?? "", row.title, row.categoryCount, formatScore(row.categorySum), formatScore(row.categoryScore), formatScore(row.totalScore), row.status])
+                                            )}
+                                        >
+                                            Export CSV
+                                        </Button>
+                                        <select
+                                            className="rounded border p-2 text-sm"
+                                            value={selectedCategory}
+                                            onChange={(event) => setSelectedCategory(event.target.value)}
+                                            disabled={!allRankings.categories.length}
+                                        >
+                                            {!allRankings.categories.length && <option value="">No categories</option>}
+                                            {allRankings.categories.map((category) => (
+                                                <option key={category} value={category}>
+                                                    {category}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
 
                                 {!selectedCategory && (
@@ -262,17 +305,31 @@ export default function TrackResultsPage() {
                             <section className="rounded border p-3">
                                 <div className="mb-2 flex items-center justify-between gap-3">
                                     <p className="font-semibold">Phase Rankings</p>
-                                    <select
-                                        className="rounded border p-2 text-sm"
-                                        value={selectedPhase}
-                                        onChange={(event) => setSelectedPhase(event.target.value)}
-                                    >
-                                        {PHASE_OPTIONS.filter((o) => o.value !== "all").map((option) => (
-                                            <option key={option.value} value={option.value}>
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            disabled={!filteredPhaseRankings.length}
+                                            onClick={() => downloadCsv(
+                                                `${trackName}-phase-${selectedPhase}-rankings.csv`,
+                                                ["Rank", "Submission", "# Evaluations", "Overall Avg", "Phase"],
+                                                filteredPhaseRankings.map((row) => [row.rank ?? "", row.title, row.scoreCount, formatScore(row.totalScore), row.status])
+                                            )}
+                                        >
+                                            Export CSV
+                                        </Button>
+                                        <select
+                                            className="rounded border p-2 text-sm"
+                                            value={selectedPhase}
+                                            onChange={(event) => setSelectedPhase(event.target.value)}
+                                        >
+                                            {PHASE_OPTIONS.filter((o) => o.value !== "all").map((option) => (
+                                                <option key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
 
                                 {!filteredPhaseRankings.length && (

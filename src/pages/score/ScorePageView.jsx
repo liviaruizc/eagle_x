@@ -96,6 +96,8 @@ function renderCriterionInput(criterion, response, onValueChange) {
 export default function ScorePageView({
     submissionTitle,
     rubricName,
+    tableNumber,
+    tableSession,
     total,
     isLoading,
     criteria,
@@ -118,6 +120,11 @@ export default function ScorePageView({
                         <div>
                             <h1 className="text-2xl font-bold">Score Submission</h1>
                             <p className="mt-1 text-sm text-gray-600">Rubric: {rubricName}</p>
+                            {tableNumber != null && (
+                                <p className="mt-1 text-sm font-semibold text-blue-600">
+                                    Table {tableNumber}{tableSession ? ` · Session ${tableSession}` : ""}
+                                </p>
+                            )}
                             <p className="mt-1 text-sm text-gray-600">Total score: {total}</p>
                         </div>
                     </header>

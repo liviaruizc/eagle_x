@@ -36,6 +36,8 @@ import UnauthorizedPage from '../pages/UnauthorizedPage.jsx';
 
 import AppLayout from "../components/layout/AppLayout.jsx";
 import SubmissionEvaluationsPage from '../pages/SubmissionEvaluationsPage.jsx';
+import JudgeProfilePage from '../pages/JudgeProfilePage.jsx';
+import JudgeScoresPage from '../pages/JudgeScoresPage.jsx';
 
 export default function AppRouter() {
     return (
@@ -78,6 +80,8 @@ export default function AppRouter() {
                             <Route path="/judges/signup/:eventInstanceId" element={<JudgeSignupPage />} />
                             <Route path="/judges/:eventInstanceId/tracks" element={<TrackSelection />} />
                             <Route path="/score/:projectId" element={<ScorePage />} />
+                            <Route path="/judge/profile" element={<JudgeProfilePage />} />
+                            <Route path="/judge/scores" element={<JudgeScoresPage />} />
                         </Route>
 
                         {/* Admin */}
