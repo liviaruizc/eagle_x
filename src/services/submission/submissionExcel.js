@@ -48,6 +48,9 @@ function mapExcelRowToSubmission(row) {
         degree: String(getRowValue(normalizedRow, ["degree"]))?.trim(),
         level: String(getRowValue(normalizedRow, ["level"]))?.trim(),
         program: String(getRowValue(normalizedRow, ["program"]))?.trim(),
+        session_assignment: String(
+            getRowValue(normalizedRow, ["session", "postersessionandnumber", "sessionandnumber"])
+        )?.trim(),
         submitted_at: submittedAt,
     };
 }
@@ -59,6 +62,9 @@ export async function parseSubmissionExcelFile(file) {
     const rawRows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
 
     return rawRows
-        .map(mapExcelRowToSubmission)
+        .map((row, index) => ({
+            ...mapExcelRowToSubmission(row),
+            rowNumber: index + 2,
+        }))
         .filter((submission) => submission.title);
 }

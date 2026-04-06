@@ -21,11 +21,13 @@ import RoleSelectionPage from '../pages/LoginProcess/RoleSelectionPage.jsx';
 import LoginEmailPage from '../pages/LoginProcess/LoginEmailPage.jsx';
 import LoginSetPassword from '../pages/LoginProcess/LoginSetPassword.jsx';
 import LoginAfterVerified from '../pages/LoginProcess/LoginAfterVerified.jsx';
+import CompleteProfilePage from '../pages/LoginProcess/CompleteProfilePage.jsx';
 
 import StudentDashboard from '../pages/StudentPage.jsx';
 import StudentEventProjectsPage from '../pages/StudentProjectsPage.jsx';
 import UploadPosterPage from '../pages/UploadPosterPage.jsx';
 import StudentProjectDetails from '../pages/StudentProjectInfo.jsx';
+import StudentCompletionPage from '../pages/StudentCompletionPage.jsx';
 
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import PublicRoute from "./PublicRoute.jsx";
@@ -53,6 +55,8 @@ export default function AppRouter() {
 
                 {/* ================= PROTECTED ROUTES ================= */}
                 <Route element={<ProtectedRoute />}>
+
+                    <Route path="/complete-profile" element={<CompleteProfilePage />} />
                     
                     <Route element={<AppLayout />}>
                         {/* General */}
@@ -64,6 +68,7 @@ export default function AppRouter() {
                         <Route element={<RoleRoute allowedRoles={["student"]} />}>
                             <Route path="/student" element={<StudentDashboard />} />
                             <Route path="/students/:eventInstanceId/projects" element={<StudentEventProjectsPage />} />
+                            <Route path="/students/:eventInstanceId/complete-data" element={<StudentCompletionPage />} />
                             <Route path="/students/projects/:submissionId" element={<StudentProjectDetails />} />
                             <Route path="/students/projects/:submissionId/upload-poster" element={<UploadPosterPage />} />
                         </Route>

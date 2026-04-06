@@ -98,6 +98,7 @@ export default function ScorePageView({
     rubricName,
     tableNumber,
     tableSession,
+    posterFileUrl,
     total,
     isLoading,
     criteria,
@@ -123,6 +124,18 @@ export default function ScorePageView({
                             {tableNumber != null && (
                                 <p className="mt-1 text-sm font-semibold text-blue-600">
                                     Table {tableNumber}{tableSession ? ` · Session ${tableSession}` : ""}
+                                </p>
+                            )}
+                            {posterFileUrl && (
+                                <p className="mt-1 text-sm">
+                                    <a
+                                        href={posterFileUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="font-medium text-blue-600 hover:underline"
+                                    >
+                                        View Submitted Poster
+                                    </a>
                                 </p>
                             )}
                             <p className="mt-1 text-sm text-gray-600">Total score: {total}</p>

@@ -9,6 +9,7 @@ import {
     deletePersonEventRoleFacetValues,
     fetchFacetOptionsByFacetIds,
     fetchFacetRowsByIds,
+    findPersonEventRoleId,
     findJudgeRoleByCode,
     findJudgeRoleByName,
     findFirstEventRoleId,
@@ -269,31 +270,50 @@ export async function createJudgeOrAdmin({
         throw new Error("Event instance ID is required for event admins.");
     }
 
-    // Check if person already exists
-    const existingPersonId = await findPersonIdByEmail(normalizedEmail);
-    if (existingPersonId) {
-        throw new Error(`A user with email ${normalizedEmail} already exists.`);
-    }
-
     // Resolve the role ID
     const roleId = await resolveRoleId(role);
-
-    // Create the person
-    const personId = await insertPerson({
-        email: normalizedEmail,
-        displayName: normalizedDisplayName,
-    });
 
     const targetEventInstanceId = role === "admin" && isGlobalAdmin
         ? null
         : eventInstanceId;
 
-    // Judges and event admins are event-linked. Global admins are not.
-    const personEventRoleId = await insertPersonEventRole({
+    let personId = await findPersonIdByEmail(normalizedEmail);
+    let personWasCreated = false;
+
+    if (!personId) {
+        try {
+            personId = await insertPerson({
+                email: normalizedEmail,
+                displayName: normalizedDisplayName,
+            });
+            personWasCreated = true;
+        } catch (error) {
+            if (error?.code === "23505") {
+                personId = await findPersonIdByEmail(normalizedEmail);
+            } else {
+                throw error;
+            }
+        }
+    }
+
+    if (!personId) {
+        throw new Error(`Could not resolve person for ${normalizedEmail}.`);
+    }
+
+    let personEventRoleId = await findPersonEventRoleId({
         eventInstanceId: targetEventInstanceId,
         personId,
         eventRoleId: roleId,
     });
+
+    // Judges and event admins are event-linked. Global admins are not.
+    if (!personEventRoleId) {
+        personEventRoleId = await insertPersonEventRole({
+            eventInstanceId: targetEventInstanceId,
+            personId,
+            eventRoleId: roleId,
+        });
+    }
 
     let unmatched = [];
     if (role === "judge") {
@@ -313,5 +333,6 @@ export async function createJudgeOrAdmin({
         displayName: normalizedDisplayName,
         role,
         unmatched,
+        created: personWasCreated,
     };
 }

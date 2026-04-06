@@ -9,6 +9,7 @@ import {
     fetchSubmissionForScoring,
     findJudgeAssignment,
     insertJudgeAssignment,
+    updateJudgeAssignmentTimestamp,
     fetchSubmittedJudgeRowsBySubmission,
     updateSubmissionStatusIfCurrent,
 } from "./scoreApi.js";
@@ -28,13 +29,38 @@ export async function ensureJudgeAssignment({ trackId, judgePersonId, submission
         submissionId,
     });
 
-    if (existing?.length) return;
+    const timestamp = new Date().toISOString();
+
+    if (existing?.length) {
+        await updateJudgeAssignmentTimestamp({
+            trackId,
+            judgePersonId,
+            submissionId,
+            assignedAt: timestamp,
+        });
+        return;
+    }
 
     await insertJudgeAssignment({
         trackId,
         judgePersonId,
         submissionId,
-        assignedAt: new Date().toISOString(),
+        assignedAt: timestamp,
+    });
+}
+
+export async function markJudgeScoringActivity({ trackId, judgePersonId, submissionId }) {
+    await ensureJudgeAssignment({ trackId, judgePersonId, submissionId });
+}
+
+export async function clearJudgeScoringActivity({ trackId, judgePersonId, submissionId }) {
+    // Mark as stale immediately so queue flags clear even if a judge leaves mid-form.
+    const staleTimestamp = new Date(Date.now() - (2 * 60 * 60 * 1000)).toISOString();
+    await updateJudgeAssignmentTimestamp({
+        trackId,
+        judgePersonId,
+        submissionId,
+        assignedAt: staleTimestamp,
     });
 }
 

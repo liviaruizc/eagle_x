@@ -22,12 +22,16 @@ function buildDisplayNameFromEmail(email) {
     return String(email || "").split("@")[0] || String(email || "");
 }
 
+function normalizeEmail(email) {
+    return String(email || "").trim().toLowerCase();
+}
+
 export async function findOrCreatePersonByEmail(createdByEmail) {
     if (!createdByEmail) {
         throw new Error("Author email is required.");
     }
 
-    const normalizedEmail = String(createdByEmail).trim();
+    const normalizedEmail = normalizeEmail(createdByEmail);
     const existingPersonId = await findPersonByEmail(normalizedEmail);
 
     if (existingPersonId) {
@@ -37,28 +41,52 @@ export async function findOrCreatePersonByEmail(createdByEmail) {
         };
     }
 
-    const personId = await insertPerson({
-        email: normalizedEmail,
-        displayName: buildDisplayNameFromEmail(normalizedEmail),
-    });
+    try {
+        const personId = await insertPerson({
+            email: normalizedEmail,
+            displayName: buildDisplayNameFromEmail(normalizedEmail),
+        });
 
-    return {
-        personId,
-        wasCreated: true,
-    };
+        return {
+            personId,
+            wasCreated: true,
+        };
+    } catch (error) {
+        // If a concurrent row created the same email first, reuse it.
+        if (error?.code === "23505") {
+            const conflictPersonId = await findPersonByEmail(normalizedEmail);
+            if (conflictPersonId) {
+                return {
+                    personId: conflictPersonId,
+                    wasCreated: false,
+                };
+            }
+        }
+
+        throw error;
+    }
 }
 
 export async function findOrCreateOptionalPersonIdByEmail(email) {
-    const normalizedEmail = String(email || "").trim();
+    const normalizedEmail = normalizeEmail(email);
     if (!normalizedEmail) return null;
 
     const existingPersonId = await findPersonByEmail(normalizedEmail);
     if (existingPersonId) return existingPersonId;
 
-    return insertPerson({
-        email: normalizedEmail,
-        displayName: buildDisplayNameFromEmail(normalizedEmail),
-    });
+    try {
+        return await insertPerson({
+            email: normalizedEmail,
+            displayName: buildDisplayNameFromEmail(normalizedEmail),
+        });
+    } catch (error) {
+        if (error?.code === "23505") {
+            const conflictPersonId = await findPersonByEmail(normalizedEmail);
+            if (conflictPersonId) return conflictPersonId;
+        }
+
+        throw error;
+    }
 }
 
 async function resolveStudentEventRoleId() {

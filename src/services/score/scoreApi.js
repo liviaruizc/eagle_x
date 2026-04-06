@@ -28,6 +28,17 @@ export async function fetchSubmissionTableAssignment(submissionId) {
     return data?.event_table ?? null;
 }
 
+export async function fetchSubmissionPosterFileUrl(submissionId) {
+    const { data, error } = await supabase
+        .from("submission_file")
+        .select("file_url")
+        .eq("submission_id", submissionId)
+        .maybeSingle();
+
+    if (error) throw error;
+    return data?.file_url ?? null;
+}
+
 export async function fetchTrackRubrics(trackId) {
     const { data, error } = await supabase
         .from("track_rubric")
@@ -126,6 +137,17 @@ export async function insertJudgeAssignment({ trackId, judgePersonId, submission
             submission_id: submissionId,
             assigned_at: assignedAt,
         });
+
+    if (error) throw error;
+}
+
+export async function updateJudgeAssignmentTimestamp({ trackId, judgePersonId, submissionId, assignedAt }) {
+    const { error } = await supabase
+        .from("judge_assignment")
+        .update({ assigned_at: assignedAt })
+        .eq("track_id", trackId)
+        .eq("person_id", judgePersonId)
+        .eq("submission_id", submissionId);
 
     if (error) throw error;
 }

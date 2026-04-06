@@ -5,7 +5,6 @@ export async function fetchEventTableByNumber(eventInstanceId, trackId, tableNum
         .from("event_table")
         .select("table_id, table_number, session")
         .eq("event_instance_id", eventInstanceId)
-        .eq("track_id", trackId)
         .eq("table_number", tableNumber);
 
     if (session) {
@@ -22,7 +21,7 @@ export async function fetchEventTableByNumber(eventInstanceId, trackId, tableNum
 export async function createEventTable(eventInstanceId, trackId, tableNumber, session) {
     const { data, error } = await supabase
         .from("event_table")
-        .insert({ event_instance_id: eventInstanceId, track_id: trackId, table_number: tableNumber, session: session || null })
+        .insert({ event_instance_id: eventInstanceId, table_number: tableNumber, session: session || null })
         .select("table_id, table_number, session")
         .single();
 

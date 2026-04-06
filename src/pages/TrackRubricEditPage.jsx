@@ -16,7 +16,7 @@ export default function TrackRubricEditPage() {
     const [error, setError] = useState("");
 
     const rubric = useMemo(
-        () => rubrics.find((item) => item.rubricId === rubricId) ?? null,
+        () => rubrics.find((item) => String(item.rubricId) === String(rubricId)) ?? null,
         [rubrics, rubricId]
     );
 

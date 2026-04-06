@@ -52,7 +52,8 @@ export default function StudentProjectDetails() {
         return <p className="text-center text-[#55616D]">No project found.</p>;
     }
 
-    const poster = submission.file_url ?? null;
+    const posterUrl = submission.file_url?.file_url ?? null;
+    const groupMembers = Array.isArray(submission.group_members) ? submission.group_members : [];
 
     return (
         <div className="max-w-5xl mx-auto p-6 space-y-8">
@@ -95,27 +96,27 @@ export default function StudentProjectDetails() {
                     </div>
 
                     <div>
-                        <span className="font-semibold text-[#004785]">Student:</span>
-                        <p>
-                            {submission.student
-                                ? `${submission.student.first_name} ${submission.student.last_name}`
-                                : "N/A"}
-                        </p>
-                        <p className="text-xs">
-                            {submission.student?.email}
-                        </p>
+                        <span className="font-semibold text-[#004785]">Group Members:</span>
+                        {groupMembers.length ? (
+                            <ul className="space-y-1">
+                                {groupMembers.map((member, index) => (
+                                    <li key={`${member.email || member.name}-${index}`}>
+                                        <p>{member.name || "Unnamed member"}</p>
+                                        {member.email && <p className="text-xs">{member.email}</p>}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>N/A</p>
+                        )}
                     </div>
 
                     <div>
                         <span className="font-semibold text-[#004785]">Supervisor:</span>
-                        <p>
-                            {submission.supervisor
-                                ? `${submission.supervisor.first_name} ${submission.supervisor.last_name}`
-                                : "N/A"}
-                        </p>
-                        <p className="text-xs">
-                            {submission.supervisor?.email}
-                        </p>
+                        <p>{submission.supervisor?.name || "N/A"}</p>
+                        {submission.supervisor?.email && (
+                            <p className="text-xs">{submission.supervisor.email}</p>
+                        )}
                     </div>
 
                 </div>
@@ -127,7 +128,7 @@ export default function StudentProjectDetails() {
                     Poster
                 </h2>
 
-                <PosterViewer fileUrl={poster.file_url} />
+                <PosterViewer fileUrl={posterUrl} />
             </div>
 
         </div>
