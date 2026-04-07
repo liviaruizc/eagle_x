@@ -176,16 +176,14 @@ export default function JudgeProfilePage() {
 
     return (
         <div className="mx-auto max-w-2xl p-6">
+            <div className="mb-6">
+                <Button variant="outline" onClick={() => navigate("/judge")}>← Back</Button>
+            </div>
+
             <Card>
                 <CardTitle>My Profile</CardTitle>
                 <CardBody>
-                    <div className="mb-4 flex justify-start">
-                        <Button variant="outline" onClick={() => navigate("/judge")}>
-                            Back
-                        </Button>
-                    </div>
-
-                    <p className="mb-4 text-sm text-gray-600">
+                    <p className="mb-5 text-sm text-[#55616D]">
                         Update your judging preferences below. These determine your default queue filters
                         and which submissions you are matched to.
                     </p>
@@ -193,11 +191,11 @@ export default function JudgeProfilePage() {
                     {/* Event selector */}
                     {!isLoadingEvents && events.length > 0 && (
                         <div className="mb-5">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-semibold text-[#004785] mb-1">
                                 Event
                             </label>
                             <select
-                                className="w-full rounded border p-2 text-sm"
+                                className="w-full rounded-lg border border-gray-300 p-2 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
                                 value={selectedEventId}
                                 onChange={(e) => setSelectedEventId(e.target.value)}
                             >
@@ -210,14 +208,14 @@ export default function JudgeProfilePage() {
                         </div>
                     )}
 
-                    {isLoading && <p className="text-sm text-gray-500">Loading profile...</p>}
-                    {error && <p className="text-sm text-red-600">{error}</p>}
-                    {message && <p className="text-sm text-green-600">{message}</p>}
+                    {isLoading && <p className="text-sm text-[#55616D] py-4">Loading profile...</p>}
+                    {error && <p className="text-sm text-red-600 py-2">{error}</p>}
+                    {message && <p className="text-sm text-[#00794C] py-2 font-medium">{message}</p>}
 
                     {!isLoading && !error && (
                         <form onSubmit={handleSave} className="space-y-4">
                             {!facets.length && (
-                                <p className="text-sm text-gray-500">No profile fields configured for this event.</p>
+                                <p className="text-sm text-[#55616D]">No profile fields configured for this event.</p>
                             )}
 
                             {facets.map((facet) => {
@@ -228,16 +226,16 @@ export default function JudgeProfilePage() {
                                 const showSecond = showSecondSelectionByFacetId[facet.facetId] ?? false;
 
                                 return (
-                                    <div key={facet.facetId} className="rounded border p-3">
-                                        <p className="text-sm font-medium text-gray-700">
+                                    <div key={facet.facetId} className="rounded-xl border border-gray-200 bg-[#F3F3F3] p-4">
+                                        <p className="text-sm font-semibold text-[#004785] mb-2">
                                             {facet.name || facet.code}
                                             {facet.isRequired && <span className="ml-1 text-red-500">*</span>}
                                         </p>
 
                                         {isMulti ? (
-                                            <div className="mt-2 space-y-2">
+                                            <div className="space-y-2">
                                                 <select
-                                                    className="w-full rounded border p-2 text-sm"
+                                                    className="w-full rounded-lg border border-gray-300 p-2 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
                                                     value={currentSelections[0] ?? ""}
                                                     onChange={(e) => handleMultiFacetPrimaryChange(facet.facetId, e.target.value)}
                                                 >
@@ -252,7 +250,7 @@ export default function JudgeProfilePage() {
                                                 {showSecond && (
                                                     <div className="flex gap-2">
                                                         <select
-                                                            className="flex-1 rounded border p-2 text-sm"
+                                                            className="flex-1 rounded-lg border border-gray-300 p-2 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
                                                             value={currentSelections[1] ?? ""}
                                                             onChange={(e) => handleMultiFacetSecondaryChange(facet.facetId, e.target.value)}
                                                         >
@@ -277,7 +275,7 @@ export default function JudgeProfilePage() {
                                             </div>
                                         ) : (
                                             <select
-                                                className="mt-2 w-full rounded border p-2 text-sm"
+                                                className="w-full rounded-lg border border-gray-300 p-2 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
                                                 value={currentSelections[0] ?? ""}
                                                 onChange={(e) => handleFacetChange(facet.facetId, e.target.value)}
                                             >
@@ -294,7 +292,7 @@ export default function JudgeProfilePage() {
                             })}
 
                             {!!facets.length && (
-                                <div className="flex justify-end">
+                                <div className="flex justify-end pt-2">
                                     <Button type="submit" variant="primary" disabled={isSaving}>
                                         {isSaving ? "Saving..." : "Save Profile"}
                                     </Button>

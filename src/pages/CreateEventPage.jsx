@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardBody, CardTitle } from "../components/ui/Card.jsx";
+
 import EventCreationForm from "../components/ui/EventCreationForm.jsx";
 import Button from "../components/ui/Button.jsx";
 import {
@@ -67,26 +67,27 @@ export default function CreateEventPage() {
     }
 
     return (
-        <div className="text-center text-bold text-5xl">
-            Create Event
-            <Card>
-                <CardTitle>Create Event Form</CardTitle>
-                <CardBody>
-                    <div className="mb-4 flex justify-start">
-                        <Button variant="outline" onClick={() => navigate("/admin")}>Back to Admin</Button>
-                    </div>
+        <div className="max-w-3xl mx-auto p-6">
+            <div className="mb-6">
+                <Button variant="outline" onClick={() => navigate("/admin")}>← Back to Admin</Button>
+            </div>
 
-                    <EventCreationForm
-                        trackTypes={trackTypes}
-                        isSubmitting={isCreatingEvent}
-                        onSubmit={handleCreateEvent}
-                        onCreateTrackType={handleCreateTrackType}
-                    />
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold text-[#004785]">Create Event</h1>
+                <p className="text-[#55616D] mt-1 text-sm">Fill out the form below to create a new event.</p>
+            </div>
 
-                    {createMessage && <p className="text-sm text-gray-700">{createMessage}</p>}
-                    {error && <p className="text-sm text-red-600">{error}</p>}
-                </CardBody>
-            </Card>
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-md p-6">
+                <EventCreationForm
+                    trackTypes={trackTypes}
+                    isSubmitting={isCreatingEvent}
+                    onSubmit={handleCreateEvent}
+                    onCreateTrackType={handleCreateTrackType}
+                />
+
+                {createMessage && <p className="mt-4 text-sm text-[#00794C] font-medium">{createMessage}</p>}
+                {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+            </div>
         </div>
     );
 }

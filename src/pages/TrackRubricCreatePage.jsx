@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Card, CardBody, CardTitle } from "../components/ui/Card.jsx";
+
 import Button from "../components/ui/Button.jsx";
 import TrackRubricForm from "../components/ui/TrackRubricForm.jsx";
 import { fetchTrackName } from "../services/track/trackService.js";
@@ -27,29 +27,25 @@ export default function TrackRubricCreatePage() {
     }, [trackId]);
 
     return (
-        <div className="text-center text-bold text-5xl">
-            Create Rubric
-            <Card>
-                <CardTitle>Create Rubric for Track</CardTitle>
-                <CardBody>
-                    <div className="mb-4 flex justify-start">
-                        <Button
-                            variant="outline"
-                            onClick={() => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/rubrics`)}
-                        >
-                            Back to Rubrics
-                        </Button>
-                    </div>
+        <div className="max-w-3xl mx-auto p-6">
+            <div className="mb-6">
+                <Button variant="outline" onClick={() => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/rubrics`)}>
+                    ← Back to Rubrics
+                </Button>
+            </div>
 
-                    <p className="mb-4 text-left text-sm text-gray-500">Track: {trackName}</p>
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold text-[#004785]">Create Rubric</h1>
+                <p className="text-[#55616D] mt-1 text-sm">Track: <span className="font-semibold">{trackName}</span></p>
+            </div>
 
-                    <TrackRubricForm
-                        trackId={trackId}
-                        mode="create"
-                        onSaved={async () => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/rubrics`)}
-                    />
-                </CardBody>
-            </Card>
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-md p-6">
+                <TrackRubricForm
+                    trackId={trackId}
+                    mode="create"
+                    onSaved={async () => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/rubrics`)}
+                />
+            </div>
         </div>
     );
 }

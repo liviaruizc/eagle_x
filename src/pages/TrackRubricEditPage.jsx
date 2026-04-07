@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Card, CardBody, CardTitle } from "../components/ui/Card.jsx";
+
 import Button from "../components/ui/Button.jsx";
 import TrackRubricForm from "../components/ui/TrackRubricForm.jsx";
 import { fetchTrackName } from "../services/track/trackService.js";
@@ -47,40 +47,35 @@ export default function TrackRubricEditPage() {
     }, [trackId]);
 
     return (
-        <div className="text-center text-bold text-5xl">
-            Edit Rubric
-            <Card>
-                <CardTitle>Update Rubric</CardTitle>
-                <CardBody>
-                    <div className="mb-4 flex justify-start">
-                        <Button
-                            variant="outline"
-                            onClick={() => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/rubrics`)}
-                        >
-                            Back to Rubrics
-                        </Button>
-                    </div>
+        <div className="max-w-3xl mx-auto p-6">
+            <div className="mb-6">
+                <Button variant="outline" onClick={() => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/rubrics`)}>
+                    ← Back to Rubrics
+                </Button>
+            </div>
 
-                    <p className="mb-4 text-left text-sm text-gray-500">Track: {trackName}</p>
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold text-[#004785]">Edit Rubric</h1>
+                <p className="text-[#55616D] mt-1 text-sm">Track: <span className="font-semibold">{trackName}</span></p>
+            </div>
 
-                    {isLoading && <p className="text-sm text-gray-500">Loading rubric...</p>}
-                    {error && <p className="text-sm text-red-600">{error}</p>}
+            {isLoading && <p className="text-[#55616D] text-center py-10">Loading rubric...</p>}
+            {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+            {!isLoading && !error && !rubric && (
+                <p className="text-sm text-red-600">Rubric not found for this track.</p>
+            )}
 
-                    {!isLoading && !error && !rubric && (
-                        <p className="text-sm text-red-600">Rubric not found for this track.</p>
-                    )}
-
-                    {!isLoading && !error && rubric && (
-                        <TrackRubricForm
-                            trackId={trackId}
-                            mode="edit"
-                            initialRubric={rubric}
-                            onSaved={async () => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/rubrics`)}
-                            onCancel={() => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/rubrics`)}
-                        />
-                    )}
-                </CardBody>
-            </Card>
+            {!isLoading && !error && rubric && (
+                <div className="rounded-2xl border border-gray-200 bg-white shadow-md p-6">
+                    <TrackRubricForm
+                        trackId={trackId}
+                        mode="edit"
+                        initialRubric={rubric}
+                        onSaved={async () => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/rubrics`)}
+                        onCancel={() => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/rubrics`)}
+                    />
+                </div>
+            )}
         </div>
     );
 }

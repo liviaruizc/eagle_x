@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Card, CardBody, CardTitle } from "../components/ui/Card.jsx";
+
 import Button from "../components/ui/Button.jsx";
 import { fetchTracksForEvent } from "../services/track/trackService.js";
 import {
@@ -123,148 +123,138 @@ export default function AdminProjectsPage() {
     }
 
     return (
-        <div className="text-center text-bold text-5xl">
-            Projects
-            <Card>
-                <CardTitle>Projects List</CardTitle>
-                <CardBody>
-                    <div className="mb-4 flex justify-start gap-2">
-                        <Button variant="outline" onClick={() => navigate(`/admin/events/${eventInstanceId}`)}>
-                            Back to Event
-                        </Button>
-                    </div>
+        <div className="max-w-5xl mx-auto p-6">
+            <div className="mb-6">
+                <Button variant="outline" onClick={() => navigate(`/admin/events/${eventInstanceId}`)}>
+                    ← Back to Event
+                </Button>
+            </div>
 
-                    <p className="mb-3 text-left text-sm text-gray-600">
-                        <span className="font-semibold">View scope:</span> {viewLabel}
-                    </p>
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold text-[#004785]">Projects</h1>
+                <p className="text-[#55616D] mt-1 text-sm">{viewLabel}</p>
+            </div>
 
-                    {isLoading && <p className="text-sm text-gray-500 text-left">Loading projects...</p>}
-                    {error && <p className="text-sm text-red-600 text-left">{error}</p>}
+            {isLoading && <p className="text-[#55616D] text-center py-10">Loading projects...</p>}
+            {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+            {!isLoading && !error && !projects.length && (
+                <p className="text-[#55616D] text-center py-10">No projects found for this scope.</p>
+            )}
 
-                    {!isLoading && !error && !projects.length && (
-                        <p className="text-sm text-gray-500 text-left">No projects found for this scope.</p>
-                    )}
+            {!isLoading && !error && !!projects.length && (() => {
+                const unscored = projects.filter((p) => p.scoreCount === 0);
+                const byTrack = unscored.reduce((acc, p) => {
+                    const key = p.track?.name ?? "Unknown Track";
+                    if (!acc[key]) acc[key] = [];
+                    acc[key].push(p);
+                    return acc;
+                }, {});
 
-                    {!isLoading && !error && !!projects.length && (() => {
-                        const unscored = projects.filter((p) => p.scoreCount === 0);
-                        const byTrack = unscored.reduce((acc, p) => {
-                            const key = p.track?.name ?? "Unknown Track";
-                            if (!acc[key]) acc[key] = [];
-                            acc[key].push(p);
-                            return acc;
-                        }, {});
-
-                        return (
-                            <div className="mb-5 rounded border border-yellow-300 bg-yellow-50 p-3 text-left">
-                                <p className="mb-2 font-semibold text-yellow-800">
-                                    Unscored Projects ({unscored.length} of {projects.length})
-                                </p>
-                                {!unscored.length && (
-                                    <p className="text-sm text-green-700">All projects have at least one score.</p>
+                return (
+                    <div className="mb-6 rounded-2xl border border-[#CCAB00]/40 bg-[#CCAB00]/10 p-4">
+                        <p className="mb-2 font-bold text-[#8A7400]">
+                            Unscored Projects — {unscored.length} of {projects.length}
+                        </p>
+                        {!unscored.length && (
+                            <p className="text-sm text-[#00794C] font-medium">All projects have at least one score.</p>
+                        )}
+                        {!!unscored.length && Object.entries(byTrack).map(([trackName, trackProjects]) => (
+                            <div key={trackName} className="mb-2">
+                                {viewMode === "event" && (
+                                    <p className="text-xs font-semibold text-[#8A7400]">{trackName}</p>
                                 )}
-                                {!!unscored.length && Object.entries(byTrack).map(([trackName, trackProjects]) => (
-                                    <div key={trackName} className="mb-2">
-                                        {viewMode === "event" && (
-                                            <p className="text-xs font-semibold text-yellow-700">{trackName}</p>
-                                        )}
-                                        <ul className="ml-2 list-disc pl-3">
-                                            {trackProjects.map((p) => (
-                                                <li key={p.submissionId} className="text-sm text-yellow-900">{p.title}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
+                                <ul className="ml-2 list-disc pl-3">
+                                    {trackProjects.map((p) => (
+                                        <li key={p.submissionId} className="text-sm text-[#55616D]">{p.title}</li>
+                                    ))}
+                                </ul>
                             </div>
-                        );
-                    })()}
+                        ))}
+                    </div>
+                );
+            })()}
 
-                    <ul className="space-y-3 text-left">
-                        {projects.map((project) => {
-                            const input = getTableInput(project.submissionId, project);
-                            const isSaving = savingId === project.submissionId;
-                            const err = saveError[project.submissionId];
+            <ul className="space-y-4">
+                {projects.map((project) => {
+                    const input = getTableInput(project.submissionId, project);
+                    const isSaving = savingId === project.submissionId;
+                    const err = saveError[project.submissionId];
 
-                            return (
-                                <li key={project.submissionId} className="rounded border p-3">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <p className="font-semibold text-gray-900">{project.title}</p>
-                                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${project.scoreCount === 0 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
-                                            {project.scoreCount} {project.scoreCount === 1 ? "score" : "scores"}
+                    return (
+                        <li key={project.submissionId} className="rounded-2xl border border-gray-200 bg-white shadow-md p-5">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                                <p className="font-bold text-[#004785] text-lg">{project.title}</p>
+                                <span className={`shrink-0 rounded-full px-3 py-0.5 text-xs font-semibold ${project.scoreCount === 0 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
+                                    {project.scoreCount} {project.scoreCount === 1 ? "score" : "scores"}
+                                </span>
+                            </div>
+
+                            {project.description && (
+                                <p className="text-sm text-[#55616D] mb-2">{project.description}</p>
+                            )}
+
+                            <div className="space-y-1 text-sm text-[#55616D]">
+                                <p><span className="font-semibold text-[#004785]">Status:</span> {project.status}</p>
+                                {viewMode === "event" && project.track?.name && (
+                                    <p><span className="font-semibold text-[#004785]">Track:</span> {project.track.name}</p>
+                                )}
+                                <p>
+                                    <span className="font-semibold text-[#004785]">Participants:</span>{" "}
+                                    {project.participants.length
+                                        ? project.participants.map((p) => p.displayName).join(", ")
+                                        : "No participants linked"}
+                                </p>
+                                {project.supervisor && (
+                                    <p>
+                                        <span className="font-semibold text-[#004785]">Supervisor:</span>{" "}
+                                        {project.supervisor.displayName}
+                                        {project.supervisor.email ? ` (${project.supervisor.email})` : ""}
+                                    </p>
+                                )}
+                                <p className="text-xs text-[#55616D]/70">
+                                    Created: {project.createdAt ? new Date(project.createdAt).toLocaleString() : "-"}
+                                </p>
+                            </div>
+
+                            {/* Table assignment */}
+                            <div className="mt-4 border-t border-gray-100 pt-4">
+                                <p className="mb-2 text-sm font-semibold text-[#004785]">
+                                    Table:{" "}
+                                    {project.tableNumber != null ? (
+                                        <span className="text-[#00794C]">
+                                            Table {project.tableNumber}
+                                            {project.tableSession ? ` · Session ${project.tableSession}` : ""}
                                         </span>
-                                    </div>
-                                    {project.description && (
-                                        <p className="mt-1 text-sm text-gray-600">{project.description}</p>
+                                    ) : (
+                                        <span className="text-[#55616D] font-normal">Not assigned</span>
                                     )}
-                                    <p className="mt-2 text-sm text-gray-600">
-                                        <span className="font-semibold">Status:</span> {project.status}
-                                    </p>
-                                    {viewMode === "event" && project.track?.name && (
-                                        <p className="text-sm text-gray-600">
-                                            <span className="font-semibold">Track:</span> {project.track.name}
-                                        </p>
-                                    )}
-                                    <p className="text-sm text-gray-600">
-                                        <span className="font-semibold">Participants:</span>{" "}
-                                        {project.participants.length
-                                            ? project.participants.map((p) => p.displayName).join(", ")
-                                            : "No participants linked"}
-                                    </p>
-                                    {project.supervisor && (
-                                        <p className="text-sm text-gray-600">
-                                            <span className="font-semibold">Supervisor:</span> {project.supervisor.displayName}
-                                            {project.supervisor.email ? ` (${project.supervisor.email})` : ""}
-                                        </p>
-                                    )}
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Created: {project.createdAt ? new Date(project.createdAt).toLocaleString() : "-"}
-                                    </p>
-
-                                    {/* Table assignment */}
-                                    <div className="mt-3 border-t pt-3">
-                                        <p className="mb-2 text-sm font-medium text-gray-700">
-                                            Table assignment:{" "}
-                                            {project.tableNumber != null ? (
-                                                <span className="font-semibold text-blue-600">
-                                                    Table {project.tableNumber}
-                                                    {project.tableSession ? ` · Session ${project.tableSession}` : ""}
-                                                </span>
-                                            ) : (
-                                                <span className="text-gray-400">Not assigned</span>
-                                            )}
-                                        </p>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="number"
-                                                min="1"
-                                                placeholder="Table #"
-                                                className="w-24 rounded border px-2 py-1 text-sm"
-                                                value={input.tableNumber}
-                                                onChange={(e) => setTableInput(project.submissionId, "tableNumber", e.target.value)}
-                                            />
-                                            <input
-                                                type="text"
-                                                placeholder="Session (optional)"
-                                                className="w-36 rounded border px-2 py-1 text-sm"
-                                                value={input.session}
-                                                onChange={(e) => setTableInput(project.submissionId, "session", e.target.value)}
-                                            />
-                                            <Button
-                                                type="button"
-                                                variant="primary"
-                                                disabled={isSaving}
-                                                onClick={() => handleSaveTable(project)}
-                                            >
-                                                {isSaving ? "Saving..." : "Save"}
-                                            </Button>
-                                        </div>
-                                        {err && <p className="mt-1 text-xs text-red-600">{err}</p>}
-                                    </div>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </CardBody>
-            </Card>
+                                </p>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        placeholder="Table #"
+                                        className="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
+                                        value={input.tableNumber}
+                                        onChange={(e) => setTableInput(project.submissionId, "tableNumber", e.target.value)}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Session (optional)"
+                                        className="w-36 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
+                                        value={input.session}
+                                        onChange={(e) => setTableInput(project.submissionId, "session", e.target.value)}
+                                    />
+                                    <Button type="button" variant="primary" disabled={isSaving} onClick={() => handleSaveTable(project)}>
+                                        {isSaving ? "Saving..." : "Save"}
+                                    </Button>
+                                </div>
+                                {err && <p className="mt-1 text-xs text-red-600">{err}</p>}
+                            </div>
+                        </li>
+                    );
+                })}
+            </ul>
         </div>
     );
 }

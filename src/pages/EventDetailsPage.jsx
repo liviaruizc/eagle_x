@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Card, CardBody, CardTitle } from "../components/ui/Card.jsx";
+
 import Button from "../components/ui/Button.jsx";
 import CreateJudgeForm from "../components/ui/CreateJudgeForm.jsx";
 import { fetchEventInstanceDetails, updateEventInstanceSchedule } from "../services/eventAdminService.js";
@@ -127,264 +127,194 @@ export default function EventDetailsPage() {
     }
 
     return (
-        <div className="text-center text-bold text-5xl">
-            Event Details
-            <Card>
-                <CardTitle>Event Instance</CardTitle>
-                <CardBody>
-                    <div className="mb-4 flex justify-start">
-                        <Button variant="outline" onClick={() => navigate("/admin")}>Back to Admin</Button>
+        <div className="max-w-4xl mx-auto p-6">
+            <div className="mb-6">
+                <Button variant="outline" onClick={() => navigate("/admin")}>← Back to Admin</Button>
+            </div>
+
+            {isLoading && <p className="text-[#55616D] text-center py-10">Loading event details...</p>}
+            {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+
+            {!isLoading && !error && eventDetails && (
+                <div className="space-y-6">
+
+                    {/* Event Info Card */}
+                    <div className="rounded-2xl border border-gray-200 bg-white shadow-md p-6">
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                            <div>
+                                <h1 className="text-3xl font-bold text-[#004785]">{eventDetails.name}</h1>
+                                <p className="text-sm text-[#55616D] mt-1">{eventDetails.event.name}</p>
+                            </div>
+                            <span className="shrink-0 rounded-full bg-[#004785]/10 px-3 py-1 text-xs font-semibold text-[#004785]">
+                                {eventDetails.status}
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-[#55616D]">
+                            <p><span className="font-semibold text-[#004785]">Start:</span> {new Date(eventDetails.startAt).toLocaleString()}</p>
+                            <p><span className="font-semibold text-[#004785]">End:</span> {new Date(eventDetails.endAt).toLocaleString()}</p>
+                            <p><span className="font-semibold text-[#004785]">Pre-scoring:</span> {eventDetails.preScoringStartAt && eventDetails.preScoringEndAt
+                                ? `${new Date(eventDetails.preScoringStartAt).toLocaleString()} – ${new Date(eventDetails.preScoringEndAt).toLocaleString()}`
+                                : "Not enabled"}</p>
+                            <p><span className="font-semibold text-[#004785]">Location:</span> {eventDetails.location || "—"}</p>
+                            <p><span className="font-semibold text-[#004785]">Timezone:</span> {eventDetails.timezone}</p>
+                            <p><span className="font-semibold text-[#004785]">Host org:</span> {eventDetails.event.hostOrg || "—"}</p>
+                            {eventDetails.event.description && (
+                                <p className="md:col-span-2"><span className="font-semibold text-[#004785]">Description:</span> {eventDetails.event.description}</p>
+                            )}
+                        </div>
+
+                        <div className="mt-4 flex gap-2">
+                            <Button variant="outline" onClick={() => { setEditError(""); setIsEditingInstance((prev) => !prev); }}>
+                                {isEditingInstance ? "Cancel" : "Edit Event"}
+                            </Button>
+                        </div>
+
+                        {isEditingInstance && (
+                            <form className="mt-5 grid gap-3 rounded-xl border border-gray-200 bg-[#F3F3F3] p-5" onSubmit={handleSaveEventInstance}>
+                                <p className="text-sm font-bold text-[#004785]">Edit Event Instance</p>
+
+                                {[
+                                    { label: "Instance name", name: "instanceName", type: "text", required: true },
+                                    { label: "Start at", name: "startAt", type: "datetime-local", required: true },
+                                    { label: "End at", name: "endAt", type: "datetime-local", required: true },
+                                    { label: "Location", name: "location", type: "text" },
+                                    { label: "Timezone", name: "timezone", type: "text" },
+                                ].map(({ label, name, type, required }) => (
+                                    <div key={name}>
+                                        <label className="block text-xs font-semibold text-[#55616D] mb-1">{label}</label>
+                                        <input
+                                            type={type}
+                                            name={name}
+                                            value={editForm[name]}
+                                            onChange={handleEditFieldChange}
+                                            className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
+                                            required={required}
+                                        />
+                                    </div>
+                                ))}
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-[#55616D] mb-1">Pre-scoring enabled</label>
+                                    <select name="preScoringEnabled" value={editForm.preScoringEnabled} onChange={handleEditFieldChange}
+                                        className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00794C]/50">
+                                        <option value="no">No</option>
+                                        <option value="yes">Yes</option>
+                                    </select>
+                                </div>
+
+                                {editForm.preScoringEnabled === "yes" && (
+                                    <>
+                                        <div>
+                                            <label className="block text-xs font-semibold text-[#55616D] mb-1">Pre-scoring starts</label>
+                                            <input type="datetime-local" name="preScoringStartAt" value={editForm.preScoringStartAt} onChange={handleEditFieldChange}
+                                                className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00794C]/50" required />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-semibold text-[#55616D] mb-1">Pre-scoring ends</label>
+                                            <input type="datetime-local" name="preScoringEndAt" value={editForm.preScoringEndAt} onChange={handleEditFieldChange}
+                                                className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00794C]/50" required />
+                                        </div>
+                                    </>
+                                )}
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-[#55616D] mb-1">Status</label>
+                                    <select name="status" value={editForm.status} onChange={handleEditFieldChange}
+                                        className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00794C]/50">
+                                        <option value="closed">Closed</option>
+                                        <option value="pre-scoring">Pre-scoring</option>
+                                        <option value="event_scoring">Event scoring</option>
+                                        <option value="done">Done</option>
+                                    </select>
+                                </div>
+
+                                {editError && <p className="text-sm text-red-600">{editError}</p>}
+
+                                <div className="flex justify-start">
+                                    <Button type="submit" variant="primary" disabled={isSavingInstance}>
+                                        {isSavingInstance ? "Saving..." : "Save & Sync Statuses"}
+                                    </Button>
+                                </div>
+                            </form>
+                        )}
                     </div>
 
-                    {isLoading && <p className="text-sm text-gray-500">Loading event details...</p>}
-                    {error && <p className="text-sm text-red-600">{error}</p>}
+                    {/* Add Judge */}
+                    <div className="rounded-2xl border border-gray-200 bg-white shadow-md p-6">
+                        <h2 className="text-lg font-bold text-[#004785] mb-4">Add Judge</h2>
+                        <CreateJudgeForm eventInstanceId={eventInstanceId} />
+                    </div>
 
-                    {!isLoading && !error && eventDetails && (
-                        <div className="space-y-4 text-left">
-                            <div className="rounded border p-3">
-                                <p className="font-semibold">{eventDetails.name}</p>
-                                <p className="text-sm text-gray-500">{new Date(eventDetails.startAt).toLocaleString()} - {new Date(eventDetails.endAt).toLocaleString()}</p>
-                                <p className="text-sm text-gray-500">
-                                    Pre-scoring: {eventDetails.preScoringStartAt && eventDetails.preScoringEndAt
-                                    ? `${new Date(eventDetails.preScoringStartAt).toLocaleString()} - ${new Date(eventDetails.preScoringEndAt).toLocaleString()}`
-                                    : "not enabled"}
-                                </p>
-                                <p className="text-sm text-gray-500">{eventDetails.event.name} · {eventDetails.status}</p>
-                                <p className="text-sm text-gray-500">Timezone: {eventDetails.timezone}</p>
-                                <p className="text-sm text-gray-500">Location: {eventDetails.location || "-"}</p>
-                                <p className="text-sm text-gray-500">Host org: {eventDetails.event.hostOrg || "-"}</p>
-                                <p className="text-sm text-gray-500">Description: {eventDetails.event.description || "-"}</p>
-                                <div className="mt-3 flex gap-2">
-                                    <Button variant="outline" onClick={() => {
-                                        setEditError("");
-                                        setIsEditingInstance((prev) => !prev);
-                                    }}>
-                                        {isEditingInstance ? "Cancel Edit" : "Edit Event"}
-                                    </Button>
-                                </div>
-
-                                {isEditingInstance && (
-                                    <form className="mt-4 grid gap-2 rounded border border-gray-200 bg-gray-50 p-3" onSubmit={handleSaveEventInstance}>
-                                        <p className="text-sm font-semibold text-gray-800">Edit Event Instance</p>
-
-                                        <label className="text-xs text-gray-600">Instance name</label>
-                                        <input
-                                            type="text"
-                                            name="instanceName"
-                                            value={editForm.instanceName}
-                                            onChange={handleEditFieldChange}
-                                            className="rounded border p-2 text-sm"
-                                            required
-                                        />
-
-                                        <label className="text-xs text-gray-600">Start at</label>
-                                        <input
-                                            type="datetime-local"
-                                            name="startAt"
-                                            value={editForm.startAt}
-                                            onChange={handleEditFieldChange}
-                                            className="rounded border p-2 text-sm"
-                                            required
-                                        />
-
-                                        <label className="text-xs text-gray-600">End at</label>
-                                        <input
-                                            type="datetime-local"
-                                            name="endAt"
-                                            value={editForm.endAt}
-                                            onChange={handleEditFieldChange}
-                                            className="rounded border p-2 text-sm"
-                                            required
-                                        />
-
-                                        <label className="text-xs text-gray-600">Pre-scoring enabled</label>
-                                        <select
-                                            name="preScoringEnabled"
-                                            value={editForm.preScoringEnabled}
-                                            onChange={handleEditFieldChange}
-                                            className="rounded border p-2 text-sm"
-                                        >
-                                            <option value="no">No</option>
-                                            <option value="yes">Yes</option>
-                                        </select>
-
-                                        {editForm.preScoringEnabled === "yes" && (
-                                            <>
-                                                <label className="text-xs text-gray-600">Pre-scoring starts</label>
-                                                <input
-                                                    type="datetime-local"
-                                                    name="preScoringStartAt"
-                                                    value={editForm.preScoringStartAt}
-                                                    onChange={handleEditFieldChange}
-                                                    className="rounded border p-2 text-sm"
-                                                    required
-                                                />
-
-                                                <label className="text-xs text-gray-600">Pre-scoring ends</label>
-                                                <input
-                                                    type="datetime-local"
-                                                    name="preScoringEndAt"
-                                                    value={editForm.preScoringEndAt}
-                                                    onChange={handleEditFieldChange}
-                                                    className="rounded border p-2 text-sm"
-                                                    required
-                                                />
-                                            </>
-                                        )}
-
-                                        <label className="text-xs text-gray-600">Location</label>
-                                        <input
-                                            type="text"
-                                            name="location"
-                                            value={editForm.location}
-                                            onChange={handleEditFieldChange}
-                                            className="rounded border p-2 text-sm"
-                                        />
-
-                                        <label className="text-xs text-gray-600">Timezone</label>
-                                        <input
-                                            type="text"
-                                            name="timezone"
-                                            value={editForm.timezone}
-                                            onChange={handleEditFieldChange}
-                                            className="rounded border p-2 text-sm"
-                                        />
-
-                                        <label className="text-xs text-gray-600">Status</label>
-                                        <select
-                                            name="status"
-                                            value={editForm.status}
-                                            onChange={handleEditFieldChange}
-                                            className="rounded border p-2 text-sm"
-                                        >
-                                            <option value="closed">closed</option>
-                                            <option value="pre-scoring">pre-scoring</option>
-                                            <option value="event_scoring">event_scoring</option>
-                                            <option value="done">done</option>
-                                        </select>
-
-                                        {editError && <p className="text-sm text-red-600">{editError}</p>}
-
-                                        <div className="mt-2 flex justify-start">
-                                            <Button type="submit" variant="primary" disabled={isSavingInstance}>
-                                                {isSavingInstance ? "Saving..." : "Save and Sync Statuses"}
-                                            </Button>
-                                        </div>
-                                    </form>
-                                )}
-                            </div>
-
-                            <CreateJudgeForm eventInstanceId={eventInstanceId} />
-
-                            <div className="rounded border p-3">
-                                <p className="mb-2 font-semibold">Event-level Actions</p>
-                                <p className="mb-3 text-xs text-gray-500">
-                                    Judges are managed at the event level, not by track.
-                                </p>
-                                <div className="flex justify-start gap-2">
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => navigate(`/admin/events/${eventInstanceId}/judges`)}
-                                    >
-                                        View Judges
-                                    </Button>
-                                    {!eventDetails.tracks.length && (
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => navigate(`/admin/events/${eventInstanceId}/projects`)}
-                                        >
-                                            View Projects
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="rounded border p-3">
-                                <p className="mb-2 font-semibold">Tracks</p>
-                                {!eventDetails.tracks.length && (
-                                    <p className="text-sm text-gray-500">No tracks for this event instance.</p>
-                                )}
-                                <ul className="space-y-3">
-                                    {eventDetails.tracks.map((track) => (
-                                        <li
-                                            key={track.id}
-                                            className="cursor-pointer rounded border p-3 transition hover:bg-gray-50"
-                                            onClick={() =>
-                                                setOpenTrackId((prev) => (prev === track.id ? null : track.id))
-                                            }
-                                        >
-                                            <p className="font-medium">{track.displayOrder}. {track.name}</p>
-                                            <p className="text-sm text-gray-500">{track.typeName} {track.typeCode ? `(${track.typeCode})` : ""}</p>
-                                            <p className="text-xs text-gray-500">{openTrackId === track.id ? "Click to hide details" : "Click to view details"}</p>
-                                            {openTrackId === track.id && (
-                                                <div className="mt-3 space-y-3" onClick={(event) => event.stopPropagation()}>
-                                                    <p className="text-sm text-gray-500">
-                                                        Submission: {new Date(track.submissionOpenAt).toLocaleString()} - {new Date(track.submissionCloseAt).toLocaleString()}
-                                                    </p>
-                                                    <p className="text-sm text-gray-500">
-                                                        Scoring: {new Date(track.scoringOpenAt).toLocaleString()} - {new Date(track.scoringCloseAt).toLocaleString()}
-                                                    </p>
-                                                    <div className="flex justify-start">
-                                                        <Button
-                                                            variant="outline"
-                                                            onClick={() =>
-                                                                navigate(
-                                                                    `/admin/events/${eventInstanceId}/tracks/${track.id}/submissions`,
-                                                                    { state: { trackName: track.name } }
-                                                                )
-                                                            }
-                                                        >
-                                                            Add Submission
-                                                        </Button>
-                                                    </div>
-                                                    <div className="flex justify-start">
-                                                        <Button
-                                                            variant="outline"
-                                                            onClick={() =>
-                                                                navigate(
-                                                                    `/admin/events/${eventInstanceId}/tracks/${track.id}/rubrics`,
-                                                                    { state: { trackName: track.name } }
-                                                                )
-                                                            }
-                                                        >
-                                                            View/Edit Rubrics
-                                                        </Button>
-                                                    </div>
-                                                    <div className="flex justify-start">
-                                                        <Button
-                                                            variant="outline"
-                                                            onClick={() =>
-                                                                navigate(
-                                                                    `/admin/events/${eventInstanceId}/tracks/${track.id}/projects`
-                                                                )
-                                                            }
-                                                        >
-                                                            View Projects
-                                                        </Button>
-                                                    </div>
-                                                    <div className="flex justify-start">
-                                                        <Button
-                                                            variant="outline"
-                                                            onClick={() =>
-                                                                navigate(
-                                                                    `/admin/events/${eventInstanceId}/tracks/${track.id}/results`,
-                                                                    { state: { trackName: track.name } }
-                                                                )
-                                                            }
-                                                        >
-                                                            View Results
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                    {/* Event Actions */}
+                    <div className="rounded-2xl border border-gray-200 bg-white shadow-md p-6">
+                        <h2 className="text-lg font-bold text-[#004785] mb-1">Event Actions</h2>
+                        <p className="text-xs text-[#55616D] mb-4">Judges are managed at the event level, not by track.</p>
+                        <div className="flex flex-wrap gap-2">
+                            <Button variant="outline" onClick={() => navigate(`/admin/events/${eventInstanceId}/judges`)}>
+                                View Judges
+                            </Button>
+                            {!eventDetails.tracks.length && (
+                                <Button variant="outline" onClick={() => navigate(`/admin/events/${eventInstanceId}/projects`)}>
+                                    View Projects
+                                </Button>
+                            )}
                         </div>
-                    )}
-                </CardBody>
-            </Card>
+                    </div>
+
+                    {/* Tracks */}
+                    <div className="rounded-2xl border border-gray-200 bg-white shadow-md p-6">
+                        <h2 className="text-lg font-bold text-[#004785] mb-4">Tracks</h2>
+                        {!eventDetails.tracks.length && (
+                            <p className="text-sm text-[#55616D]">No tracks for this event instance.</p>
+                        )}
+                        <ul className="space-y-3">
+                            {eventDetails.tracks.map((track) => (
+                                <li
+                                    key={track.id}
+                                    className="cursor-pointer rounded-xl border border-gray-200 p-4 transition hover:border-[#00794C] hover:shadow-sm"
+                                    onClick={() => setOpenTrackId((prev) => (prev === track.id ? null : track.id))}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-bold text-[#004785]">{track.displayOrder}. {track.name}</p>
+                                            <p className="text-sm text-[#55616D]">{track.typeName}{track.typeCode ? ` (${track.typeCode})` : ""}</p>
+                                        </div>
+                                        <span className="text-xs text-[#55616D]">{openTrackId === track.id ? "▲ Hide" : "▼ Details"}</span>
+                                    </div>
+
+                                    {openTrackId === track.id && (
+                                        <div className="mt-4 space-y-3 border-t border-gray-100 pt-4" onClick={(e) => e.stopPropagation()}>
+                                            <p className="text-sm text-[#55616D]">
+                                                <span className="font-semibold text-[#004785]">Submission:</span>{" "}
+                                                {new Date(track.submissionOpenAt).toLocaleString()} – {new Date(track.submissionCloseAt).toLocaleString()}
+                                            </p>
+                                            <p className="text-sm text-[#55616D]">
+                                                <span className="font-semibold text-[#004785]">Scoring:</span>{" "}
+                                                {new Date(track.scoringOpenAt).toLocaleString()} – {new Date(track.scoringCloseAt).toLocaleString()}
+                                            </p>
+                                            <div className="flex flex-wrap gap-2 pt-1">
+                                                <Button variant="outline" onClick={() => navigate(`/admin/events/${eventInstanceId}/tracks/${track.id}/submissions`, { state: { trackName: track.name } })}>
+                                                    Add Submission
+                                                </Button>
+                                                <Button variant="outline" onClick={() => navigate(`/admin/events/${eventInstanceId}/tracks/${track.id}/rubrics`, { state: { trackName: track.name } })}>
+                                                    View/Edit Rubrics
+                                                </Button>
+                                                <Button variant="outline" onClick={() => navigate(`/admin/events/${eventInstanceId}/tracks/${track.id}/projects`)}>
+                                                    View Projects
+                                                </Button>
+                                                <Button variant="outline" onClick={() => navigate(`/admin/events/${eventInstanceId}/tracks/${track.id}/results`, { state: { trackName: track.name } })}>
+                                                    View Results
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

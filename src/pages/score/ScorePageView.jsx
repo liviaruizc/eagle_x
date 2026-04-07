@@ -112,49 +112,46 @@ export default function ScorePageView({
     onOverallCommentChange,
 }) {
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="p-6">
-                <h1 className="text-2x1 font-bold">Scoring Project</h1>
-                <p className="mt-2 text-gray-600">{submissionTitle}</p>
-                <form onSubmit={onSubmit} className="mx-auto max-w-3xl p-6">
-                    <header className="flex items-end justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold">Score Submission</h1>
-                            <p className="mt-1 text-sm text-gray-600">Rubric: {rubricName}</p>
-                            {tableNumber != null && (
-                                <p className="mt-1 text-sm font-semibold text-blue-600">
-                                    Table {tableNumber}{tableSession ? ` · Session ${tableSession}` : ""}
-                                </p>
-                            )}
-                            {posterFileUrl && (
-                                <p className="mt-1 text-sm">
-                                    <a
-                                        href={posterFileUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="font-medium text-blue-600 hover:underline"
-                                    >
-                                        View Submitted Poster
-                                    </a>
-                                </p>
-                            )}
-                            <p className="mt-1 text-sm text-gray-600">Total score: {total}</p>
-                        </div>
-                    </header>
+        <div className="min-h-screen bg-[#F3F3F3]">
+            <div className="mx-auto max-w-3xl p-6">
+                {/* Page header */}
+                <div className="mb-6">
+                    <h1 className="text-3xl font-bold text-[#004785]">Score Submission</h1>
+                    <p className="text-[#55616D] mt-1 text-lg font-medium">{submissionTitle}</p>
+                    <div className="mt-2 flex flex-wrap gap-4 text-sm">
+                        <span className="text-[#55616D]">Rubric: <span className="font-semibold text-[#004785]">{rubricName}</span></span>
+                        {tableNumber != null && (
+                            <span className="font-semibold text-[#00794C]">
+                                Table {tableNumber}{tableSession ? ` · Session ${tableSession}` : ""}
+                            </span>
+                        )}
+                        {posterFileUrl && (
+                            <a
+                                href={posterFileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold text-[#004785] hover:underline"
+                            >
+                                View Poster ↗
+                            </a>
+                        )}
+                    </div>
+                </div>
 
-                    {isLoading && <p className="mt-6 text-sm text-gray-500">Loading scoring form...</p>}
+                <form onSubmit={onSubmit}>
+                    {isLoading && <p className="text-[#55616D] text-center py-10">Loading scoring form...</p>}
 
                     {!isLoading && (
-                        <div className="mt-6 space-y-4">
+                        <div className="space-y-4">
                             {criteria.map((criterion, index) => (
-                                <div key={criterion.id} className="rounded-2xl border bg-white p-5 shadow-sm">
-                                    <p className="text-sm font-semibold">
+                                <div key={criterion.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-md">
+                                    <p className="text-sm font-bold text-[#004785]">
                                         {index + 1}. {criterion.name}
                                     </p>
                                     {!!criterion.description && (
-                                        <p className="mt-1 text-xs text-gray-500">{criterion.description}</p>
+                                        <p className="mt-1 text-xs text-[#55616D]">{criterion.description}</p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500">
+                                    <p className="mt-1 text-xs text-[#55616D]">
                                         Weight: {criterion.weight}
                                         {criterion.answerType === "numeric_scale"
                                             ? ` · Range: ${criterion.scoreMin} to ${criterion.scoreMax}`
@@ -169,29 +166,37 @@ export default function ScorePageView({
                                         )}
                                     </div>
 
-                                    <label className="mt-3 block text-sm text-gray-700">
+                                    <label className="mt-3 block text-sm text-[#55616D]">
                                         Comment (optional)
                                         <textarea
                                             value={responsesByCriterionId?.[criterion.id]?.comment || ""}
-                                            onChange={(event) =>
-                                                onCommentChange(criterion.id, event.target.value)
-                                            }
-                                            className="mt-1 w-full rounded border p-2"
+                                            onChange={(event) => onCommentChange(criterion.id, event.target.value)}
+                                            className="mt-1 w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
                                             rows={2}
                                         />
                                     </label>
                                 </div>
                             ))}
 
-                            <label className="block rounded-2xl border bg-white p-5 text-sm text-gray-700 shadow-sm">
-                                Overall comment (optional)
+                            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-md">
+                                <label className="block text-sm font-semibold text-[#004785] mb-1">
+                                    Overall comment (optional)
+                                </label>
                                 <textarea
                                     value={overallComment}
                                     onChange={(event) => onOverallCommentChange(event.target.value)}
-                                    className="mt-1 w-full rounded border p-2"
+                                    className="w-full rounded-lg border border-gray-300 p-2 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
                                     rows={3}
                                 />
-                            </label>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Running total */}
+                    {!isLoading && (
+                        <div className="mt-4 rounded-xl bg-[#004785]/8 border border-[#004785]/20 px-4 py-3 flex items-center justify-between">
+                            <span className="text-sm font-semibold text-[#004785]">Running Total</span>
+                            <span className="text-lg font-bold text-[#004785]">{total}</span>
                         </div>
                     )}
 
@@ -200,10 +205,10 @@ export default function ScorePageView({
                     <div className="mt-6 flex justify-end">
                         <Button
                             type="submit"
-                            variant="secondary"
+                            variant="primary"
                             disabled={isLoading || isSubmitting || !criteria.length}
                         >
-                            {isSubmitting ? "Submitting..." : "Submit"}
+                            {isSubmitting ? "Submitting..." : "Submit Score"}
                         </Button>
                     </div>
                 </form>
