@@ -65,6 +65,21 @@ export async function fetchTrackEventInstanceId(trackId) {
     return data?.event_instance_id ?? null;
 }
 
+export async function fetchTrackSubmissionWindow(trackId) {
+    const { data, error } = await supabase
+        .from("track")
+        .select("submission_open_at, submission_close_at")
+        .eq("track_id", trackId)
+        .single();
+
+    if (error) throw error;
+
+    return {
+        submissionOpenAt: data?.submission_open_at ?? null,
+        submissionCloseAt: data?.submission_close_at ?? null,
+    };
+}
+
 export async function findPersonEventRoleId({ eventInstanceId, personId, eventRoleId }) {
     const { data, error } = await supabase
         .from("person_event_role")
