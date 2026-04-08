@@ -112,7 +112,9 @@ export async function fetchStudentProjectsForEvent(personId, eventInstanceId) {
                 track (
                     track_id,
                     name,
-                    event_instance_id
+                    event_instance_id,
+                    submission_open_at,
+                    submission_close_at
                 ),
                 submission_file (
                     file_url
