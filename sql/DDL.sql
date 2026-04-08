@@ -41,7 +41,7 @@ CREATE TABLE public.person (
   last_name text,
   affiliation text,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
-  auth_user_id bigint UNIQUE,
+  auth_user_id uuid UNIQUE,
   CONSTRAINT person_pkey PRIMARY KEY (person_id)
 );
 
@@ -118,7 +118,7 @@ CREATE TABLE public.facet_option (
 
 CREATE TABLE public.person_event_role (
   person_event_role_id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
-  event_instance_id bigint NOT NULL,
+  event_instance_id bigint NULL,
   person_id bigint NOT NULL,
   event_role_id bigint NOT NULL,
   is_active boolean NOT NULL DEFAULT true,
