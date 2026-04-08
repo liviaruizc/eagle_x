@@ -78,34 +78,6 @@ export default function AdminJudgesPage() {
                 <p className="text-[#55616D] text-center py-10">No judges are assigned to this event.</p>
             )}
 
-<<<<<<< HEAD
-                    {!isLoading && !error && !judges.length && (
-                        <p className="text-sm text-gray-500 text-left">No judges are assigned to this event.</p>
-                    )}
-
-                    <ul className="space-y-3 text-left">
-                        {judges.map((judge) => (
-                            <li key={judge.personEventRoleId} className="rounded border p-3">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                        <p className="font-semibold text-gray-900">{judge.displayName}</p>
-                                        <p className="text-sm text-gray-600">{judge.email || "No email available"}</p>
-                                    </div>
-
-                                    <Button
-                                        variant="secondary"
-                                        disabled={deletingPersonId === judge.personId}
-                                        onClick={() => handleDeleteJudge(judge)}
-                                    >
-                                        {deletingPersonId === judge.personId ? "Deleting..." : "Delete"}
-                                    </Button>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                </CardBody>
-            </Card>
-=======
             <ul className="space-y-3">
                 {judges.map((judge) => (
                     <li key={judge.personEventRoleId} className="rounded-2xl border border-gray-200 bg-white shadow-md p-4">
