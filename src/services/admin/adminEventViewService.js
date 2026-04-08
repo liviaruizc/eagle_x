@@ -1,4 +1,8 @@
-import { fetchJudgesForEvent } from "../judgeSignup/judgeSignupApi.js";
+import {
+    deletePersonById,
+    deletePersonEventRolesByPersonId,
+    fetchJudgesForEvent,
+} from "../judgeSignup/judgeSignupApi.js";
 import {
     fetchAdminProjectRowsByEvent,
     fetchAdminProjectRowsByTrack,
@@ -102,4 +106,9 @@ export async function fetchAdminJudgesByEvent(eventInstanceId) {
             return true;
         })
         .sort((a, b) => a.displayName.localeCompare(b.displayName));
+}
+
+export async function deleteAdminJudge(personId) {
+    await deletePersonEventRolesByPersonId(personId);
+    await deletePersonById(personId);
 }

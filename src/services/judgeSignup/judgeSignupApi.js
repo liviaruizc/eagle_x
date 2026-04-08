@@ -294,12 +294,30 @@ export async function fetchJudgesForEvent(eventInstanceId) {
                 facet_id,
                 facet_option_id
             ),
-            event_role (code)
+            event_role!inner (code)
         `)
         .eq("event_instance_id", eventInstanceId)
         .eq("is_active", true)
-        .eq("event_role.code", "judge");
+        .ilike("event_role.code", "judge");
 
     if (error) throw error;
     return data ?? [];
+}
+
+export async function deletePersonEventRolesByPersonId(personId) {
+    const { error } = await supabase
+        .from("person_event_role")
+        .delete()
+        .eq("person_id", personId);
+
+    if (error) throw error;
+}
+
+export async function deletePersonById(personId) {
+    const { error } = await supabase
+        .from("person")
+        .delete()
+        .eq("person_id", personId);
+
+    if (error) throw error;
 }
