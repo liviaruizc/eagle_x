@@ -182,6 +182,15 @@ export default function ScorePage() {
         }
     }
 
+    function handleBackToQueue() {
+        if (trackId) {
+            navigate(`/queue?trackId=${trackId}`);
+            return;
+        }
+
+        navigate("/queue");
+    }
+
     return (
         <ScorePageView
             submissionTitle={submissionTitle}
@@ -197,6 +206,7 @@ export default function ScorePage() {
             error={error}
             isSubmitting={isSubmitting}
             onSubmit={handleSubmit}
+            onBackToQueue={handleBackToQueue}
             onValueChange={handleValueChange}
             onCommentChange={handleCommentChange}
             onOverallCommentChange={setOverallComment}

@@ -107,6 +107,7 @@ export default function ScorePageView({
     error,
     isSubmitting,
     onSubmit,
+    onBackToQueue,
     onValueChange,
     onCommentChange,
     onOverallCommentChange,
@@ -202,7 +203,15 @@ export default function ScorePageView({
 
                     {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
-                    <div className="mt-6 flex justify-end">
+                    <div className="mt-6 flex items-center justify-between gap-3">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onBackToQueue}
+                        >
+                            Back to Queue
+                        </Button>
+
                         <Button
                             type="submit"
                             variant="primary"

@@ -105,7 +105,13 @@ export async function fetchAdminJudgesByEvent(eventInstanceId) {
             seen.add(judge.personId);
             return true;
         })
-        .sort((a, b) => a.displayName.localeCompare(b.displayName));
+        .sort((a, b) => {
+            if (b.scoreCount !== a.scoreCount) {
+                return b.scoreCount - a.scoreCount;
+            }
+
+            return a.displayName.localeCompare(b.displayName);
+        });
 }
 
 export async function deleteAdminJudge(personId) {
