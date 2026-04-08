@@ -46,7 +46,7 @@ export function ProjectCard({ project, onView, onUpload }) {
                     >
                         {project.poster_file_url ? "Reupload" : "Upload"}
                     </Button>
-                
+                )}
             </div>
         </div>
     );
