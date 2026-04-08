@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { fetchEventInstanceDetails } from "../../services/eventAdminService.js";
-import { fetchJudgeSignupConfig, signUpJudgeForEvent } from "../../services/judgeSignup/judgeSignupService.js";
-import { saveJudgeSession } from "../../services/judgeSession.js";
+import { fetchEventInstanceDetails } from "../../../services/eventAdminService.js";
+import { fetchJudgeSignupConfig, signUpJudgeForEvent } from "../../../services/judgeSignup/judgeSignupService.js";
+import { saveJudgeSession } from "../../../services/judgeSession.js";
 import JudgeSignupPageView from "./JudgeSignupPageView.jsx";
 import {
     getCollegeFacetId,

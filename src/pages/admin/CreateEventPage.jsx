@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import EventCreationForm from "../components/ui/EventCreationForm.jsx";
-import Button from "../components/ui/Button.jsx";
+import EventCreationForm from "../../components/ui/EventCreationForm.jsx";
+import Button from "../../components/ui/Button.jsx";
 import {
     createEventHierarchyFromForm,
     ensureDefaultTrackTypes,
     fetchTrackTypes,
     createTrackType,
-} from "../services/eventAdminService.js";
+} from "../../services/eventAdminService.js";
 
 export default function CreateEventPage() {
     const navigate = useNavigate();

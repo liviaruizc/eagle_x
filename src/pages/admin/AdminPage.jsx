@@ -1,12 +1,12 @@
-import {Card, CardBody, CardTitle} from "../components/ui/Card.jsx";
+import {Card, CardBody, CardTitle} from "../../components/ui/Card.jsx";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "../components/ui/Button.jsx";
-import EventInstanceCard from "../components/ui/EventInstanceCard.jsx";
+import Button from "../../components/ui/Button.jsx";
+import EventInstanceCard from "../../components/ui/EventInstanceCard.jsx";
 import {
     deleteEventInstance,
     fetchEventInstances,
-} from "../services/eventAdminService.js";
+} from "../../services/eventAdminService.js";
 
 
 export default function AdminPage() {

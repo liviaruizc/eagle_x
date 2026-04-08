@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import Button from "../components/ui/Button.jsx";
-import TrackRubricForm from "../components/ui/TrackRubricForm.jsx";
-import { fetchTrackName } from "../services/track/trackService.js";
-import { fetchTrackRubrics } from "../services/rubric/rubricService.js";
+import Button from "../../../components/ui/Button.jsx";
+import TrackRubricForm from "../../../components/ui/TrackRubricForm.jsx";
+import { fetchTrackName } from "../../../services/track/trackService.js";
+import { fetchTrackRubrics } from "../../../services/rubric/rubricService.js";
 
 export default function TrackRubricEditPage() {
     const navigate = useNavigate();

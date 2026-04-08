@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Button from "../components/ui/Button.jsx";
+import Button from "../../components/ui/Button.jsx";
 import {
     fetchStudentSubmissionCompletionOptions,
     fetchStudentSubmissionCompletionRows,
     saveStudentSubmissionCompletion,
-} from "../services/studentProjects/studentApi.js";
+} from "../../services/studentProjects/studentApi.js";
 
 export default function StudentCompletionPage() {
     const navigate = useNavigate();

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import Button from "../components/ui/Button.jsx";
-import { fetchTrackName } from "../services/track/trackService.js";
-import { fetchTrackRubrics } from "../services/rubric/rubricService.js";
+import Button from "../../../components/ui/Button.jsx";
+import { fetchTrackName } from "../../../services/track/trackService.js";
+import { fetchTrackRubrics } from "../../../services/rubric/rubricService.js";
 
 export default function TrackRubricsOverviewPage() {
     const navigate = useNavigate();

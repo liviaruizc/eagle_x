@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import Button from "../components/ui/Button.jsx";
+import Button from "../../components/ui/Button.jsx";
 import {
     fetchQueueSubmissionsForJudge,
     filterQueueSubmissions,
-} from "../services/queue/queueService.js";
+} from "../../services/queue/queueService.js";
 
 const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
-const QUEUE_REFRESH_INTERVAL_MS = 1000;
+const QUEUE_REFRESH_INTERVAL_MS = 15 * 1000;
 
 function cloneFiltersMap(filters) {
     if (!filters || typeof filters !== "object") return {};
@@ -35,6 +35,7 @@ export default function QueuePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [judgePersonId, setJudgePersonId] = useState("");
     const hasInitializedFiltersRef = useRef(false);
+    const isFetchingRef = useRef(false);
 
     const availableFilterFacets = useMemo(() => {
         const facetMap = new Map();
@@ -122,6 +123,9 @@ export default function QueuePage() {
 
     useEffect(() => {
         async function loadQueueSubmissions({ showLoading }) {
+            if (isFetchingRef.current) return;
+            isFetchingRef.current = true;
+
             if (showLoading) {
                 setError("");
                 setIsLoading(true);
@@ -130,6 +134,7 @@ export default function QueuePage() {
             if (!trackId) {
                 setError("No track selected. Please choose a track to judge.");
                 setIsLoading(false);
+                isFetchingRef.current = false;
                 return;
             }
 
@@ -142,6 +147,7 @@ export default function QueuePage() {
 
                 if (!judgePersonId || !eventInstanceId) {
                     setError("No active judge profile found. Please sign up first.");
+                    isFetchingRef.current = false;
                     return;
                 }
 
@@ -173,6 +179,7 @@ export default function QueuePage() {
                 console.error(loadError);
                 setError("Could not load eligible submissions right now.");
             } finally {
+                isFetchingRef.current = false;
                 if (showLoading) {
                     setIsLoading(false);
                 }

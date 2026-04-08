@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Button from "../components/ui/Button.jsx";
+import Button from "../../../components/ui/Button.jsx";
 
-import { fetchTrackName } from "../services/track/trackService.js";
-import { fetchTrackResultsReport, filterTrackResults } from "../services/results/resultsService.js";
+import { fetchTrackName } from "../../../services/track/trackService.js";
+import { fetchTrackResultsReport, filterTrackResults } from "../../../services/results/resultsService.js";
 
 function formatScore(value) {
     if (value == null) return "-";

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Card, CardBody, CardTitle } from "../components/ui/Card.jsx";
-import { fetchScoreSheetsByJudge } from "../services/score/scoreApi.js";
-import { getCurrentUser } from "../services/loginAuth/authService.js";
+import { Card, CardBody, CardTitle } from "../../components/ui/Card.jsx";
+import { fetchScoreSheetsByJudge } from "../../services/score/scoreApi.js";
+import { getCurrentUser } from "../../services/loginAuth/authService.js";
 
 export default function JudgeScoresPage() {
     const [groupedByEvent, setGroupedByEvent] = useState([]);

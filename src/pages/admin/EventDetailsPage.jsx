@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import Button from "../components/ui/Button.jsx";
-import CreateJudgeForm from "../components/ui/CreateJudgeForm.jsx";
-import { fetchEventInstanceDetails, updateEventInstanceSchedule } from "../services/eventAdminService.js";
+import Button from "../../components/ui/Button.jsx";
+import CreateJudgeForm from "../../components/ui/CreateJudgeForm.jsx";
+import { fetchEventInstanceDetails, updateEventInstanceSchedule } from "../../services/eventAdminService.js";
 
 function toDateTimeLocalInput(value) {
     if (!value) return "";

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Button from "../components/ui/Button.jsx";
-import { Card, CardBody, CardTitle } from "../components/ui/Card.jsx";
-import { fetchSubmissionEvaluations } from "../services/evaluations/evaluationsService.js";
+import Button from "../../components/ui/Button.jsx";
+import { Card, CardBody, CardTitle } from "../../components/ui/Card.jsx";
+import { fetchSubmissionEvaluations } from "../../services/evaluations/evaluationsService.js";
 
 const PHASE_OPTIONS = [
     { value: "all", label: "All Questions" },

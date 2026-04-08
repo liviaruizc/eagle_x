@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getStudentProjectInfo } from "../services/studentProjects/studentService.js";
-import PosterViewer from "../components/poster/PosterViewer.jsx";
-import Button from "../components/ui/Button.jsx";
+import { getStudentProjectInfo } from "../../services/studentProjects/studentService.js";
+import PosterViewer from "../../components/poster/PosterViewer.jsx";
+import Button from "../../components/ui/Button.jsx";
 
 export default function StudentProjectDetails() {
 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { fetchStudentEventInstances } from "../services/studentProjects/studentApi.js";
-import Button from "../components/ui/Button.jsx";
-import EventInstanceCard from "../components/ui/EventInstanceCard.jsx";
+import { fetchStudentEventInstances } from "../../services/studentProjects/studentApi.js";
+import Button from "../../components/ui/Button.jsx";
+import EventInstanceCard from "../../components/ui/EventInstanceCard.jsx";
 
 export default function StudentDashboard() {
     const navigate = useNavigate();

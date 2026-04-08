@@ -28,6 +28,13 @@ export async function getCurrentUser() {
         return null;
     }
 
+    // Validate that the Supabase session is still active (catches token expiry mid-event).
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data?.user) {
+        sessionStorage.removeItem("auth_person_id");
+        return null;
+    }
+
     const roles = await fetchPersonRoles(personId);
 
     return {

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "../components/ui/Button.jsx";
-import { Card, CardBody, CardTitle } from "../components/ui/Card.jsx";
-import { fetchJudgeEventInstances } from "../services/judgeSignup/judgeSignupApi.js";
+import Button from "../../components/ui/Button.jsx";
+import { Card, CardBody, CardTitle } from "../../components/ui/Card.jsx";
+import { fetchJudgeEventInstances } from "../../services/judgeSignup/judgeSignupApi.js";
 import {
     fetchJudgeProfile,
     updateJudgeProfileFacets,
-} from "../services/judgeSignup/judgeSignupService.js";
+} from "../../services/judgeSignup/judgeSignupService.js";
 import {
     getCollegeFacetId,
     getProgramOptionsForFacet as getFacetProgramOptions,

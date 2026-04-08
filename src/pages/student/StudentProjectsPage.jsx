@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { fetchStudentProjectsForEvent } from "../services/studentProjects/studentApi.js";
-import { ProjectCard } from "../components/ui/ProjectCard.jsx";
+import { fetchStudentProjectsForEvent } from "../../services/studentProjects/studentApi.js";
+import { ProjectCard } from "../../components/ui/ProjectCard.jsx";
 
 export default function StudentEventProjectsPage() {
     const navigate = useNavigate();

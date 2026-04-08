@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { uploadPoster } from "../services/studentProjects/studentApi";
-import Button from "../components/ui/Button.jsx";
+import { uploadPoster } from "../../services/studentProjects/studentApi";
+import Button from "../../components/ui/Button.jsx";
 
 export default function UploadPosterPage() {
 

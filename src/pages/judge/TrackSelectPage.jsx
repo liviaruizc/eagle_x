@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Button from "../components/ui/Button.jsx";
-import { fetchTracksForEvent } from "../services/track/trackService.js";
+import Button from "../../components/ui/Button.jsx";
+import { fetchTracksForEvent } from "../../services/track/trackService.js";
 
 export default function TrackSelectPage() {
     const { eventInstanceId } = useParams();

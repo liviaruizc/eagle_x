@@ -1,43 +1,47 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import ProjectsPage from "../pages/ProjectsPage.jsx";
-import QueuePage from "../pages/QueuePage.jsx";
-import ScorePage from "../pages/ScorePage.jsx";
-import JudgePage from "../pages/JudgePage.jsx";
-import AdminPage from "../pages/AdminPage.jsx";
-import CreateEventPage from "../pages/CreateEventPage.jsx";
-import EventDetailsPage from "../pages/EventDetailsPage.jsx";
-import AdminJudgesPage from "../pages/AdminJudgesPage.jsx";
-import AdminProjectsPage from "../pages/AdminProjectsPage.jsx";
-import TrackSubmissionsPage from "../pages/TrackSubmissionsPage.jsx";
-import TrackRubricsOverviewPage from "../pages/TrackRubricsOverviewPage.jsx";
-import TrackRubricCreatePage from "../pages/TrackRubricCreatePage.jsx";
-import TrackRubricEditPage from "../pages/TrackRubricEditPage.jsx";
-import JudgeSignupPage from "../pages/judgeSignup/JudgeSignupPage.jsx";
-import TrackResultsPage from "../pages/TrackResultsPage.jsx";
-import TrackSelection from "../pages/TrackSelectPage.jsx";
+// Auth
+import RoleSelectionPage from '../pages/auth/RoleSelectionPage.jsx';
+import LoginEmailPage from '../pages/auth/LoginEmailPage.jsx';
+import LoginSetPassword from '../pages/auth/LoginSetPassword.jsx';
+import LoginAfterVerified from '../pages/auth/LoginAfterVerified.jsx';
+import CompleteProfilePage from '../pages/auth/CompleteProfilePage.jsx';
 
-import RoleSelectionPage from '../pages/LoginProcess/RoleSelectionPage.jsx';
-import LoginEmailPage from '../pages/LoginProcess/LoginEmailPage.jsx';
-import LoginSetPassword from '../pages/LoginProcess/LoginSetPassword.jsx';
-import LoginAfterVerified from '../pages/LoginProcess/LoginAfterVerified.jsx';
-import CompleteProfilePage from '../pages/LoginProcess/CompleteProfilePage.jsx';
+// Judge
+import JudgePage from '../pages/judge/JudgePage.jsx';
+import TrackSelection from '../pages/judge/TrackSelectPage.jsx';
+import QueuePage from '../pages/judge/QueuePage.jsx';
+import JudgeProfilePage from '../pages/judge/JudgeProfilePage.jsx';
+import JudgeScoresPage from '../pages/judge/JudgeScoresPage.jsx';
+import JudgeSignupPage from '../pages/judge/signup/JudgeSignupPage.jsx';
+import ScorePage from '../pages/judge/score/ScorePage.jsx';
 
-import StudentDashboard from '../pages/StudentPage.jsx';
-import StudentEventProjectsPage from '../pages/StudentProjectsPage.jsx';
-import UploadPosterPage from '../pages/UploadPosterPage.jsx';
-import StudentProjectDetails from '../pages/StudentProjectInfo.jsx';
-import StudentCompletionPage from '../pages/StudentCompletionPage.jsx';
+// Admin
+import AdminPage from '../pages/admin/AdminPage.jsx';
+import AdminJudgesPage from '../pages/admin/AdminJudgesPage.jsx';
+import AdminProjectsPage from '../pages/admin/AdminProjectsPage.jsx';
+import CreateEventPage from '../pages/admin/CreateEventPage.jsx';
+import EventDetailsPage from '../pages/admin/EventDetailsPage.jsx';
+import SubmissionEvaluationsPage from '../pages/admin/SubmissionEvaluationsPage.jsx';
+import TrackSubmissionsPage from '../pages/admin/track/TrackSubmissionsPage.jsx';
+import TrackRubricsOverviewPage from '../pages/admin/track/TrackRubricsOverviewPage.jsx';
+import TrackRubricCreatePage from '../pages/admin/track/TrackRubricCreatePage.jsx';
+import TrackRubricEditPage from '../pages/admin/track/TrackRubricEditPage.jsx';
+import TrackResultsPage from '../pages/admin/track/TrackResultsPage.jsx';
 
-import ProtectedRoute from "./ProtectedRoute.jsx";
-import PublicRoute from "./PublicRoute.jsx";
-import RoleRoute from "./RoleRoute.jsx";
+// Student
+import StudentDashboard from '../pages/student/StudentPage.jsx';
+import StudentEventProjectsPage from '../pages/student/StudentProjectsPage.jsx';
+import StudentProjectDetails from '../pages/student/StudentProjectInfo.jsx';
+import StudentCompletionPage from '../pages/student/StudentCompletionPage.jsx';
+import UploadPosterPage from '../pages/student/UploadPosterPage.jsx';
+
+// App shell
+import ProtectedRoute from './ProtectedRoute.jsx';
+import PublicRoute from './PublicRoute.jsx';
+import RoleRoute from './RoleRoute.jsx';
+import AppLayout from '../components/layout/AppLayout.jsx';
 import UnauthorizedPage from '../pages/UnauthorizedPage.jsx';
-
-import AppLayout from "../components/layout/AppLayout.jsx";
-import SubmissionEvaluationsPage from '../pages/SubmissionEvaluationsPage.jsx';
-import JudgeProfilePage from '../pages/JudgeProfilePage.jsx';
-import JudgeScoresPage from '../pages/JudgeScoresPage.jsx';
 
 export default function AppRouter() {
     return (
@@ -57,12 +61,8 @@ export default function AppRouter() {
                 <Route element={<ProtectedRoute />}>
 
                     <Route path="/complete-profile" element={<CompleteProfilePage />} />
-                    
+
                     <Route element={<AppLayout />}>
-                        {/* General */}
-                        <Route path="/projects" element={<ProjectsPage />} />
-                        <Route path="/queue" element={<QueuePage />} />
-                        <Route path="/queue?trackId=:trackId" element={<QueuePage />} />
 
                         {/* Student */}
                         <Route element={<RoleRoute allowedRoles={["student"]} />}>
@@ -72,13 +72,13 @@ export default function AppRouter() {
                             <Route path="/students/projects/:submissionId" element={<StudentProjectDetails />} />
                             <Route path="/students/projects/:submissionId/upload-poster" element={<UploadPosterPage />} />
                         </Route>
-                   
 
                         {/* Judge */}
                         <Route element={<RoleRoute allowedRoles={["judge"]} />}>
                             <Route path="/judge" element={<JudgePage />} />
                             <Route path="/judges/signup/:eventInstanceId" element={<JudgeSignupPage />} />
                             <Route path="/judges/:eventInstanceId/tracks" element={<TrackSelection />} />
+                            <Route path="/queue" element={<QueuePage />} />
                             <Route path="/score/:projectId" element={<ScorePage />} />
                             <Route path="/judge/profile" element={<JudgeProfilePage />} />
                             <Route path="/judge/scores" element={<JudgeScoresPage />} />
@@ -89,76 +89,19 @@ export default function AppRouter() {
                             <Route path="/admin" element={<AdminPage />} />
                             <Route path="/admin/create-event" element={<CreateEventPage />} />
                             <Route path="/admin/events/:eventInstanceId" element={<EventDetailsPage />} />
-                            <Route
-                                path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics"
-                                element={<TrackRubricsOverviewPage />}
-                            />
-                            <Route
-                                path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics/create"
-                                element={<TrackRubricCreatePage />}
-                            />
-                            <Route
-                                path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics/:rubricId/edit"
-                                element={<TrackRubricEditPage />}
-                            />
-                            <Route
-                                path="/admin/events/:eventInstanceId/tracks/:trackId/submissions"
-                                element={<TrackSubmissionsPage />}
-                            />
-                            <Route
-                                path="/admin/events/:eventInstanceId/tracks/:trackId/results"
-                                element={<TrackResultsPage />}
-                            />
-                            <Route path="/admin/events/:eventInstanceId/tracks/:trackId/submissions/:submissionId/evaluations"
-                                element={<SubmissionEvaluationsPage />} 
-                            />
+                            <Route path="/admin/events/:eventInstanceId/judges" element={<AdminJudgesPage />} />
+                            <Route path="/admin/events/:eventInstanceId/projects" element={<AdminProjectsPage />} />
+                            <Route path="/admin/events/:eventInstanceId/tracks/:trackId/projects" element={<AdminProjectsPage />} />
+                            <Route path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics" element={<TrackRubricsOverviewPage />} />
+                            <Route path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics/create" element={<TrackRubricCreatePage />} />
+                            <Route path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics/:rubricId/edit" element={<TrackRubricEditPage />} />
+                            <Route path="/admin/events/:eventInstanceId/tracks/:trackId/submissions" element={<TrackSubmissionsPage />} />
+                            <Route path="/admin/events/:eventInstanceId/tracks/:trackId/results" element={<TrackResultsPage />} />
+                            <Route path="/admin/events/:eventInstanceId/tracks/:trackId/submissions/:submissionId/evaluations" element={<SubmissionEvaluationsPage />} />
                         </Route>
 
-                     </Route>
-                    {/* Admin */}
-                    <Route element={<RoleRoute allowedRoles={["admin"]} />}>
-                        <Route path="/admin" element={<AdminPage />} />
-                        <Route path="/admin/create-event" element={<CreateEventPage />} />
-                        <Route path="/admin/events/:eventInstanceId" element={<EventDetailsPage />} />
-                        <Route
-                            path="/admin/events/:eventInstanceId/judges"
-                            element={<AdminJudgesPage />}
-                        />
-                        <Route
-                            path="/admin/events/:eventInstanceId/projects"
-                            element={<AdminProjectsPage />}
-                        />
-                        <Route
-                            path="/admin/events/:eventInstanceId/tracks/:trackId/projects"
-                            element={<AdminProjectsPage />}
-                        />
-                        <Route
-                            path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics"
-                            element={<TrackRubricsOverviewPage />}
-                        />
-                        <Route
-                            path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics/create"
-                            element={<TrackRubricCreatePage />}
-                        />
-                        <Route
-                            path="/admin/events/:eventInstanceId/tracks/:trackId/rubrics/:rubricId/edit"
-                            element={<TrackRubricEditPage />}
-                        />
-                        <Route
-                            path="/admin/events/:eventInstanceId/tracks/:trackId/submissions"
-                            element={<TrackSubmissionsPage />}
-                        />
-                        <Route
-                            path="/admin/events/:eventInstanceId/tracks/:trackId/results"
-                            element={<TrackResultsPage />}
-                        />
                     </Route>
 
-                    {/* Scoring */}
-                    
-
-                    {/* Fallback for unmatched routes */}
-                    {/* <Route path="*" element={<NotFoundPage />} /> */}
                     <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
                 </Route>

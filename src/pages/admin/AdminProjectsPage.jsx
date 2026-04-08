@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import Button from "../components/ui/Button.jsx";
-import { fetchTracksForEvent } from "../services/track/trackService.js";
+import Button from "../../components/ui/Button.jsx";
+import { fetchTracksForEvent } from "../../services/track/trackService.js";
 import {
     assignTableToSubmission,
     fetchAdminProjectsByEvent,
     fetchAdminProjectsByTrack,
-} from "../services/admin/adminEventViewService.js";
+} from "../../services/admin/adminEventViewService.js";
 
 export default function AdminProjectsPage() {
     const navigate = useNavigate();

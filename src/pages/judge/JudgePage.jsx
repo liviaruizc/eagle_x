@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "../components/ui/Button.jsx";
-import EventInstanceCard from "../components/ui/EventInstanceCard.jsx";
-import { fetchJudgeEventInstances } from "../services/judgeSignup/judgeSignupApi.js";
-import { getCurrentUser } from "../services/loginAuth/authService.js";
+import Button from "../../components/ui/Button.jsx";
+import EventInstanceCard from "../../components/ui/EventInstanceCard.jsx";
+import { fetchJudgeEventInstances } from "../../services/judgeSignup/judgeSignupApi.js";
+import { getCurrentUser } from "../../services/loginAuth/authService.js";
 
 function isJudgingAllowed(event) {
     const now = new Date();
