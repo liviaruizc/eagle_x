@@ -35,18 +35,10 @@ export async function fetchJudgeEventInstances(personId) {
                 pre_scoring_end_at,
                 location
             ),
-<<<<<<< HEAD
-            event_role!inner (code)
-        `)
-        .eq("person_id", personId)
-        .eq("is_active", true)
-        .ilike("event_role.code", "judge");
-=======
             event_role (code, name)
         `)
         .eq("person_id", personId)
         .eq("is_active", true);
->>>>>>> dev
 
     if (error) throw error;
 

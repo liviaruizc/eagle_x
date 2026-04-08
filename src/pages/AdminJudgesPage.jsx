@@ -91,7 +91,6 @@ export default function AdminJudgesPage() {
                     </li>
                 ))}
             </ul>
->>>>>>> dev
         </div>
     );
 }
