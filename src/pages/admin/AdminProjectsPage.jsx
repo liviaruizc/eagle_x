@@ -198,6 +198,18 @@ export default function AdminProjectsPage() {
                                 {viewMode === "event" && project.track?.name && (
                                     <p><span className="font-semibold text-[#004785]">Track:</span> {project.track.name}</p>
                                 )}
+                                {project.posterFileUrl && (
+                                    <p>
+                                        <a
+                                            href={project.posterFileUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="font-semibold text-[#004785] hover:underline"
+                                        >
+                                            View Poster ↗
+                                        </a>
+                                    </p>
+                                )}
                                 <p>
                                     <span className="font-semibold text-[#004785]">Participants:</span>{" "}
                                     {project.participants.length

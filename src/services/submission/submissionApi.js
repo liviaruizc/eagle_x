@@ -166,6 +166,9 @@ export async function fetchAdminProjectRowsByEvent(eventInstanceId) {
             description,
             status,
             created_at,
+            submission_file (
+                file_url
+            ),
             track:track_id (
                 track_id,
                 name,
@@ -208,6 +211,9 @@ export async function fetchAdminProjectRowsByTrack(trackId) {
             description,
             status,
             created_at,
+            submission_file (
+                file_url
+            ),
             track:track_id (
                 track_id,
                 name,

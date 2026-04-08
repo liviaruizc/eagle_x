@@ -34,6 +34,7 @@ function mapProjectRow(row) {
         submissionId: row.submission_id,
         title: row.title || "Untitled",
         description: row.description || "",
+        posterFileUrl: row.submission_file?.file_url ?? null,
         status: row.status || "unknown",
         createdAt: row.created_at,
         track: row.track
