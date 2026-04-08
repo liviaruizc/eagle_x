@@ -1,5 +1,5 @@
-import { Card, CardBody, CardTitle } from "../../components/ui/Card.jsx";
-import Button from "../../components/ui/Button.jsx";
+import { Card, CardBody, CardTitle } from "../../../components/ui/Card.jsx";
+import Button from "../../../components/ui/Button.jsx";
 import {
     isCollegeFacet,
     isMultiProgramFacet,

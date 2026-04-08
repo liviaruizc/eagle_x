@@ -18,7 +18,7 @@ import {
     updateSingleFacetSelection,
     isCollegeFacet,
     isMultiProgramFacet,
-} from "./judgeSignup/judgeSignupPageUtils.js";
+} from "./signup/judgeSignupPageUtils.js";
 
 export default function JudgeProfilePage() {
     const navigate = useNavigate();
