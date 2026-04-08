@@ -1,6 +1,8 @@
 import Button from "./Button";
 
 export function ProjectCard({ project, onView, onUpload }) {
+    const canUploadPoster = !["done", "withdrawn"].includes(String(project.status || "").toLowerCase());
+
     return (
         <div className="bg-white border border-[#00794C] rounded-2xl shadow-md hover:shadow-xl transition p-6 flex flex-col justify-between">
             <div className="flex flex-col gap-2">
@@ -36,7 +38,7 @@ export function ProjectCard({ project, onView, onUpload }) {
                     View Info
                 </Button>
 
-                
+                {canUploadPoster && (
                     <Button
                         onClick={() => onUpload(project.submission_id)}
                         className="flex-1"

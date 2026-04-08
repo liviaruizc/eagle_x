@@ -47,9 +47,20 @@ export default function LoginPasswordPage() {
             sessionStorage.setItem("auth_person_id", person.person_id);
             sessionStorage.setItem("auth_role", role);
 
-            if (role === "student") navigate("/student");
-            if (role === "judge") navigate("/judge");
-            if (role === "admin") navigate("/admin");
+            const hasFirstName = String(person.first_name || "").trim().length > 0;
+            const hasLastName = String(person.last_name || "").trim().length > 0;
+            const nextPath = role === "student" ? "/student" : role === "judge" ? "/judge" : "/admin";
+
+            if (!hasFirstName || !hasLastName) {
+                sessionStorage.setItem("profile_complete", "false");
+                sessionStorage.setItem("post_login_path", nextPath);
+                navigate("/complete-profile", { replace: true });
+                return;
+            }
+
+            sessionStorage.setItem("profile_complete", "true");
+
+            navigate(nextPath, { replace: true });
 
         } catch (err) {
             console.error(err);
@@ -88,6 +99,8 @@ export default function LoginPasswordPage() {
                     {/* Password Input */}
                     <input
                         type="password"
+                        name="password"
+                        autoComplete="current-password"
                         placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}

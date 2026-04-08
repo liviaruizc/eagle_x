@@ -15,7 +15,9 @@ import {
     fetchRubricById,
     fetchRubricCriteria,
     fetchScoreItems,
+    fetchSubmissionPosterFileUrl,
     fetchSubmissionForScoring,
+    fetchSubmissionTableAssignment,
     fetchTrackRubrics,
     insertScoreItems,
     insertScoreSheet,
@@ -32,14 +34,23 @@ import {
 } from "./scoreUtils.js";
 import {
     assertJudgeCanScoreSubmission,
+    clearJudgeScoringActivity,
     ensureJudgeAssignment,
+    markJudgeScoringActivity,
     updateSubmissionStatusIfThresholdReached,
 } from "./scoreWorkflow.js";
+
+const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
 
 export {
     computeCriterionScore,
     validateCriterionResponses,
     calculateScoreTotal,
+};
+
+export {
+    markJudgeScoringActivity,
+    clearJudgeScoringActivity,
 };
 
 export async function fetchScoringContext(submissionId, judgePersonId) {
@@ -55,23 +66,29 @@ export async function fetchScoringContext(submissionId, judgePersonId) {
         throw new Error("No rubric is linked to this submission's track.");
     }
 
-    const [rubric, eventStatus] = await Promise.all([
+    const [rubric, eventStatus, tableInfo, posterFileUrl] = await Promise.all([
         fetchRubricById(selectedTrackRubric.rubric_id),
         fetchEventInstanceStatusByTrack(submission.track_id),
+        fetchSubmissionTableAssignment(submissionId),
+        fetchSubmissionPosterFileUrl(submissionId),
     ]);
 
     const allowedPhases = resolveAllowedScoringPhases(eventStatus);
     const criteriaRows = await fetchRubricCriteria(rubric.rubric_id);
 
-    console.log("[scoring] eventStatus:", eventStatus);
-    console.log("[scoring] allowedPhases:", allowedPhases);
-    console.log("[scoring] criteriaRows (before filter):", criteriaRows.map((r) => ({ name: r.name, scoring_phase: r.scoring_phase })));
+    if (DEBUG_LOGS) {
+        console.log("[scoring] eventStatus:", eventStatus);
+        console.log("[scoring] allowedPhases:", allowedPhases);
+        console.log("[scoring] criteriaRows (before filter):", criteriaRows.map((r) => ({ name: r.name, scoring_phase: r.scoring_phase })));
+    }
 
     const criteria = (criteriaRows ?? [])
         .filter((row) => allowedPhases.includes(row.scoring_phase))
         .map(normalizeCriterion);
 
-    console.log("[scoring] criteria (after filter):", criteria.map((c) => ({ name: c.name })));
+    if (DEBUG_LOGS) {
+        console.log("[scoring] criteria (after filter):", criteria.map((c) => ({ name: c.name })));
+    }
 
     // Hydrate existing responses when judge already scored this submission.
     let existingResponsesByCriterionId = {};
@@ -92,6 +109,9 @@ export async function fetchScoringContext(submissionId, judgePersonId) {
         rubricName: rubric.name,
         criteria,
         existingResponsesByCriterionId,
+        tableNumber: tableInfo?.table_number ?? null,
+        tableSession: tableInfo?.session ?? null,
+        posterFileUrl,
     };
 }
 

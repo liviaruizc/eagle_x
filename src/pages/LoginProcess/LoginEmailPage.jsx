@@ -5,6 +5,7 @@ import { getAuthIntent } from "../../services/loginAuth/authIntent.js";
 import { fetchPersonByEmail, fetchPersonRoles } from "../../services/loginAuth/authApi.js";
 import FGCUlogo from "../../assets/FGCU logo.jpg";
 
+
 export default function LoginEmailPage() {
     const navigate = useNavigate();
 
@@ -26,15 +27,20 @@ export default function LoginEmailPage() {
 
         try {
             const person = await fetchPersonByEmail(email);
-            const roles = await fetchPersonRoles(person.person_id);
-
-            if (!roles.includes(selectedRole.toUpperCase())) {
-                throw new Error("You do not have permission to access this role.");
-            }
 
             if (!person) {
                 throw new Error("Account not found.");
-            } else if (!person.auth_user_id) {
+            }
+
+            const roles = await fetchPersonRoles(person.person_id);
+            const requiredRole = selectedRole.toString().trim().toUpperCase();
+            const normalizedRoles = roles.map((role) => role.toString().trim().toUpperCase());
+
+            if (!normalizedRoles.includes(requiredRole)) {
+                throw new Error(`You do not have the ${selectedRole} role on this account.`);
+            }
+
+            if (!person.auth_user_id) {
                 navigate("/set-password", { state: { email } });
             } else {
                 navigate("/login-password", { state: { email, role: selectedRole } });
@@ -115,6 +121,7 @@ export default function LoginEmailPage() {
                         {error}
                     </p>
                 )}
+
 
             </div>
         </div>

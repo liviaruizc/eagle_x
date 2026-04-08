@@ -1,0 +1,3 @@
+title,description,keywords,created_by_email,co_author_emails,supervisor_email,submitted_at,college,degree,level,program,session
+Eagle X Project Title,Short abstract or description,"ai|healthcare|ml",student1@example.edu,"student1b@example.edu|student1c@example.edu",mentor1@example.edu,2026-03-15T14:30:00Z,U.A. Whitaker College of Engineering,BS,Undergraduate,Software Engineering,A-200
+Second Project Title,Another short description,"biology|research",student2@example.edu,student2b@example.edu,mentor2@example.edu,2026-03-15T15:00:00Z,College of Arts and Sciences,BS,Undergraduate,Biology,B-115

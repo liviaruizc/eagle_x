@@ -30,11 +30,14 @@ export function normalizeSubmissionStatus(statusValue) {
 }
 
 export function normalizeSubmissionPayload(trackId, submission) {
+    const createdByEmail = String(submission.created_by_email || "").trim().toLowerCase();
+
     return {
         track_id: trackId,
         title: submission.title,
         description: submission.description || null,
         keywords: submission.keywords || null,
+        created_by_email: createdByEmail || null,
         supervisor_person_id: submission.supervisor_person_id || null,
         status: normalizeSubmissionStatus(submission.status),
         submitted_at: submission.submitted_at || new Date().toISOString(),

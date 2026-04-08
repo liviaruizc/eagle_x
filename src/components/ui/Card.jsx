@@ -1,15 +1,15 @@
 export function Card({children, className = ""}) {
     return (
-        <div className={`rounded-2x1 border border-gray-200 bg-white p-5 shadow-sm ${className}`}>
+        <div className={`rounded-2xl border border-gray-200 bg-white p-6 shadow-md ${className}`}>
             {children}
         </div>
     );
 }
 
 export function CardTitle({ children }) {
-    return <h2 className="text-lg font-semibold">{children}</h2>;
+    return <h2 className="text-2xl font-bold text-[#004785] mb-1">{children}</h2>;
 }
 
 export function CardBody({ children }) {
-    return <div className="mt-2 text-sm text-gray-600">{children}</div>;
+    return <div className="mt-3 text-sm text-[#55616D]">{children}</div>;
 }
