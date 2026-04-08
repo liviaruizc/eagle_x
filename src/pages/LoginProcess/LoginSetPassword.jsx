@@ -4,6 +4,13 @@ import { supabase } from "../../lib/supabaseClient.js";
 import Button from "../../components/ui/Button.jsx";
 import FGCUlogo from "../../assets/FGCU logo.jpg";
 
+function validatePasswordRequirements(value) {
+    if (!/[A-Z]/.test(value)) return "Password must include at least one uppercase letter.";
+    if (!/[a-z]/.test(value)) return "Password must include at least one lowercase letter.";
+    if (!/[0-9]/.test(value)) return "Password must include at least one number.";
+    return "";
+}
+
 export default function SetPasswordPage() {
     const location = useLocation();
     const { email } = location.state ?? {};
@@ -11,6 +18,7 @@ export default function SetPasswordPage() {
     const navigate = useNavigate();
 
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -27,6 +35,18 @@ export default function SetPasswordPage() {
     async function handleSetPassword(e) {
         e.preventDefault();
         setError("");
+
+        const passwordValidationError = validatePasswordRequirements(password);
+        if (passwordValidationError) {
+            setError(passwordValidationError);
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setError("Passwords do not match. Please re-enter both fields.");
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -57,7 +77,6 @@ export default function SetPasswordPage() {
 
             if (updateError) throw updateError;
 
-            alert("Password set! Please verify your email before logging in.");
             navigate("/login");
 
         } catch (err) {
@@ -94,6 +113,17 @@ export default function SetPasswordPage() {
                 {/* Form */}
                 <form onSubmit={handleSetPassword} className="space-y-4">
 
+                    <div className="rounded-lg border border-[#004785]/20 bg-[#004785]/5 p-3 text-xs text-[#1F2D3A]">
+                        <p className="font-semibold text-[#004785]">Password creation guide</p>
+                        <ul className="list-disc list-inside mt-1 space-y-1">
+                            <li>Use at least 8 characters.</li>
+                            <li>Include at least one uppercase letter.</li>
+                            <li>Include at least one lowercase letter.</li>
+                            <li>Include at least one number.</li>
+                            <li>Avoid using personal info like your name or email.</li>
+                        </ul>
+                    </div>
+
                     {/* Password Input */}
                     <input
                         type="password"
@@ -102,6 +132,26 @@ export default function SetPasswordPage() {
                         placeholder="Enter your new password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        minLength={8}
+                        required
+                        className="
+                            w-full border border-[#55616D]/40 rounded-lg p-3
+                            focus:outline-none focus:ring-2 focus:ring-[#00794C]
+                            transition
+                        "
+                    />
+                    <p className="text-xs text-[#55616D]">
+                        Use at least 8 characters with one uppercase letter, one lowercase letter, and one number.
+                    </p>
+
+                    <input
+                        type="password"
+                        name="confirm-new-password"
+                        autoComplete="new-password"
+                        placeholder="Confirm your new password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        minLength={8}
                         required
                         className="
                             w-full border border-[#55616D]/40 rounded-lg p-3
