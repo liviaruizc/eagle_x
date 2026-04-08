@@ -10,7 +10,8 @@ export async function findPersonByEmail(email) {
     const { data, error } = await supabase
         .from("person")
         .select("person_id")
-        .eq("email", email)
+        .ilike("email", email)
+        .limit(1)
         .maybeSingle();
 
     if (error) throw error;
@@ -131,6 +132,16 @@ export async function insertSubmissionFacetValues(payloads) {
     if (error) throw error;
 }
 
+export async function fetchSubmissionIdsByEvent(eventInstanceId) {
+    const { data, error } = await supabase
+        .from("submission")
+        .select("submission_id, track:track_id!inner(event_instance_id)")
+        .eq("track.event_instance_id", eventInstanceId);
+
+    if (error) throw error;
+    return (data ?? []).map((r) => r.submission_id);
+}
+
 export async function fetchAdminProjectRowsByEvent(eventInstanceId) {
     const { data, error } = await supabase
         .from("submission")
@@ -156,7 +167,15 @@ export async function fetchAdminProjectRowsByEvent(eventInstanceId) {
                 person_id,
                 display_name,
                 email
-            )
+            ),
+            table_assignment:submission_table_assignment (
+                table_id,
+                event_table:table_id (
+                    table_number,
+                    session
+                )
+            ),
+            score_sheet (score_sheet_id)
         `)
         .eq("track.event_instance_id", eventInstanceId)
         .order("created_at", { ascending: false });
@@ -190,7 +209,15 @@ export async function fetchAdminProjectRowsByTrack(trackId) {
                 person_id,
                 display_name,
                 email
-            )
+            ),
+            table_assignment:submission_table_assignment (
+                table_id,
+                event_table:table_id (
+                    table_number,
+                    session
+                )
+            ),
+            score_sheet (score_sheet_id)
         `)
         .eq("track_id", trackId)
         .order("created_at", { ascending: false });

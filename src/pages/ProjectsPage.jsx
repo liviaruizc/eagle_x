@@ -1,6 +1,8 @@
 import ProjectCard from "../components/queue/CurrentProjectCard";
 import { useNavigate } from "react-router-dom";
 
+const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
+
 const mockProjects = [];
 
 export default function ProjectsPage() {
@@ -8,7 +10,9 @@ export default function ProjectsPage() {
     const navigate = useNavigate();
 
     function handleSelect(project) {
-        console.log("Selected: ", project);
+        if (DEBUG_LOGS) {
+            console.log("Selected: ", project);
+        }
         //navigate to scoring page
         navigate(`/score/${project.projectId}`);
     }

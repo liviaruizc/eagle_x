@@ -16,6 +16,7 @@ const EMPTY_SUBMISSION_FORM = {
     keywords: "",
     status: "submitted",
     created_by_email: "",
+    co_author_emails: "",
     supervisor_email: "",
     submitted_at: "",
 };
@@ -126,7 +127,20 @@ export default function TrackSubmissionForm({ trackId }) {
             }
 
             const result = await createSubmissionsForTrack(trackId, submissions);
-            setStatusMessage(`${result.inserted} submissions imported.`, "success");
+
+            if (result.failed > 0) {
+                const rowPreview = (result.rowErrors ?? [])
+                    .slice(0, 5)
+                    .map((item) => `Row ${item.rowNumber}: ${item.message}`)
+                    .join(" | ");
+
+                setStatusMessage(
+                    `${result.inserted} imported, ${result.failed} failed. ${rowPreview}`,
+                    result.inserted > 0 ? "success" : "error"
+                );
+            } else {
+                setStatusMessage(`${result.inserted} submissions imported.`, "success");
+            }
         } catch (uploadError) {
             console.error(uploadError);
             setStatusMessage(uploadError.message || "Could not import Excel file.", "error");

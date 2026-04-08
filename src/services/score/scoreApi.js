@@ -17,6 +17,28 @@ export async function fetchSubmissionForScoring(submissionId) {
     return data;
 }
 
+export async function fetchSubmissionTableAssignment(submissionId) {
+    const { data, error } = await supabase
+        .from("submission_table_assignment")
+        .select("event_table:table_id (table_number, session)")
+        .eq("submission_id", submissionId)
+        .maybeSingle();
+
+    if (error) throw error;
+    return data?.event_table ?? null;
+}
+
+export async function fetchSubmissionPosterFileUrl(submissionId) {
+    const { data, error } = await supabase
+        .from("submission_file")
+        .select("file_url")
+        .eq("submission_id", submissionId)
+        .maybeSingle();
+
+    if (error) throw error;
+    return data?.file_url ?? null;
+}
+
 export async function fetchTrackRubrics(trackId) {
     const { data, error } = await supabase
         .from("track_rubric")
@@ -119,6 +141,17 @@ export async function insertJudgeAssignment({ trackId, judgePersonId, submission
     if (error) throw error;
 }
 
+export async function updateJudgeAssignmentTimestamp({ trackId, judgePersonId, submissionId, assignedAt }) {
+    const { error } = await supabase
+        .from("judge_assignment")
+        .update({ assigned_at: assignedAt })
+        .eq("track_id", trackId)
+        .eq("person_id", judgePersonId)
+        .eq("submission_id", submissionId);
+
+    if (error) throw error;
+}
+
 export async function updateScoreSheet(scoreSheetId, payload) {
     const { error } = await supabase
         .from("score_sheet")
@@ -164,6 +197,44 @@ export async function fetchSubmittedJudgeRowsBySubmission(submissionId) {
         .select("judge_person_id")
         .eq("submission_id", submissionId)
         .eq("status", "submitted");
+
+    if (error) throw error;
+    return data ?? [];
+}
+
+export async function fetchScoreSheetsByJudge(judgePersonId) {
+    const { data, error } = await supabase
+        .from("score_sheet")
+        .select(`
+            score_sheet_id,
+            status,
+            submitted_at,
+            submission:submission_id (
+                submission_id,
+                title,
+                track:track_id (
+                    name,
+                    event_instance:event_instance_id (
+                        event_instance_id,
+                        name
+                    )
+                )
+            )
+        `)
+        .eq("judge_person_id", judgePersonId)
+        .order("submitted_at", { ascending: false });
+
+    if (error) throw error;
+    return data ?? [];
+}
+
+export async function fetchScoreSheetsBySubmissionIds(submissionIds) {
+    if (!submissionIds?.length) return [];
+
+    const { data, error } = await supabase
+        .from("score_sheet")
+        .select("judge_person_id")
+        .in("submission_id", submissionIds);
 
     if (error) throw error;
     return data ?? [];

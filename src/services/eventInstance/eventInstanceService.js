@@ -1,5 +1,4 @@
 import { fetchTrackTypes } from "../track/trackService.js";
-import { syncEventAndSubmissionStatusesBySchedule } from "../statusSync/statusSyncService.js";
 import {
     createEvent,
     createEventInstance,
@@ -12,18 +11,20 @@ import {
     fetchTracksByEventInstanceId,
     findEventIdByName,
     insertTracks,
+    updateEventInstanceById,
 } from "./eventInstanceApi.js";
 import { mapEventInstanceDetails, mapEventInstanceSummaries } from "./eventInstanceMappers.js";
 import {
     buildEventInsertPayload,
     buildEventInstanceInsertPayload,
+    normalizeEventStatus,
+    toIsoString,
     buildTrackInsertRows,
 } from "./eventInstanceUtils.js";
+import { syncEventAndSubmissionStatusesBySchedule } from "../statusSync/statusSyncService.js";
 
 // Fetches event instances and enriches with umbrella event metadata.
 export async function fetchEventInstances() {
-    await syncEventAndSubmissionStatusesBySchedule();
-
     const instances = await fetchEventInstanceRows();
     if (!instances.length) return [];
 
@@ -35,8 +36,6 @@ export async function fetchEventInstances() {
 
 // Fetches full details for a single event instance including tracks.
 export async function fetchEventInstanceDetails(eventInstanceId) {
-    await syncEventAndSubmissionStatusesBySchedule();
-
     const instance = await fetchEventInstanceById(eventInstanceId);
     const [event, tracks, trackTypes] = await Promise.all([
         fetchEventById(instance.event_id),
@@ -128,4 +127,25 @@ export async function createEventHierarchyFromForm(form) {
         eventInstanceId,
         tracksCreated: trackTypesToCreate.length,
     };
+}
+
+// Updates event-instance timeline fields and immediately syncs statuses.
+export async function updateEventInstanceSchedule(eventInstanceId, form) {
+    const payload = {
+        name: form.instanceName?.trim(),
+        start_at: toIsoString(form.startAt),
+        end_at: toIsoString(form.endAt),
+        pre_scoring_start_at: form.preScoringEnabled === "yes" && form.preScoringStartAt
+            ? toIsoString(form.preScoringStartAt)
+            : null,
+        pre_scoring_end_at: form.preScoringEnabled === "yes" && form.preScoringEndAt
+            ? toIsoString(form.preScoringEndAt)
+            : null,
+        location: form.location?.trim() || null,
+        timezone: form.timezone?.trim() || "UTC",
+        status: normalizeEventStatus(form.status),
+    };
+
+    await updateEventInstanceById(eventInstanceId, payload);
+    await syncEventAndSubmissionStatusesBySchedule();
 }

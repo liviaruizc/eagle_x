@@ -35,16 +35,28 @@ export async function fetchJudgeEventInstances(personId) {
                 pre_scoring_end_at,
                 location
             ),
+<<<<<<< HEAD
             event_role!inner (code)
         `)
         .eq("person_id", personId)
         .eq("is_active", true)
         .ilike("event_role.code", "judge");
+=======
+            event_role (code, name)
+        `)
+        .eq("person_id", personId)
+        .eq("is_active", true);
+>>>>>>> dev
 
     if (error) throw error;
 
     return (data ?? [])
-        .map(row => row.event_instance)
+        .filter((row) => {
+            const code = String(row.event_role?.code || "").trim().toUpperCase();
+            const name = String(row.event_role?.name || "").trim().toUpperCase();
+            return code === "JUDGE" || name.includes("JUDGE");
+        })
+        .map((row) => row.event_instance)
         .filter(Boolean);
 }
 
@@ -75,7 +87,8 @@ export async function findPersonIdByEmail(email) {
     const { data, error } = await supabase
         .from("person")
         .select("person_id")
-        .eq("email", email)
+        .ilike("email", email)
+        .limit(1)
         .maybeSingle();
 
     if (error) throw error;
@@ -97,27 +110,38 @@ export async function insertPerson({ email, displayName }) {
 }
 
 export async function findPersonEventRoleId({ eventInstanceId, personId, eventRoleId }) {
-    const { data, error } = await supabase
+    let query = supabase
         .from("person_event_role")
         .select("person_event_role_id")
-        .eq("event_instance_id", eventInstanceId)
         .eq("person_id", personId)
-        .eq("event_role_id", eventRoleId)
-        .maybeSingle();
+        .eq("event_role_id", eventRoleId);
+
+    if (eventInstanceId === null || eventInstanceId === undefined) {
+        query = query.is("event_instance_id", null);
+    } else {
+        query = query.eq("event_instance_id", eventInstanceId);
+    }
+
+    const { data, error } = await query.maybeSingle();
 
     if (error) throw error;
     return data?.person_event_role_id ?? null;
 }
 
 export async function insertPersonEventRole({ eventInstanceId, personId, eventRoleId }) {
+    const payload = {
+        person_id: personId,
+        event_role_id: eventRoleId,
+        is_active: true,
+    };
+
+    if (eventInstanceId) {
+        payload.event_instance_id = eventInstanceId;
+    }
+
     const { data, error } = await supabase
         .from("person_event_role")
-        .insert({
-            event_instance_id: eventInstanceId,
-            person_id: personId,
-            event_role_id: eventRoleId,
-            is_active: true,
-        })
+        .insert(payload)
         .select("person_event_role_id")
         .single();
 
@@ -207,6 +231,39 @@ export async function fetchFacetOptionsByIds(facetOptionIds) {
 
     if (error) throw error;
     return data ?? [];
+}
+
+export async function fetchPersonEventRoleWithFacets(personId, eventInstanceId) {
+    let query = supabase
+        .from("person_event_role")
+        .select(`
+            person_event_role_id,
+            event_instance_id,
+            event_role (code, name),
+            person_event_role_facet_value (
+                facet_id,
+                facet_option_id
+            )
+        `)
+        .eq("person_id", personId)
+        .eq("is_active", true);
+
+    if (eventInstanceId) {
+        query = query.eq("event_instance_id", eventInstanceId);
+    }
+
+    const { data, error } = await query.order("person_event_role_id", { ascending: false });
+
+    if (error) throw error;
+
+    const rows = data ?? [];
+    const judgeRows = rows.filter((row) => {
+        const code = String(row.event_role?.code || "").trim().toUpperCase();
+        const name = String(row.event_role?.name || "").trim().toUpperCase();
+        return code === "JUDGE" || name.includes("JUDGE");
+    });
+
+    return judgeRows[0] ?? rows[0] ?? null;
 }
 
 export async function deletePersonEventRoleFacetValues(personEventRoleId, facetIds) {

@@ -44,11 +44,12 @@ export default function JudgeDashboardPage() {
 
                 const judgeEvents = await fetchJudgeEventInstances(user.person_id);
 
-                const openEvents = judgeEvents.filter(
-                    event =>
-                        event.status === "pre-scoring" ||
-                        event.status === "event_scoring"
-                );
+                const seen = new Set();
+                const openEvents = judgeEvents.filter((event) => {
+                    if (seen.has(event.event_instance_id)) return false;
+                    seen.add(event.event_instance_id);
+                    return event.status === "pre-scoring" || event.status === "event_scoring";
+                });
 
                 setEvents(openEvents);
             } catch (err) {
@@ -68,43 +69,36 @@ export default function JudgeDashboardPage() {
     }
 
     return (
-        <div className="judge-page text-center text-5xl font-bold">
-            <header className="text-5xl text-center font-bold">
-                My Judging Events
-            </header>
-
-            <div className="mx-auto mt-6 max-w-4xl rounded border p-4 text-left">
-                <p className="mb-3 text-lg font-semibold">
-                    Events Assigned to You
-                </p>
-
-                {isLoading && <p className="text-sm text-gray-500">Loading events...</p>}
-                {error && <p className="text-sm text-red-600">{error}</p>}
-                {!isLoading && !error && !events.length && (
-                    <p className="text-sm text-gray-500">
-                        You are not assigned to any active judging events.
-                    </p>
-                )}
-
-                <ul className="space-y-4">
-                    {events.map((event) => (
-                        <EventInstanceCard
-                            key={event.event_instance_id}
-                            event={event}
-                            action={(
-                                <Button
-                                    variant="primary"
-                                    disabled={!isJudgingAllowed(event)}
-                                    onClick={() => handleStartJudging(event.event_instance_id)}
-                                >
-                                    Start Judging
-                                </Button>
-                                
-                            )}
-                        />
-                    ))}
-                </ul>
+        <div className="max-w-6xl mx-auto p-6">
+            <div className="flex items-center justify-between mb-8">
+                <h1 className="text-3xl font-bold text-[#004785]">My Judging Events</h1>
             </div>
+
+            {isLoading && <p className="text-[#55616D] text-center py-10">Loading events...</p>}
+            {error && <p className="text-red-600 text-center py-4">{error}</p>}
+            {!isLoading && !error && !events.length && (
+                <p className="text-[#55616D] text-center py-10">
+                    You are not assigned to any active judging events.
+                </p>
+            )}
+
+            <ul className="grid gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                {events.map((event) => (
+                    <EventInstanceCard
+                        key={event.event_instance_id}
+                        event={event}
+                        action={
+                            <Button
+                                variant="primary"
+                                disabled={!isJudgingAllowed(event)}
+                                onClick={() => handleStartJudging(event.event_instance_id)}
+                            >
+                                Start Judging
+                            </Button>
+                        }
+                    />
+                ))}
+            </ul>
         </div>
     );
 }

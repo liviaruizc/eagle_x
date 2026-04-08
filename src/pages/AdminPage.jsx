@@ -53,42 +53,46 @@ export default function AdminPage() {
 
 
     return (
-        <div className="text-center text-bold text-5xl">
-            Welcome to the Admin Page!
-            <Card>
-                <CardTitle>Events List</CardTitle>
-                <CardBody>
-                    <div className="mb-6 flex justify-start">
-                        <Button variant="primary" onClick={() => navigate("/admin/create-event")}>Create Event</Button>
-                    </div>
+        <div className="max-w-6xl mx-auto p-6">
+            <div className="flex items-center justify-between mb-8">
+                <h1 className="text-3xl font-bold text-[#004785]">Events</h1>
+                <Button variant="primary" onClick={() => navigate("/admin/create-event")}>
+                    + Create Event
+                </Button>
+            </div>
 
-                    <p className="text-lg mb-4">Here are the current events:</p>
+            {eventsError && <p className="text-sm text-red-600 mb-4">{eventsError}</p>}
 
-                    <ul className="space-y-4">
-                        {events.map((evt) => (
-                            <EventInstanceCard
-                                key={evt.id}
-                                event={evt}
-                                onClick={() => navigate(`/admin/events/${evt.id}`)}
-                                action={(
-                                    <Button
-                                        variant="secondary"
-                                        disabled={deletingEventId === evt.id}
-                                        onClick={(event) => handleDeleteEvent(event, evt.id)}
-                                    >
-                                        {deletingEventId === evt.id ? "Deleting..." : "Delete"}
-                                    </Button>
-                                )}
-                            />
-                        ))}
-                    </ul>
-                    {!events.length && !eventsError && (
-                        <p className="text-sm text-gray-500">No event instances yet.</p>
-                    )}
-                    {eventsError && <p className="text-sm text-red-600">{eventsError}</p>}
+            {!events.length && !eventsError && (
+                <p className="text-[#55616D] text-center py-10">No event instances yet.</p>
+            )}
 
-                </CardBody>
-            </Card>
+            <ul className="grid gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                {events.map((evt) => (
+                    <EventInstanceCard
+                        key={evt.id}
+                        event={evt}
+                        onClick={() => navigate(`/admin/events/${evt.id}`)}
+                        action={
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="primary"
+                                    onClick={() => navigate(`/admin/events/${evt.id}`)}
+                                >
+                                    Manage
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    disabled={deletingEventId === evt.id}
+                                    onClick={(event) => handleDeleteEvent(event, evt.id)}
+                                >
+                                    {deletingEventId === evt.id ? "Deleting..." : "Delete"}
+                                </Button>
+                            </div>
+                        }
+                    />
+                ))}
+            </ul>
         </div>
     )
 }
