@@ -13,6 +13,8 @@ export function buildEmptyResultsReport() {
         rankingsByPhase: { all: EMPTY_PHASE_RANKINGS, pre_scoring: EMPTY_PHASE_RANKINGS, event_scoring: EMPTY_PHASE_RANKINGS },
         filterFacets: [],
         defaultSelectedFiltersByFacetId: {},
+        totalSubmissions: 0,
+        totalScoredSubmissions: 0,
     };
 }
 

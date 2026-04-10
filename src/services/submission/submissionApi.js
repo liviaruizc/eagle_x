@@ -157,44 +157,37 @@ export async function fetchSubmissionIdsByEvent(eventInstanceId) {
     return (data ?? []).map((r) => r.submission_id);
 }
 
+const ADMIN_PROJECT_SELECT = `
+    submission_id,
+    title,
+    description,
+    status,
+    created_at,
+    submission_file ( file_url ),
+    track:track_id ( track_id, name, event_instance_id ),
+    submission_author (
+        person:person_id ( person_id, display_name, email )
+    ),
+    supervisor:supervisor_person_id ( person_id, display_name, email ),
+    table_assignment:submission_table_assignment (
+        table_id,
+        event_table:table_id ( table_number, session )
+    ),
+    score_sheet ( score_sheet_id ),
+    submission_facet_value (
+        facet_id,
+        facet_option_id,
+        value_text,
+        value_number,
+        facet_option:facet_option_id ( label, value ),
+        facet:facet_id ( facet_id, code, name )
+    )
+`;
+
 export async function fetchAdminProjectRowsByEvent(eventInstanceId) {
     const { data, error } = await supabase
         .from("submission")
-        .select(`
-            submission_id,
-            title,
-            description,
-            status,
-            created_at,
-            submission_file (
-                file_url
-            ),
-            track:track_id (
-                track_id,
-                name,
-                event_instance_id
-            ),
-            submission_author (
-                person:person_id (
-                    person_id,
-                    display_name,
-                    email
-                )
-            ),
-            supervisor:supervisor_person_id (
-                person_id,
-                display_name,
-                email
-            ),
-            table_assignment:submission_table_assignment (
-                table_id,
-                event_table:table_id (
-                    table_number,
-                    session
-                )
-            ),
-            score_sheet (score_sheet_id)
-        `)
+        .select(ADMIN_PROJECT_SELECT)
         .eq("track.event_instance_id", eventInstanceId)
         .order("created_at", { ascending: false });
 
@@ -205,41 +198,7 @@ export async function fetchAdminProjectRowsByEvent(eventInstanceId) {
 export async function fetchAdminProjectRowsByTrack(trackId) {
     const { data, error } = await supabase
         .from("submission")
-        .select(`
-            submission_id,
-            title,
-            description,
-            status,
-            created_at,
-            submission_file (
-                file_url
-            ),
-            track:track_id (
-                track_id,
-                name,
-                event_instance_id
-            ),
-            submission_author (
-                person:person_id (
-                    person_id,
-                    display_name,
-                    email
-                )
-            ),
-            supervisor:supervisor_person_id (
-                person_id,
-                display_name,
-                email
-            ),
-            table_assignment:submission_table_assignment (
-                table_id,
-                event_table:table_id (
-                    table_number,
-                    session
-                )
-            ),
-            score_sheet (score_sheet_id)
-        `)
+        .select(ADMIN_PROJECT_SELECT)
         .eq("track_id", trackId)
         .order("created_at", { ascending: false });
 

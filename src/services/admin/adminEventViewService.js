@@ -30,6 +30,52 @@ function mapProjectRow(row) {
         : row.table_assignment;
     const tableInfo = tableAssignment?.event_table ?? null;
 
+    // Build facets array and token lookup for filter compatibility
+    const facets = [];
+    const facetTokensByFacetId = {};
+
+    for (const fv of row.submission_facet_value ?? []) {
+        if (!fv.facet) continue;
+
+        const option = fv.facet_option;
+        const label = option?.label || option?.value || fv.value_text
+            || (fv.value_number != null ? String(fv.value_number) : null);
+        if (!label) continue;
+
+        const token = fv.facet_option_id
+            ? String(fv.facet_option_id)
+            : fv.value_text
+            ? `text:${fv.value_text}`
+            : `number:${fv.value_number}`;
+
+        facets.push({
+            facetId: fv.facet_id,
+            code: fv.facet.code,
+            name: fv.facet.name,
+            token,
+            label,
+        });
+
+        const existing = facetTokensByFacetId[fv.facet_id] ?? [];
+        if (!existing.includes(token)) existing.push(token);
+        facetTokensByFacetId[fv.facet_id] = existing;
+    }
+
+    // Synthesize a Session facet from the table assignment session field
+    const sessionCode = String(tableInfo?.session ?? "").trim().toUpperCase();
+    if (sessionCode) {
+        const sessionToken = `session:${sessionCode}`;
+        const sessionLabel = `Session ${sessionCode}`;
+        facets.push({
+            facetId: "__SESSION__",
+            code: "SESSION",
+            name: "Session",
+            token: sessionToken,
+            label: sessionLabel,
+        });
+        facetTokensByFacetId["__SESSION__"] = [sessionToken];
+    }
+
     return {
         submissionId: row.submission_id,
         title: row.title || "Untitled",
@@ -55,6 +101,8 @@ function mapProjectRow(row) {
         tableNumber: tableInfo?.table_number ?? null,
         tableSession: tableInfo?.session ?? null,
         scoreCount: (row.score_sheet ?? []).length,
+        facets,
+        facetTokensByFacetId,
     };
 }
 
