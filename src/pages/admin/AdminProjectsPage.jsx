@@ -16,6 +16,8 @@ export default function AdminProjectsPage() {
 
     const [projects, setProjects] = useState([]);
     const [selectedFiltersByFacetId, setSelectedFiltersByFacetId] = useState({});
+    const [sortField, setSortField] = useState("title");
+    const [sortDir, setSortDir] = useState("asc");
     const [viewMode, setViewMode] = useState("event");
     const [viewLabel, setViewLabel] = useState("Event-level");
     const [isLoading, setIsLoading] = useState(true);
@@ -55,10 +57,23 @@ export default function AdminProjectsPage() {
             .sort((a, b) => (a.name || a.code).localeCompare(b.name || b.code));
     }, [projects]);
 
-    const filteredProjects = useMemo(
-        () => filterQueueSubmissions(projects, selectedFiltersByFacetId),
-        [projects, selectedFiltersByFacetId]
-    );
+    const filteredProjects = useMemo(() => {
+        const filtered = filterQueueSubmissions(projects, selectedFiltersByFacetId);
+        const dir = sortDir === "asc" ? 1 : -1;
+
+        return [...filtered].sort((a, b) => {
+            switch (sortField) {
+                case "scoreCount":
+                    return dir * ((a.scoreCount ?? 0) - (b.scoreCount ?? 0));
+                case "createdAt":
+                    return dir * (new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+                case "tableNumber":
+                    return dir * ((a.tableNumber ?? Infinity) - (b.tableNumber ?? Infinity));
+                default: // title
+                    return dir * (a.title ?? "").localeCompare(b.title ?? "");
+            }
+        });
+    }, [projects, selectedFiltersByFacetId, sortField, sortDir]);
 
     const hasActiveFilters = Object.values(selectedFiltersByFacetId).some((t) => t?.length > 0);
 
@@ -180,9 +195,29 @@ export default function AdminProjectsPage() {
                     <p className="text-[#55616D] mt-1 text-sm">{viewLabel}</p>
                 </div>
                 {!isLoading && !!projects.length && (
-                    <p className="text-sm text-[#55616D] mt-2">
-                        {filteredProjects.length} of {projects.length} shown
-                    </p>
+                    <div className="flex items-center gap-2 mt-1 shrink-0">
+                        <p className="text-sm text-[#55616D] hidden sm:block">
+                            {filteredProjects.length} of {projects.length}
+                        </p>
+                        <select
+                            value={sortField}
+                            onChange={(e) => setSortField(e.target.value)}
+                            className="rounded-lg border border-gray-300 px-2 py-1 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
+                        >
+                            <option value="title">Title</option>
+                            <option value="scoreCount">Scores</option>
+                            <option value="createdAt">Date</option>
+                            <option value="tableNumber">Table #</option>
+                        </select>
+                        <button
+                            type="button"
+                            onClick={() => setSortDir((d) => d === "asc" ? "desc" : "asc")}
+                            className="rounded-lg border border-gray-300 px-2 py-1 text-sm text-[#55616D] hover:bg-gray-100 focus:outline-none"
+                            title={sortDir === "asc" ? "Ascending" : "Descending"}
+                        >
+                            {sortDir === "asc" ? "↑ Asc" : "↓ Desc"}
+                        </button>
+                    </div>
                 )}
             </div>
 

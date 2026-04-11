@@ -77,9 +77,11 @@ export default function ScorePage() {
                 setTableSession(context.tableSession ?? null);
                 setPosterFileUrl(context.posterFileUrl ?? null);
                 setCriteria(context.criteria || []);
+                setOverallComment(context.existingOverallComment || "");
 
+                // Seed with existing answers if the judge already scored this submission.
                 const initialResponses = (context.criteria || []).reduce((acc, criterion) => {
-                    acc[criterion.id] = {
+                    acc[criterion.id] = context.existingResponsesByCriterionId?.[criterion.id] ?? {
                         value: "",
                         comment: "",
                     };

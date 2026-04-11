@@ -1,14 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Button from "../../components/ui/Button.jsx";
-import { Card, CardBody, CardTitle } from "../../components/ui/Card.jsx";
+import CriterionInfoTooltip from "../../components/ui/CriterionInfoTooltip.jsx";
 import { fetchSubmissionEvaluations } from "../../services/evaluations/evaluationsService.js";
-
-const PHASE_OPTIONS = [
-    { value: "all", label: "All Questions" },
-    { value: "pre_scoring", label: "Pre-Scoring Only" },
-    { value: "event_scoring", label: "Event Scoring Only" },
-];
 
 function formatScore(value) {
     if (value == null) return "-";
@@ -20,6 +14,14 @@ function formatDate(iso) {
     return new Date(iso).toLocaleString();
 }
 
+// Infer scoring phase from which criterion phases are present in an evaluation.
+function inferEvalPhase(scores) {
+    const phases = new Set(scores.map((s) => s.scoringPhase));
+    if (phases.has("pre_scoring")) return "Pre-Scoring";
+    if (phases.has("event_scoring")) return "Event Scoring";
+    return "Both";
+}
+
 export default function SubmissionEvaluationsPage() {
     const navigate = useNavigate();
     const { eventInstanceId, trackId, submissionId } = useParams();
@@ -27,7 +29,6 @@ export default function SubmissionEvaluationsPage() {
     const [submissionTitle, setSubmissionTitle] = useState("");
     const [submissionStatus, setSubmissionStatus] = useState("");
     const [evaluations, setEvaluations] = useState([]);
-    const [selectedPhase, setSelectedPhase] = useState("all");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -51,108 +52,166 @@ export default function SubmissionEvaluationsPage() {
         if (submissionId) load();
     }, [submissionId]);
 
-    function filterScores(scores) {
-        if (selectedPhase === "all") return scores;
-        return scores.filter(
-            (s) => s.scoringPhase === selectedPhase || s.scoringPhase === "both"
-        );
+    // Build a stable ordered list of all unique criteria across all evaluations.
+    // Each entry: { criterionId, criterionName, description, scoringPhase, displayOrder, qLabel }
+    const criteriaColumns = useMemo(() => {
+        const map = new Map();
+        for (const ev of evaluations) {
+            for (const s of ev.scores) {
+                if (!map.has(s.criterionId)) {
+                    map.set(s.criterionId, {
+                        criterionId: s.criterionId,
+                        name: s.criterionName,
+                        description: s.description ?? "",
+                        scoringPhase: s.scoringPhase,
+                        displayOrder: s.displayOrder,
+                    });
+                }
+            }
+        }
+
+        return [...map.values()]
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+            .map((c, i) => ({ ...c, qLabel: `Q_${i + 1}` }));
+    }, [evaluations]);
+
+    function downloadCsv() {
+        const headers = [
+            "Judge",
+            "Phase",
+            "Submitted At",
+            ...criteriaColumns.map((c) => c.qLabel),
+            "Total",
+            "Overall Comment",
+        ];
+
+        const rows = evaluations.map((ev) => {
+            const scoreMap = new Map(ev.scores.map((s) => [s.criterionId, s.scoreValue]));
+            const total = ev.scores.reduce((sum, s) => sum + Number(s.scoreValue || 0), 0);
+            return [
+                ev.judgeName,
+                inferEvalPhase(ev.scores),
+                formatDate(ev.submittedAt),
+                ...criteriaColumns.map((c) => scoreMap.has(c.criterionId) ? formatScore(scoreMap.get(c.criterionId)) : "-"),
+                formatScore(total),
+                ev.overallComment || "",
+            ];
+        });
+
+        const escape = (val) => {
+            const str = val == null ? "" : String(val);
+            return str.includes(",") || str.includes('"') || str.includes("\n")
+                ? `"${str.replace(/"/g, '""')}"`
+                : str;
+        };
+        const lines = [headers, ...rows].map((row) => row.map(escape).join(","));
+        const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `evaluations-${submissionId}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="mx-auto max-w-4xl">
-                <div className="mb-4">
-                    <Button
-                        variant="outline"
-                        onClick={() => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/results`)}
-                    >
-                        Back to Results
-                    </Button>
-                </div>
-
-                <Card>
-                    <CardTitle>Evaluations</CardTitle>
-                    <CardBody>
-                        {isLoading && <p className="text-sm text-gray-500">Loading evaluations...</p>}
-                        {error && <p className="text-sm text-red-600">{error}</p>}
-
-                        {!isLoading && !error && (
-                            <div className="space-y-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h2 className="text-lg font-semibold">{submissionTitle}</h2>
-                                        <p className="text-sm text-gray-500">Status: {submissionStatus}</p>
-                                        <p className="text-sm text-gray-500">{evaluations.length} evaluation(s)</p>
-                                    </div>
-                                    <label className="text-sm text-gray-700">
-                                        Show questions
-                                        <select
-                                            className="ml-2 rounded border p-1 text-sm"
-                                            value={selectedPhase}
-                                            onChange={(e) => setSelectedPhase(e.target.value)}
-                                        >
-                                            {PHASE_OPTIONS.map((o) => (
-                                                <option key={o.value} value={o.value}>{o.label}</option>
-                                            ))}
-                                        </select>
-                                    </label>
-                                </div>
-
-                                {!evaluations.length && (
-                                    <p className="text-sm text-gray-500">No submitted evaluations yet.</p>
-                                )}
-
-                                {evaluations.map((ev) => {
-                                    const visibleScores = filterScores(ev.scores);
-                                    const total = visibleScores.reduce((sum, s) => sum + Number(s.scoreValue || 0), 0);
-
-                                    return (
-                                        <div key={ev.scoreSheetId} className="rounded-2xl border bg-white p-5 shadow-sm">
-                                            <div className="mb-3 flex items-center justify-between">
-                                                <div>
-                                                    <p className="font-semibold">{ev.judgeName}</p>
-                                                    <p className="text-xs text-gray-400">Submitted: {formatDate(ev.submittedAt)}</p>
-                                                </div>
-                                                <p className="text-sm font-medium">Total: {formatScore(total)}</p>
-                                            </div>
-
-                                            {visibleScores.length > 0 && (
-                                                <table className="mb-3 min-w-full border-collapse text-sm">
-                                                    <thead>
-                                                        <tr className="border-b text-left text-gray-500">
-                                                            <th className="py-1 pr-4">Criterion</th>
-                                                            <th className="py-1 pr-4">Phase</th>
-                                                            <th className="py-1 pr-4">Score</th>
-                                                            <th className="py-1">Comment</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {visibleScores.map((s) => (
-                                                            <tr key={s.criterionId} className="border-b">
-                                                                <td className="py-1 pr-4">{s.criterionName}</td>
-                                                                <td className="py-1 pr-4 text-xs text-gray-400">{s.scoringPhase}</td>
-                                                                <td className="py-1 pr-4">{formatScore(s.scoreValue)}</td>
-                                                                <td className="py-1 text-gray-500">{s.comment || "-"}</td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            )}
-
-                                            {ev.overallComment && (
-                                                <p className="text-sm text-gray-600">
-                                                    <span className="font-medium">Overall comment: </span>
-                                                    {ev.overallComment}
-                                                </p>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </CardBody>
-                </Card>
+        <div className="max-w-full mx-auto p-6">
+            <div className="mb-4">
+                <Button
+                    variant="outline"
+                    onClick={() => navigate(`/admin/events/${eventInstanceId}/tracks/${trackId}/results`)}
+                >
+                    ← Back to Results
+                </Button>
             </div>
+
+            <div className="mb-6 flex items-start justify-between gap-3">
+                <div>
+                    <h1 className="text-2xl font-bold text-[#004785]">{submissionTitle || "Evaluations"}</h1>
+                    <p className="text-sm text-[#55616D] mt-1">
+                        Status: <span className="font-medium">{submissionStatus}</span>
+                        {!isLoading && !error && (
+                            <span className="ml-3">{evaluations.length} evaluation{evaluations.length !== 1 ? "s" : ""}</span>
+                        )}
+                    </p>
+                </div>
+                {!isLoading && !error && !!evaluations.length && (
+                    <Button type="button" variant="outline" onClick={downloadCsv}>
+                        Export CSV
+                    </Button>
+                )}
+            </div>
+
+            {isLoading && <p className="text-[#55616D] text-center py-10">Loading evaluations...</p>}
+            {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+
+            {!isLoading && !error && !evaluations.length && (
+                <p className="text-[#55616D] text-center py-10">No submitted evaluations yet.</p>
+            )}
+
+            {!isLoading && !error && !!evaluations.length && (
+                <div className="rounded-2xl border border-gray-200 bg-white shadow-md overflow-x-auto">
+                    <table className="min-w-full text-sm border-collapse">
+                        <thead>
+                            <tr className="bg-[#004785]/5 text-left border-b border-gray-200">
+                                <th className="px-4 py-3 font-semibold text-[#004785] whitespace-nowrap">Judge</th>
+                                <th className="px-4 py-3 font-semibold text-[#004785] whitespace-nowrap">Phase</th>
+                                <th className="px-4 py-3 font-semibold text-[#004785] whitespace-nowrap">Submitted</th>
+                                {criteriaColumns.map((c) => (
+                                    <th key={c.criterionId} className="px-4 py-3 font-semibold text-[#004785] whitespace-nowrap">
+                                        <span className="inline-flex items-center gap-0.5">
+                                            {c.qLabel}
+                                            <CriterionInfoTooltip
+                                                name={c.name}
+                                                description={c.description}
+                                                scoringPhase={c.scoringPhase}
+                                            />
+                                        </span>
+                                    </th>
+                                ))}
+                                <th className="px-4 py-3 font-semibold text-[#004785] whitespace-nowrap">Total</th>
+                                <th className="px-4 py-3 font-semibold text-[#004785]">Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {evaluations.map((ev) => {
+                                const scoreMap = new Map(ev.scores.map((s) => [s.criterionId, s.scoreValue]));
+                                const total = ev.scores.reduce((sum, s) => sum + Number(s.scoreValue || 0), 0);
+                                const phase = inferEvalPhase(ev.scores);
+
+                                return (
+                                    <tr key={ev.scoreSheetId} className="hover:bg-[#004785]/5 transition">
+                                        <td className="px-4 py-3 font-medium text-[#004785] whitespace-nowrap">{ev.judgeName}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                                                phase === "Pre-Scoring"
+                                                    ? "bg-blue-100 text-blue-700"
+                                                    : phase === "Event Scoring"
+                                                    ? "bg-green-100 text-green-700"
+                                                    : "bg-gray-100 text-gray-600"
+                                            }`}>
+                                                {phase}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-[#55616D] whitespace-nowrap text-xs">{formatDate(ev.submittedAt)}</td>
+                                        {criteriaColumns.map((c) => (
+                                            <td key={c.criterionId} className="px-4 py-3 text-center text-[#55616D]">
+                                                {scoreMap.has(c.criterionId) ? formatScore(scoreMap.get(c.criterionId)) : "-"}
+                                            </td>
+                                        ))}
+                                        <td className="px-4 py-3 font-semibold text-[#004785] whitespace-nowrap">
+                                            {formatScore(total)}
+                                        </td>
+                                        <td className="px-4 py-3 text-[#55616D] max-w-xs truncate" title={ev.overallComment || ""}>
+                                            {ev.overallComment || "-"}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            )}
         </div>
     );
 }

@@ -694,7 +694,9 @@ CREATE POLICY "score_item_delete" ON public.score_item
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.score_sheet ss
+      JOIN public.person p ON p.person_id = ss.judge_person_id
       WHERE ss.score_sheet_id = score_item.score_sheet_id
-        AND public.is_admin()
+        AND (p.auth_user_id = auth.uid() OR p.email = auth.email())
     )
+    OR public.is_admin()
   );

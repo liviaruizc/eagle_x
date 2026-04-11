@@ -6,6 +6,8 @@ import LoginEmailPage from '../pages/auth/LoginEmailPage.jsx';
 import LoginSetPassword from '../pages/auth/LoginSetPassword.jsx';
 import LoginAfterVerified from '../pages/auth/LoginAfterVerified.jsx';
 import CompleteProfilePage from '../pages/auth/CompleteProfilePage.jsx';
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage.jsx';
+import ResetPasswordPage from '../pages/auth/ResetPasswordPage.jsx';
 
 // Judge
 import JudgePage from '../pages/judge/JudgePage.jsx';
@@ -55,6 +57,8 @@ export default function AppRouter() {
                     <Route path="/login/email" element={<LoginEmailPage />} />
                     <Route path="/set-password" element={<LoginSetPassword />} />
                     <Route path="/login-password" element={<LoginAfterVerified />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/reset-password" element={<ResetPasswordPage />} />
                 </Route>
 
                 {/* ================= PROTECTED ROUTES ================= */}
