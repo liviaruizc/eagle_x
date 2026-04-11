@@ -77,5 +77,7 @@ export async function fetchTrackResultsReport(trackId) {
         rankingsByPhase,
         filterFacets,
         defaultSelectedFiltersByFacetId: {},
+        totalSubmissions: submissionRows.length,
+        totalScoredSubmissions: new Set(scoreSheetRows.map((s) => s.submission_id)).size,
     };
 }

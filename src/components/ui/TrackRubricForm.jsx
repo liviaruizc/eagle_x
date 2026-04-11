@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createRubricAndAssignToTrack, updateRubricAndTrackAssignment } from "../../services/rubric/rubricService.js";
+import { fetchHasSubmittedScoresForTrack } from "../../services/rubric/rubricApi.js";
 import {
     buildFormState,
     computeRubricMaxTotalPoints,
@@ -41,6 +42,9 @@ export default function TrackRubricForm({
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
 
+    // Guard: prevent saving if submitted scores already exist for this track.
+    const [hasExistingScores, setHasExistingScores] = useState(false);
+
     // Keep local form state synchronized whenever the source rubric changes
     // (for example when switching between different rubrics in edit mode).
     useEffect(() => {
@@ -49,6 +53,15 @@ export default function TrackRubricForm({
         setError("");
         setMessage("");
     }, [initialState]);
+
+    // In edit mode, check whether submitted scores exist so we can lock the form.
+    useEffect(() => {
+        if (mode !== "edit" || !trackId) return;
+
+        fetchHasSubmittedScoresForTrack(trackId)
+            .then(setHasExistingScores)
+            .catch((err) => console.error("Could not check submitted scores:", err));
+    }, [mode, trackId]);
 
     // Generic input handler for top-level rubric fields.
     function handleFormChange(event) {
@@ -246,6 +259,7 @@ export default function TrackRubricForm({
             formData={formData}
             criteria={criteria}
             isSubmitting={isSubmitting}
+            isScoreLocked={hasExistingScores}
             error={error}
             message={message}
             onSubmit={handleSubmit}
