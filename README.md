@@ -1,6 +1,6 @@
 # FGCU - Judging Platform
 
-Eagle-X is a web application built for Florida Gulf Coast University to manage and run research project judging events. It handles the full lifecycle of a judging event: student project submission, judge assignment, real-time scoring, and ranked results reporting.
+FGCU Scoring System is a web application built for Florida Gulf Coast University to manage and run project judging events. It handles the full lifecycle of a judging event: student project submission, judge assignment, real-time scoring, and ranked results reporting.
 
 ---
 
