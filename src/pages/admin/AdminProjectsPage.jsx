@@ -401,7 +401,13 @@ export default function AdminProjectsPage() {
                                 <p>
                                     <span className="font-semibold text-[#004785]">Participants:</span>{" "}
                                     {project.participants.length
-                                        ? project.participants.map((p) => p.displayName).join(", ")
+                                        ? project.participants
+                                              .map((participant) =>
+                                                  participant.email
+                                                      ? `${participant.displayName} (${participant.email})`
+                                                      : participant.displayName
+                                              )
+                                              .join(", ")
                                         : "No participants linked"}
                                 </p>
                                 {project.supervisor && (
