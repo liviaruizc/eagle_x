@@ -6,6 +6,7 @@ export default function TrackRubricFormView({
     formData,
     criteria,
     isSubmitting,
+    isScoreLocked,
     error,
     message,
     onSubmit,
@@ -23,6 +24,12 @@ export default function TrackRubricFormView({
             <p className="font-medium">
                 {mode === "edit" ? "Edit Rubric" : "Create Rubric for this Track"}
             </p>
+
+            {isScoreLocked && (
+                <p className="rounded bg-yellow-50 border border-yellow-300 px-3 py-2 text-sm text-yellow-800">
+                    Submitted scores exist for this track. The rubric cannot be saved to prevent corrupting existing score data.
+                </p>
+            )}
 
             <input
                 type="text"
@@ -94,7 +101,7 @@ export default function TrackRubricFormView({
             {message && <p className="text-sm text-gray-700">{message}</p>}
 
             <div className="flex justify-start gap-2">
-                <Button type="submit" variant="primary" disabled={isSubmitting}>
+                <Button type="submit" variant="primary" disabled={isSubmitting || isScoreLocked}>
                     {isSubmitting
                         ? mode === "edit"
                             ? "Updating rubric..."

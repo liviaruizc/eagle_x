@@ -44,6 +44,8 @@ export default function TrackResultsPage() {
     const [selectedCategory, setSelectedCategory] = useState("");
     const [filterFacets, setFilterFacets] = useState([]);
     const [selectedFiltersByFacetId, setSelectedFiltersByFacetId] = useState({});
+    const [totalSubmissions, setTotalSubmissions] = useState(0);
+    const [totalScoredSubmissions, setTotalScoredSubmissions] = useState(0);
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
@@ -65,6 +67,8 @@ export default function TrackResultsPage() {
                 setSelectedCategory((report.rankingsByPhase?.all?.categories ?? [])[0] ?? "");
                 setFilterFacets(report.filterFacets ?? []);
                 setSelectedFiltersByFacetId(report.defaultSelectedFiltersByFacetId ?? {});
+                setTotalSubmissions(report.totalSubmissions ?? 0);
+                setTotalScoredSubmissions(report.totalScoredSubmissions ?? 0);
             } catch (loadError) {
                 console.error(loadError);
                 setError("Could not load track results.");
@@ -128,7 +132,17 @@ export default function TrackResultsPage() {
             {isLoading && <p className="text-[#55616D] text-center py-10">Loading results...</p>}
             {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
-            {!isLoading && !error && (
+            {!isLoading && !error && totalSubmissions === 0 && (
+                <p className="text-[#55616D] text-center py-10">No submissions found for this track.</p>
+            )}
+
+            {!isLoading && !error && totalSubmissions > 0 && totalScoredSubmissions === 0 && (
+                <p className="text-[#55616D] text-center py-10">
+                    {totalSubmissions} submission{totalSubmissions !== 1 ? "s" : ""} found but none have been scored yet.
+                </p>
+            )}
+
+            {!isLoading && !error && totalScoredSubmissions > 0 && (
                 <div className="space-y-6">
 
                     {/* Filters */}

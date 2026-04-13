@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardBody, CardTitle } from "../../components/ui/Card.jsx";
 import { fetchScoreSheetsByJudge } from "../../services/score/scoreApi.js";
 import { getCurrentUser } from "../../services/loginAuth/authService.js";
 
 export default function JudgeScoresPage() {
+    const navigate = useNavigate();
     const [groupedByEvent, setGroupedByEvent] = useState([]);
     const [totalCount, setTotalCount] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
@@ -106,15 +108,26 @@ export default function JudgeScoresPage() {
                                                     </div>
                                                     <ul className="divide-y divide-gray-100 bg-white">
                                                         {track.submissions.map((s) => (
-                                                            <li key={s.scoreSheetId} className="flex items-center justify-between px-4 py-3 text-sm">
-                                                                <span className="text-[#55616D] font-medium">{s.title}</span>
-                                                                <span className={`ml-4 shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                                                                    s.status === "submitted" || s.status === "locked"
-                                                                        ? "bg-green-100 text-green-700"
-                                                                        : "bg-[#CCAB00]/20 text-[#8A7400]"
-                                                                }`}>
-                                                                    {s.status}
-                                                                </span>
+                                                            <li key={s.scoreSheetId} className="flex items-center justify-between px-4 py-3 text-sm gap-3">
+                                                                <span className="text-[#55616D] font-medium flex-1 min-w-0 truncate">{s.title}</span>
+                                                                <div className="flex items-center gap-2 shrink-0">
+                                                                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                                                                        s.status === "submitted" || s.status === "locked"
+                                                                            ? "bg-green-100 text-green-700"
+                                                                            : "bg-[#CCAB00]/20 text-[#8A7400]"
+                                                                    }`}>
+                                                                        {s.status}
+                                                                    </span>
+                                                                    {s.submissionId && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => navigate(`/score/${s.submissionId}`)}
+                                                                            className="rounded-lg border border-[#004785] px-2.5 py-0.5 text-xs font-semibold text-[#004785] hover:bg-[#004785]/10 transition"
+                                                                        >
+                                                                            Edit
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                             </li>
                                                         ))}
                                                     </ul>

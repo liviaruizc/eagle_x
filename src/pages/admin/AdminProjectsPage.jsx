@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Button from "../../components/ui/Button.jsx";
@@ -8,16 +8,74 @@ import {
     fetchAdminProjectsByEvent,
     fetchAdminProjectsByTrack,
 } from "../../services/admin/adminEventViewService.js";
+import { filterQueueSubmissions } from "../../services/queue/queueService.js";
 
 export default function AdminProjectsPage() {
     const navigate = useNavigate();
     const { eventInstanceId, trackId } = useParams();
 
     const [projects, setProjects] = useState([]);
+    const [selectedFiltersByFacetId, setSelectedFiltersByFacetId] = useState({});
+    const [sortField, setSortField] = useState("title");
+    const [sortDir, setSortDir] = useState("asc");
     const [viewMode, setViewMode] = useState("event");
     const [viewLabel, setViewLabel] = useState("Event-level");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
+
+    // Build one dropdown per facet from all loaded projects
+    const availableFilterFacets = useMemo(() => {
+        const facetMap = new Map();
+
+        for (const project of projects) {
+            for (const facet of project.facets ?? []) {
+                if (!facetMap.has(facet.facetId)) {
+                    facetMap.set(facet.facetId, {
+                        facetId: facet.facetId,
+                        code: facet.code,
+                        name: facet.name,
+                        optionsMap: new Map(),
+                    });
+                }
+                const entry = facetMap.get(facet.facetId);
+                const existing = entry.optionsMap.get(facet.token);
+                entry.optionsMap.set(facet.token, {
+                    token: facet.token,
+                    label: facet.label,
+                    count: (existing?.count ?? 0) + 1,
+                });
+            }
+        }
+
+        return [...facetMap.values()]
+            .map((f) => ({
+                facetId: f.facetId,
+                code: f.code,
+                name: f.name,
+                options: [...f.optionsMap.values()].sort((a, b) => a.label.localeCompare(b.label)),
+            }))
+            .sort((a, b) => (a.name || a.code).localeCompare(b.name || b.code));
+    }, [projects]);
+
+    const filteredProjects = useMemo(() => {
+        const filtered = filterQueueSubmissions(projects, selectedFiltersByFacetId);
+        const dir = sortDir === "asc" ? 1 : -1;
+
+        return [...filtered].sort((a, b) => {
+            switch (sortField) {
+                case "scoreCount":
+                    return dir * ((a.scoreCount ?? 0) - (b.scoreCount ?? 0));
+                case "createdAt":
+                    return dir * (new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+                case "tableNumber":
+                    return dir * ((a.tableNumber ?? Infinity) - (b.tableNumber ?? Infinity));
+                default: // title
+                    return dir * (a.title ?? "").localeCompare(b.title ?? "");
+            }
+        });
+    }, [projects, selectedFiltersByFacetId, sortField, sortDir]);
+
+    const hasActiveFilters = Object.values(selectedFiltersByFacetId).some((t) => t?.length > 0);
 
     // tableInputs: { [submissionId]: { tableNumber: string, session: string } }
     const [tableInputs, setTableInputs] = useState({});
@@ -61,6 +119,7 @@ export default function AdminProjectsPage() {
         }
 
         loadProjects();
+        setSelectedFiltersByFacetId({});
     }, [eventInstanceId, trackId]);
 
     function getTableInput(submissionId, project) {
@@ -130,19 +189,86 @@ export default function AdminProjectsPage() {
                 </Button>
             </div>
 
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-[#004785]">Projects</h1>
-                <p className="text-[#55616D] mt-1 text-sm">{viewLabel}</p>
+            <div className="mb-6 flex items-start justify-between gap-3">
+                <div>
+                    <h1 className="text-3xl font-bold text-[#004785]">Projects</h1>
+                    <p className="text-[#55616D] mt-1 text-sm">{viewLabel}</p>
+                </div>
+                {!isLoading && !!projects.length && (
+                    <div className="flex items-center gap-2 mt-1 shrink-0">
+                        <p className="text-sm text-[#55616D] hidden sm:block">
+                            {filteredProjects.length} of {projects.length}
+                        </p>
+                        <select
+                            value={sortField}
+                            onChange={(e) => setSortField(e.target.value)}
+                            className="rounded-lg border border-gray-300 px-2 py-1 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
+                        >
+                            <option value="title">Title</option>
+                            <option value="scoreCount">Scores</option>
+                            <option value="createdAt">Date</option>
+                            <option value="tableNumber">Table #</option>
+                        </select>
+                        <button
+                            type="button"
+                            onClick={() => setSortDir((d) => d === "asc" ? "desc" : "asc")}
+                            className="rounded-lg border border-gray-300 px-2 py-1 text-sm text-[#55616D] hover:bg-gray-100 focus:outline-none"
+                            title={sortDir === "asc" ? "Ascending" : "Descending"}
+                        >
+                            {sortDir === "asc" ? "↑ Asc" : "↓ Desc"}
+                        </button>
+                    </div>
+                )}
             </div>
+
+            {/* Filter panel */}
+            {!isLoading && !!availableFilterFacets.length && (
+                <section className="mb-6 rounded-2xl border border-gray-200 bg-white shadow-md p-5">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                        <p className="font-semibold text-[#004785]">Filters</p>
+                        {hasActiveFilters && (
+                            <Button type="button" variant="outline" onClick={() => setSelectedFiltersByFacetId({})}>
+                                Clear Filters
+                            </Button>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {availableFilterFacets.map((facet) => (
+                            <div key={facet.facetId} className="rounded-xl border border-gray-200 bg-[#F3F3F3] p-3">
+                                <p className="text-sm font-semibold text-[#004785]">{facet.name || facet.code}</p>
+                                <select
+                                    className="mt-2 w-full rounded-lg border border-gray-300 p-2 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
+                                    value={(selectedFiltersByFacetId[facet.facetId] ?? [])[0] ?? ""}
+                                    onChange={(e) =>
+                                        setSelectedFiltersByFacetId((prev) => ({
+                                            ...prev,
+                                            [facet.facetId]: e.target.value ? [e.target.value] : [],
+                                        }))
+                                    }
+                                >
+                                    <option value="">All</option>
+                                    {facet.options.map((opt) => (
+                                        <option key={opt.token} value={opt.token}>
+                                            {opt.label} ({opt.count})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
 
             {isLoading && <p className="text-[#55616D] text-center py-10">Loading projects...</p>}
             {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
-            {!isLoading && !error && !projects.length && (
-                <p className="text-[#55616D] text-center py-10">No projects found for this scope.</p>
+            {!isLoading && !error && !filteredProjects.length && (
+                <p className="text-[#55616D] text-center py-10">
+                    {hasActiveFilters ? "No projects match the current filters." : "No projects found for this scope."}
+                </p>
             )}
 
-            {!isLoading && !error && !!projects.length && (() => {
-                const unscored = projects.filter((p) => p.scoreCount === 0);
+            {!isLoading && !error && !!filteredProjects.length && (() => {
+                const unscored = filteredProjects.filter((p) => p.scoreCount === 0);
                 const byTrack = unscored.reduce((acc, p) => {
                     const key = p.track?.name ?? "Unknown Track";
                     if (!acc[key]) acc[key] = [];
@@ -156,7 +282,9 @@ export default function AdminProjectsPage() {
                             Unscored Projects — {unscored.length} of {projects.length}
                         </p>
                         {!unscored.length && (
-                            <p className="text-sm text-[#00794C] font-medium">All projects have at least one score.</p>
+                            <p className="text-sm text-[#00794C] font-medium">
+                                {hasActiveFilters ? "All filtered projects have at least one score." : "All projects have at least one score."}
+                            </p>
                         )}
                         {!!unscored.length && Object.entries(byTrack).map(([trackName, trackProjects]) => (
                             <div key={trackName} className="mb-2">
@@ -175,7 +303,7 @@ export default function AdminProjectsPage() {
             })()}
 
             <ul className="space-y-4">
-                {projects.map((project) => {
+                {filteredProjects.map((project) => {
                     const input = getTableInput(project.submissionId, project);
                     const isSaving = savingId === project.submissionId;
                     const err = saveError[project.submissionId];
@@ -227,6 +355,20 @@ export default function AdminProjectsPage() {
                                     Created: {project.createdAt ? new Date(project.createdAt).toLocaleString() : "-"}
                                 </p>
                             </div>
+
+                            {/* Facet tags */}
+                            {!!project.facets?.length && (
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {project.facets.map((facet) => (
+                                        <span
+                                            key={`${project.submissionId}-${facet.facetId}-${facet.token}`}
+                                            className="rounded-full bg-[#004785]/10 px-3 py-1 text-xs font-medium text-[#004785]"
+                                        >
+                                            {facet.name || facet.code}: {facet.label}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
 
                             {/* Table assignment */}
                             <div className="mt-4 border-t border-gray-100 pt-4">

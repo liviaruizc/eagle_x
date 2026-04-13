@@ -39,9 +39,9 @@ export async function fetchEligibleSubmissionsByTracks({ trackIds, judgePersonId
     const { data, error } = await supabase
         .from("submission")
         .select(`submission_id, title, track_id, status, created_at, supervisor_person_id, track(name)`)
-        .in("track_id", trackIds) // notice .in for array
+        .in("track_id", trackIds)
         .in("status", ["pre_scoring", "event_scoring"])
-        .neq("supervisor_person_id", judgePersonId)
+        .or(`supervisor_person_id.is.null,supervisor_person_id.neq.${judgePersonId}`)
         .order("created_at", { ascending: true });
 
     if (error) throw error;

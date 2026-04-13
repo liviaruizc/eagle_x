@@ -98,7 +98,7 @@ export async function fetchRubricCriteria(rubricId) {
 export async function fetchLatestScoreSheet(submissionId, judgePersonId) {
     const { data, error } = await supabase
         .from("score_sheet")
-        .select("score_sheet_id")
+        .select("score_sheet_id, overall_comment")
         .eq("submission_id", submissionId)
         .eq("judge_person_id", judgePersonId)
         .order("created_at", { ascending: false })

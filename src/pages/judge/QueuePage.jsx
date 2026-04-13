@@ -101,11 +101,7 @@ export default function QueuePage() {
     const filteredSubmissions = useMemo(() => {
         const byFacetFilters = filterQueueSubmissions(allSubmissions, selectedFiltersByFacetId);
 
-        const visible = !judgePersonId
-            ? byFacetFilters
-            : byFacetFilters.filter(
-            (submission) => submission.supervisorPersonId !== judgePersonId
-        );
+        const visible = byFacetFilters;
 
         return [...visible].sort((a, b) => {
             if (a.isBeingScored !== b.isBeingScored) {

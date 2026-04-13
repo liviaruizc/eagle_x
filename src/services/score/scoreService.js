@@ -92,12 +92,14 @@ export async function fetchScoringContext(submissionId, judgePersonId) {
 
     // Hydrate existing responses when judge already scored this submission.
     let existingResponsesByCriterionId = {};
+    let existingOverallComment = "";
     if (judgePersonId) {
         const existingScoreSheet = await fetchLatestScoreSheet(submissionId, judgePersonId);
 
         if (existingScoreSheet?.score_sheet_id) {
             const scoreItems = await fetchScoreItems(existingScoreSheet.score_sheet_id);
             existingResponsesByCriterionId = mapScoreItemsToResponses(scoreItems);
+            existingOverallComment = existingScoreSheet.overall_comment ?? "";
         }
     }
 
@@ -109,6 +111,7 @@ export async function fetchScoringContext(submissionId, judgePersonId) {
         rubricName: rubric.name,
         criteria,
         existingResponsesByCriterionId,
+        existingOverallComment,
         tableNumber: tableInfo?.table_number ?? null,
         tableSession: tableInfo?.session ?? null,
         posterFileUrl,
