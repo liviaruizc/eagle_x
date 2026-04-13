@@ -388,16 +388,21 @@ export async function saveStudentSubmissionCompletion({ submissionId, college, m
 }
 
 export async function uploadPoster(submissionId, file, personId) {
-    // 1️⃣ Define file path in bucket
-    const filePath = `posters/${submissionId}/${file.name}`;
+    // Sanitize filename: strip accents and replace any character that isn't
+    // alphanumeric / dot / dash / underscore with "_" to avoid Supabase
+    // Storage "invalid key" errors (spaces, accented chars, etc. can trigger this).
+    const sanitizedName = file.name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")   // strip combining accent marks
+        .replace(/[^a-zA-Z0-9._-]/g, "_"); // replace everything else with _
 
-    // 2️⃣ Upload to Supabase Storage
-    const { data: storageData, error: uploadError } = await supabase.storage
+    const filePath = `posters/${submissionId}/${sanitizedName}`;
+
+    const { error: uploadError } = await supabase.storage
         .from("submission-files")
         .upload(filePath, file, { upsert: true });
 
-    if (uploadError) {  
-        alert(`Upload error: ${uploadError.message}`);
+    if (uploadError) {
         throw uploadError;
     }
 
