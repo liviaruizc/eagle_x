@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Button from "../../components/ui/Button.jsx";
@@ -9,19 +9,24 @@ import {
     fetchAdminProjectsByTrack,
 } from "../../services/admin/adminEventViewService.js";
 import { filterQueueSubmissions } from "../../services/queue/queueService.js";
+import { matchesSearchTerm } from "../../services/search/searchUtils.js";
 
 export default function AdminProjectsPage() {
+    const UNSCORED_SUMMARY_LIMIT = 10;
     const navigate = useNavigate();
     const { eventInstanceId, trackId } = useParams();
 
     const [projects, setProjects] = useState([]);
     const [selectedFiltersByFacetId, setSelectedFiltersByFacetId] = useState({});
+    const [searchTerm, setSearchTerm] = useState("");
     const [sortField, setSortField] = useState("title");
     const [sortDir, setSortDir] = useState("asc");
     const [viewMode, setViewMode] = useState("event");
     const [viewLabel, setViewLabel] = useState("Event-level");
+    const [showAllUnscored, setShowAllUnscored] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
+    const deferredSearchTerm = useDeferredValue(searchTerm);
 
     // Build one dropdown per facet from all loaded projects
     const availableFilterFacets = useMemo(() => {
@@ -58,7 +63,30 @@ export default function AdminProjectsPage() {
     }, [projects]);
 
     const filteredProjects = useMemo(() => {
-        const filtered = filterQueueSubmissions(projects, selectedFiltersByFacetId);
+        const filtered = filterQueueSubmissions(projects, selectedFiltersByFacetId).filter((project) =>
+            matchesSearchTerm(
+                [
+                    project.title,
+                    project.description,
+                    project.status,
+                    project.track?.name,
+                    project.supervisor?.displayName,
+                    project.supervisor?.email,
+                    project.tableNumber != null ? `table ${project.tableNumber}` : "",
+                    project.tableSession ? `session ${project.tableSession}` : "",
+                    ...(project.participants ?? []).flatMap((participant) => [
+                        participant.displayName,
+                        participant.email,
+                    ]),
+                    ...(project.facets ?? []).flatMap((facet) => [
+                        facet.name,
+                        facet.code,
+                        facet.label,
+                    ]),
+                ],
+                deferredSearchTerm
+            )
+        );
         const dir = sortDir === "asc" ? 1 : -1;
 
         return [...filtered].sort((a, b) => {
@@ -73,9 +101,10 @@ export default function AdminProjectsPage() {
                     return dir * (a.title ?? "").localeCompare(b.title ?? "");
             }
         });
-    }, [projects, selectedFiltersByFacetId, sortField, sortDir]);
+    }, [projects, selectedFiltersByFacetId, deferredSearchTerm, sortField, sortDir]);
 
     const hasActiveFilters = Object.values(selectedFiltersByFacetId).some((t) => t?.length > 0);
+    const hasActiveSearch = Boolean(searchTerm.trim());
 
     // tableInputs: { [submissionId]: { tableNumber: string, session: string } }
     const [tableInputs, setTableInputs] = useState({});
@@ -120,6 +149,7 @@ export default function AdminProjectsPage() {
 
         loadProjects();
         setSelectedFiltersByFacetId({});
+        setShowAllUnscored(false);
     }, [eventInstanceId, trackId]);
 
     function getTableInput(submissionId, project) {
@@ -195,7 +225,15 @@ export default function AdminProjectsPage() {
                     <p className="text-[#55616D] mt-1 text-sm">{viewLabel}</p>
                 </div>
                 {!isLoading && !!projects.length && (
-                    <div className="flex items-center gap-2 mt-1 shrink-0">
+                    <div className="flex w-full max-w-xl flex-col gap-3 md:items-end">
+                        <input
+                            type="search"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Search title, participant, supervisor, track, table..."
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
+                        />
+                        <div className="flex items-center gap-2 md:mt-1 md:shrink-0">
                         <p className="text-sm text-[#55616D] hidden sm:block">
                             {filteredProjects.length} of {projects.length}
                         </p>
@@ -217,6 +255,7 @@ export default function AdminProjectsPage() {
                         >
                             {sortDir === "asc" ? "↑ Asc" : "↓ Desc"}
                         </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -263,13 +302,19 @@ export default function AdminProjectsPage() {
             {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
             {!isLoading && !error && !filteredProjects.length && (
                 <p className="text-[#55616D] text-center py-10">
-                    {hasActiveFilters ? "No projects match the current filters." : "No projects found for this scope."}
+                    {hasActiveFilters || hasActiveSearch
+                        ? "No projects match the current search and filters."
+                        : "No projects found for this scope."}
                 </p>
             )}
 
             {!isLoading && !error && !!filteredProjects.length && (() => {
                 const unscored = filteredProjects.filter((p) => p.scoreCount === 0);
-                const byTrack = unscored.reduce((acc, p) => {
+                const visibleUnscored = showAllUnscored
+                    ? unscored
+                    : unscored.slice(0, UNSCORED_SUMMARY_LIMIT);
+                const hiddenUnscoredCount = Math.max(0, unscored.length - visibleUnscored.length);
+                const byTrack = visibleUnscored.reduce((acc, p) => {
                     const key = p.track?.name ?? "Unknown Track";
                     if (!acc[key]) acc[key] = [];
                     acc[key].push(p);
@@ -283,7 +328,9 @@ export default function AdminProjectsPage() {
                         </p>
                         {!unscored.length && (
                             <p className="text-sm text-[#00794C] font-medium">
-                                {hasActiveFilters ? "All filtered projects have at least one score." : "All projects have at least one score."}
+                                {hasActiveFilters || hasActiveSearch
+                                    ? "All visible projects have at least one score."
+                                    : "All projects have at least one score."}
                             </p>
                         )}
                         {!!unscored.length && Object.entries(byTrack).map(([trackName, trackProjects]) => (
@@ -298,6 +345,19 @@ export default function AdminProjectsPage() {
                                 </ul>
                             </div>
                         ))}
+                        {unscored.length > UNSCORED_SUMMARY_LIMIT && (
+                            <div className="mt-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setShowAllUnscored((prev) => !prev)}
+                                >
+                                    {showAllUnscored
+                                        ? "Show Less"
+                                        : `See More${hiddenUnscoredCount ? ` (${hiddenUnscoredCount} more)` : ""}`}
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 );
             })()}
