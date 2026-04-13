@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/Button.jsx";
 import {
     fetchQueueSubmissionsForJudge,
     filterQueueSubmissions,
 } from "../../services/queue/queueService.js";
+import { matchesSearchTerm } from "../../services/search/searchUtils.js";
 
 const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
 const QUEUE_REFRESH_INTERVAL_MS = 15 * 1000;
@@ -30,12 +31,14 @@ export default function QueuePage() {
     const [filterFacets, setFilterFacets] = useState([]);
     const [defaultSelectedFiltersByFacetId, setDefaultSelectedFiltersByFacetId] = useState({});
     const [selectedFiltersByFacetId, setSelectedFiltersByFacetId] = useState({});
+    const [searchTerm, setSearchTerm] = useState("");
 
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [judgePersonId, setJudgePersonId] = useState("");
     const hasInitializedFiltersRef = useRef(false);
     const isFetchingRef = useRef(false);
+    const deferredSearchTerm = useDeferredValue(searchTerm);
 
     const availableFilterFacets = useMemo(() => {
         const facetMap = new Map();
@@ -101,7 +104,24 @@ export default function QueuePage() {
     const filteredSubmissions = useMemo(() => {
         const byFacetFilters = filterQueueSubmissions(allSubmissions, selectedFiltersByFacetId);
 
-        const visible = byFacetFilters;
+        const visible = byFacetFilters.filter((submission) =>
+            matchesSearchTerm(
+                [
+                    submission.title,
+                    submission.status,
+                    submission.trackName,
+                    submission.tableNumber != null ? `table ${submission.tableNumber}` : "",
+                    submission.tableSession ? `session ${submission.tableSession}` : "",
+                    submission.isBeingScored ? "currently being scored" : "",
+                    ...(submission.facets ?? []).flatMap((facet) => [
+                        facet.name,
+                        facet.code,
+                        facet.label,
+                    ]),
+                ],
+                deferredSearchTerm
+            )
+        );
 
         return [...visible].sort((a, b) => {
             if (a.isBeingScored !== b.isBeingScored) {
@@ -115,7 +135,7 @@ export default function QueuePage() {
             const bTime = new Date(b.createdAt || 0).getTime();
             return aTime - bTime;
         });
-    }, [allSubmissions, selectedFiltersByFacetId, judgePersonId]);
+    }, [allSubmissions, selectedFiltersByFacetId, deferredSearchTerm, judgePersonId]);
 
     useEffect(() => {
         async function loadQueueSubmissions({ showLoading }) {
@@ -258,6 +278,16 @@ export default function QueuePage() {
                 </Button>
             </header>
 
+            <div className="mb-6">
+                <input
+                    type="search"
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="Search title, track, table, session, facet..."
+                    className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-[#55616D] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
+                />
+            </div>
+
             <section className="mb-6 rounded-2xl border border-gray-200 bg-white shadow-md p-5">
                 <div className="mb-4 flex items-center justify-between gap-3">
                     <p className="font-semibold text-[#004785]">Submission Filters</p>
@@ -314,7 +344,9 @@ export default function QueuePage() {
                 {isLoading && <p className="text-[#55616D] text-center py-6">Loading queue...</p>}
 
                 {!isLoading && !filteredSubmissions.length && (
-                    <p className="text-[#55616D] text-center py-6">No submissions match the current filters.</p>
+                    <p className="text-[#55616D] text-center py-6">
+                        No submissions match the current search and filters.
+                    </p>
                 )}
 
                 {filteredSubmissions.map((submission) => (
