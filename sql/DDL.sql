@@ -317,7 +317,7 @@ CREATE TABLE public.score_sheet (
   CONSTRAINT score_sheet_judge_person_id_fkey
     FOREIGN KEY (judge_person_id) REFERENCES public.person(person_id),
   CONSTRAINT score_sheet_submission_id_fkey
-    FOREIGN KEY (submission_id) REFERENCES public.submission(submission_id),
+    FOREIGN KEY (submission_id) REFERENCES public.submission(submission_id) ON DELETE CASCADE,
   CONSTRAINT score_sheet_rubric_id_fkey
     FOREIGN KEY (rubric_id) REFERENCES public.rubric(rubric_id)
 );
@@ -356,7 +356,7 @@ CREATE TABLE public.score_item (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT score_item_pkey PRIMARY KEY (score_item_id),
   CONSTRAINT score_item_score_sheet_id_fkey
-    FOREIGN KEY (score_sheet_id) REFERENCES public.score_sheet(score_sheet_id),
+    FOREIGN KEY (score_sheet_id) REFERENCES public.score_sheet(score_sheet_id) ON DELETE CASCADE,
   CONSTRAINT score_item_criterion_id_fkey
     FOREIGN KEY (criterion_id) REFERENCES public.rubric_criterion(criterion_id)
 );
