@@ -68,7 +68,7 @@ export async function updateSubmissionStatusIfThresholdReached(submissionId) {
     const scoreSheets = await fetchSubmittedJudgeRowsBySubmission(submissionId);
 
     const distinctJudges = new Set((scoreSheets ?? []).map((row) => row.judge_person_id).filter(Boolean));
-    if (distinctJudges.size < 3) return;
+    if (distinctJudges.size < 10) return;
 
     // Move from pre-scoring lifecycle once threshold is met.
     await updateSubmissionStatusIfCurrent(submissionId, "pre_scoring", "pre_scored");

@@ -85,7 +85,7 @@ export function buildSubmissionTrackUpdateGroups(instances, trackIdsByEventInsta
     };
 }
 
-export function getSubmissionIdsMeetingScoreThreshold(scoreSheetRows, minScores = 3) {
+export function getSubmissionIdsMeetingScoreThreshold(scoreSheetRows, minScores = 10) {
     const judgeSetBySubmissionId = new Map();
 
     for (const row of scoreSheetRows ?? []) {
