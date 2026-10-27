@@ -1,6 +1,33 @@
 import Button from "./Button";
 
 export function ProjectCard({ project, onView, onUpload }) {
+    const normalizedStatus = String(project.status || "").toLowerCase();
+    const blockedByStatus = ["done", "withdrawn"].includes(normalizedStatus);
+
+    const submissionOpenAt = project.track?.submission_open_at
+        ? new Date(project.track.submission_open_at)
+        : null;
+    const submissionCloseAt = project.track?.submission_close_at
+        ? new Date(project.track.submission_close_at)
+        : null;
+
+    const hasValidOpenAt = submissionOpenAt && !Number.isNaN(submissionOpenAt.getTime());
+    const hasValidCloseAt = submissionCloseAt && !Number.isNaN(submissionCloseAt.getTime());
+    const now = new Date();
+
+    const isBeforeWindow = hasValidOpenAt && now < submissionOpenAt;
+    const isAfterWindow = hasValidCloseAt && now > submissionCloseAt;
+    const blockedByWindow = isBeforeWindow || isAfterWindow;
+
+    const canUploadPoster = !blockedByStatus && !blockedByWindow;
+
+    let uploadWindowMessage = "";
+    if (isBeforeWindow) {
+        uploadWindowMessage = `Uploading is not allowed yet. Opens ${submissionOpenAt.toLocaleString()}.`;
+    } else if (isAfterWindow) {
+        uploadWindowMessage = `Uploading is closed. Window ended ${submissionCloseAt.toLocaleString()}.`;
+    }
+
     return (
         <div className="bg-white border border-[#00794C] rounded-2xl shadow-md hover:shadow-xl transition p-6 flex flex-col justify-between">
             <div className="flex flex-col gap-2">
@@ -36,16 +63,19 @@ export function ProjectCard({ project, onView, onUpload }) {
                     View Info
                 </Button>
 
-                
-                    <Button
-                        onClick={() => onUpload(project.submission_id)}
-                        className="flex-1"
-                        variant="secondary"
-                    >
-                        {project.poster_file_url ? "Reupload" : "Upload"}
-                    </Button>
-                
+                <Button
+                    onClick={() => onUpload(project.submission_id)}
+                    className="flex-1"
+                    variant="secondary"
+                    disabled={!canUploadPoster}
+                >
+                    {project.poster_file_url ? "Reupload" : "Upload"}
+                </Button>
             </div>
+
+            {uploadWindowMessage && (
+                <p className="mt-3 text-xs text-amber-700">{uploadWindowMessage}</p>
+            )}
         </div>
     );
 }

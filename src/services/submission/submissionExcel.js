@@ -40,11 +40,17 @@ function mapExcelRowToSubmission(row) {
         keywords: String(getRowValue(normalizedRow, ["keywords"]))?.trim(),
         status: String(getRowValue(normalizedRow, ["status", "submittedstatus"]))?.trim() || "submitted",
         created_by_email: String(getRowValue(normalizedRow, ["createdbyemail", "createdbypersonid"]))?.trim(),
+        co_author_emails: String(
+            getRowValue(normalizedRow, ["coauthoremails", "coauthors", "copresenteremails"])
+        )?.trim(),
         supervisor_email: String(getRowValue(normalizedRow, ["supervisoremail", "supervisor"]))?.trim(),
         college: String(getRowValue(normalizedRow, ["college"]))?.trim(),
         degree: String(getRowValue(normalizedRow, ["degree"]))?.trim(),
         level: String(getRowValue(normalizedRow, ["level"]))?.trim(),
         program: String(getRowValue(normalizedRow, ["program"]))?.trim(),
+        session_assignment: String(
+            getRowValue(normalizedRow, ["session", "postersessionandnumber", "sessionandnumber"])
+        )?.trim(),
         submitted_at: submittedAt,
     };
 }
@@ -56,6 +62,9 @@ export async function parseSubmissionExcelFile(file) {
     const rawRows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
 
     return rawRows
-        .map(mapExcelRowToSubmission)
+        .map((row, index) => ({
+            ...mapExcelRowToSubmission(row),
+            rowNumber: index + 2,
+        }))
         .filter((submission) => submission.title);
 }

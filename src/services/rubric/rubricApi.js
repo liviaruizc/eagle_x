@@ -6,6 +6,27 @@
 
 import { supabase } from "../../lib/supabaseClient.js";
 
+export async function fetchHasSubmittedScoresForTrack(trackId) {
+    const { data: submissions, error: subError } = await supabase
+        .from("submission")
+        .select("submission_id")
+        .eq("track_id", trackId);
+
+    if (subError) throw subError;
+    if (!submissions?.length) return false;
+
+    const submissionIds = submissions.map((s) => s.submission_id);
+
+    const { count, error } = await supabase
+        .from("score_sheet")
+        .select("score_sheet_id", { count: "exact", head: true })
+        .in("submission_id", submissionIds)
+        .eq("status", "submitted");
+
+    if (error) throw error;
+    return (count ?? 0) > 0;
+}
+
 export async function fetchTrackRubricRows(trackId) {
     const { data, error } = await supabase
         .from("track_rubric")
@@ -34,7 +55,7 @@ export async function fetchRubricCriteriaByRubricIds(rubricIds) {
     const { data, error } = await supabase
         .from("rubric_criterion")
         .select(
-            "criterion_id, rubric_id, name, description, criterion_category, answer_type, answer_config_json, weight, score_min, score_max, display_order"
+            "criterion_id, rubric_id, name, description, criterion_category, answer_type, answer_config_json, weight, score_min, score_max, scoring_phase, display_order"
         )
         .in("rubric_id", rubricIds)
         .order("display_order", { ascending: true });
@@ -78,6 +99,30 @@ export async function insertRubricCriteria(criteriaPayload) {
     const { error } = await supabase
         .from("rubric_criterion")
         .insert(criteriaPayload);
+
+    if (error) throw error;
+}
+
+export async function upsertRubricCriteria(criteriaPayload) {
+    if (!criteriaPayload?.length) return [];
+
+    const { data, error } = await supabase
+        .from("rubric_criterion")
+        .upsert(criteriaPayload, { onConflict: "criterion_id" })
+        .select("criterion_id");
+
+    if (error) throw error;
+    return (data ?? []).map((row) => row.criterion_id);
+}
+
+export async function deleteRubricCriteriaNotInList(rubricId, keepIds) {
+    if (!keepIds?.length) return;
+
+    const { error } = await supabase
+        .from("rubric_criterion")
+        .delete()
+        .eq("rubric_id", rubricId)
+        .not("criterion_id", "in", `(${keepIds.join(",")})`);
 
     if (error) throw error;
 }

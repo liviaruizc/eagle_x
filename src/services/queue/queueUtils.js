@@ -101,7 +101,13 @@ export function buildSubmissionFacetMaps(submissionFacetValues, optionById) {
     return { facetTokensBySubmissionId, displayFacetsBySubmissionId };
 }
 
-export function buildFilterFacets({ submissions, facetById, displayFacetsBySubmissionId, judgeDefaultFiltersByFacetId }) {
+export function buildFilterFacets({
+    submissions,
+    facetById,
+    displayFacetsBySubmissionId,
+    judgeDefaultFiltersByFacetId,
+    allFacetOptionRows = [],
+}) {
     const optionsByFacetId = new Map();
 
     for (const submission of submissions) {
@@ -136,6 +142,24 @@ export function buildFilterFacets({ submissions, facetById, displayFacetsBySubmi
 
         optionsByFacetId.set(facetId, current);
     });
+
+    for (const option of allFacetOptionRows) {
+        const facetId = option.facet_id;
+        if (!facetId) continue;
+
+        const current = optionsByFacetId.get(facetId) ?? new Map();
+        const token = String(option.facet_option_id);
+
+        if (!current.has(token)) {
+            current.set(token, {
+                token,
+                label: option.label || option.value || token,
+                count: 0,
+            });
+        }
+
+        optionsByFacetId.set(facetId, current);
+    }
 
     return [...optionsByFacetId.entries()]
         .map(([facetId, optionsMap]) => {
@@ -176,6 +200,9 @@ export function buildNormalizedSubmissions({
     facetTokensBySubmissionId,
     displayFacetsBySubmissionId,
     trackNameById,
+    tableBySubmissionId = new Map(),
+    scoreCountBySubmissionId = new Map(),
+    isBeingScoredBySubmissionId = new Map(),
 }) {
     return submissions.map((submission) => {
         const submissionId = submission.submission_id;
@@ -197,6 +224,8 @@ export function buildNormalizedSubmissions({
             };
         });
 
+        const tableInfo = tableBySubmissionId.get(submissionId) ?? null;
+
         return {
             submissionId,
             title: submission.title ?? "Untitled Submission",
@@ -205,6 +234,10 @@ export function buildNormalizedSubmissions({
             trackName: trackNameById.get(submission.track_id) ?? "Track",
             supervisorPersonId: submission.supervisor_person_id ?? null,
             createdAt: submission.created_at,
+            scoreCount: scoreCountBySubmissionId.get(submissionId) ?? 0,
+            isBeingScored: isBeingScoredBySubmissionId.get(submissionId) ?? false,
+            tableNumber: tableInfo?.table_number ?? null,
+            tableSession: tableInfo?.session ?? null,
             facetTokensByFacetId,
             facets,
         };

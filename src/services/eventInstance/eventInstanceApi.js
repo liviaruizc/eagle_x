@@ -99,6 +99,15 @@ export async function createEventInstance(payload) {
     return data.event_instance_id;
 }
 
+export async function updateEventInstanceById(eventInstanceId, payload) {
+    const { error } = await supabase
+        .from("event_instance")
+        .update(payload)
+        .eq("event_instance_id", eventInstanceId);
+
+    if (error) throw error;
+}
+
 export async function insertTracks(trackRows) {
     const { error } = await supabase.from("track").insert(trackRows);
     if (error) throw error;

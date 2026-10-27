@@ -12,6 +12,7 @@ export async function fetchSubmissionEvaluations(submissionId) {
             .map((item) => ({
                 criterionId: item.rubric_criterion.criterion_id,
                 criterionName: item.rubric_criterion.name,
+                description: item.rubric_criterion.description ?? "",
                 scoringPhase: item.rubric_criterion.scoring_phase,
                 displayOrder: item.rubric_criterion.display_order,
                 scoreValue: item.score_value,

@@ -80,7 +80,7 @@ async function findOrCreatePersonEventRole({ eventInstanceId, personId, eventRol
     });
 }
 
-async function saveFacetSelections(personEventRoleId, selectedFacetOptionByFacetId) {
+export async function saveFacetSelections(personEventRoleId, selectedFacetOptionByFacetId) {
     const facetIds = Object.keys(selectedFacetOptionByFacetId ?? {});
     if (!facetIds.length) return;
 

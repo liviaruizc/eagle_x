@@ -25,6 +25,7 @@ export async function fetchEvaluationsBySubmission(submissionId) {
                  rubric_criterion(
                      criterion_id,
                      name,
+                     description,
                      display_order,
                      scoring_phase
                  )
