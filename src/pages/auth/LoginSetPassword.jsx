@@ -57,7 +57,7 @@ export default function SetPasswordPage() {
 
             if (updateError) throw updateError;
 
-            alert("Password set! Please verify your email before logging in.");
+            alert("Password set! You may now log in to your account.");
             navigate("/login");
 
         } catch (err) {
