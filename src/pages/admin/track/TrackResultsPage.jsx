@@ -41,6 +41,7 @@ export default function TrackResultsPage() {
     const [submissions, setSubmissions] = useState([]);
     const [rankingsByPhase, setRankingsByPhase] = useState({});
     const [selectedPhase, setSelectedPhase] = useState("pre_scoring");
+    const [scoringMode, setScoringMode] = useState("average"); // "average" | "total"
     const [selectedCategory, setSelectedCategory] = useState("");
     const [filterFacets, setFilterFacets] = useState([]);
     const [selectedFiltersByFacetId, setSelectedFiltersByFacetId] = useState({});
@@ -101,20 +102,25 @@ export default function TrackResultsPage() {
         return new Set(filtered.map((submission) => submission.submissionId));
     }, [submissions, selectedFiltersByFacetId]);
 
-    const filteredOverallRankings = useMemo(
-        () => allRankings.overallRankings.filter((row) => filteredSubmissionIdSet.has(row.submissionId)),
-        [allRankings, filteredSubmissionIdSet]
-    );
+    const isTotal = scoringMode === "total";
+    const scoreLabel = isTotal ? "Total Score" : "Avg Score";
+    const overallValue = (row) => (isTotal ? row.sumScore : row.totalScore);
+
+    const filteredOverallRankings = useMemo(() => {
+        const rows = (isTotal ? allRankings.totalOverallRankings : allRankings.overallRankings) ?? [];
+        return rows.filter((row) => filteredSubmissionIdSet.has(row.submissionId));
+    }, [allRankings, filteredSubmissionIdSet, isTotal]);
 
     const filteredCategoryRankings = useMemo(() => {
-        const selectedRows = allRankings.categoryRankingsByCategory[selectedCategory] ?? [];
-        return selectedRows.filter((row) => filteredSubmissionIdSet.has(row.submissionId));
-    }, [allRankings, filteredSubmissionIdSet, selectedCategory]);
+        const byCategory = (isTotal ? allRankings.totalCategoryRankingsByCategory : allRankings.categoryRankingsByCategory) ?? {};
+        return (byCategory[selectedCategory] ?? []).filter((row) => filteredSubmissionIdSet.has(row.submissionId));
+    }, [allRankings, filteredSubmissionIdSet, selectedCategory, isTotal]);
 
-    const filteredPhaseRankings = useMemo(
-        () => phaseRankings.overallRankings.filter((row) => filteredSubmissionIdSet.has(row.submissionId)),
-        [phaseRankings, filteredSubmissionIdSet]
-    );
+    const filteredPhaseRankings = useMemo(() => {
+        const rows = (isTotal ? phaseRankings.totalOverallRankings : phaseRankings.overallRankings) ?? [];
+        return rows.filter((row) => filteredSubmissionIdSet.has(row.submissionId));
+    }, [phaseRankings, filteredSubmissionIdSet, isTotal]);
+
 
     return (
         <div className="max-w-6xl mx-auto p-6">
@@ -147,6 +153,18 @@ export default function TrackResultsPage() {
 
                     {/* Filters */}
                     <section className="rounded-2xl border border-gray-200 bg-white shadow-md p-5">
+                        <label className="mb-4 block text-sm font-semibold text-[#004785]">
+                            Rank By
+                            <select
+                                className="mt-1 w-full rounded-lg border border-gray-300 p-2 text-sm font-normal text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50 md:w-64"
+                                value={scoringMode}
+                                onChange={(event) => setScoringMode(event.target.value)}
+                            >
+                                <option value="average">Average Score</option>
+                                <option value="total">Total Points</option>
+                            </select>
+                        </label>
+
                         <div className="mb-4 flex items-center justify-between gap-3">
                             <p className="font-bold text-[#004785]">Segmented Filters</p>
                             <Button type="button" variant="outline" onClick={clearFilters}>
@@ -185,8 +203,8 @@ export default function TrackResultsPage() {
                             <p className="font-bold text-[#004785]">Overall Rankings</p>
                             <Button type="button" variant="outline" disabled={!filteredOverallRankings.length}
                                 onClick={() => downloadCsv(`${trackName}-overall-rankings.csv`,
-                                    ["Rank", "Submission", "# Evaluations", "Overall Score", "Phase"],
-                                    filteredOverallRankings.map((row) => [row.rank ?? "", row.title, row.scoreCount, formatScore(row.totalScore), row.status])
+                                    ["Rank", "Submission", "# Evaluations", scoreLabel, "Phase"],
+                                    filteredOverallRankings.map((row) => [row.rank ?? "", row.title, row.scoreCount, formatScore(overallValue(row)), row.status])
                                 )}>
                                 Export CSV
                             </Button>
@@ -202,7 +220,7 @@ export default function TrackResultsPage() {
                                             <th className="px-3 py-2 font-semibold text-[#004785]">Rank</th>
                                             <th className="px-3 py-2 font-semibold text-[#004785]">Submission</th>
                                             <th className="px-3 py-2 font-semibold text-[#004785]"># Evaluations</th>
-                                            <th className="px-3 py-2 font-semibold text-[#004785]">Overall Score</th>
+                                            <th className="px-3 py-2 font-semibold text-[#004785]">{scoreLabel}</th>
                                             <th className="px-3 py-2 font-semibold text-[#004785]">Phase</th>
                                         </tr>
                                     </thead>
@@ -214,7 +232,7 @@ export default function TrackResultsPage() {
                                                 <td className="px-3 py-2 font-bold text-[#004785]">{row.rank ?? "-"}</td>
                                                 <td className="px-3 py-2 text-[#55616D]">{row.title}</td>
                                                 <td className="px-3 py-2 text-[#55616D]">{row.scoreCount}</td>
-                                                <td className="px-3 py-2 text-[#55616D]">{formatScore(row.totalScore)}</td>
+                                                <td className="px-3 py-2 text-[#55616D]">{formatScore(overallValue(row))}</td>
                                                 <td className="px-3 py-2 text-[#55616D]">{row.status}</td>
                                             </tr>
                                         ))}
@@ -297,8 +315,8 @@ export default function TrackResultsPage() {
                                 </select>
                                 <Button type="button" variant="outline" disabled={!filteredPhaseRankings.length}
                                     onClick={() => downloadCsv(`${trackName}-phase-${selectedPhase}-rankings.csv`,
-                                        ["Rank", "Submission", "# Evaluations", "Overall Avg", "Phase"],
-                                        filteredPhaseRankings.map((row) => [row.rank ?? "", row.title, row.scoreCount, formatScore(row.totalScore), row.status])
+                                        ["Rank", "Submission", "# Evaluations", isTotal ? "Overall Total" : "Overall Avg", "Phase"],
+                                        filteredPhaseRankings.map((row) => [row.rank ?? "", row.title, row.scoreCount, formatScore(overallValue(row)), row.status])
                                     )}>
                                     Export CSV
                                 </Button>
@@ -310,7 +328,7 @@ export default function TrackResultsPage() {
                                 <table className="min-w-full text-sm">
                                     <thead>
                                         <tr className="bg-[#004785]/5 text-left">
-                                            {["Rank", "Submission", "# Evaluations", "Overall Avg.", "Phase"].map((h) => (
+                                            {["Rank", "Submission", "# Evaluations", isTotal ? "Overall Total" : "Overall Avg.", "Phase"].map((h) => (
                                                 <th key={h} className="px-3 py-2 font-semibold text-[#004785]">{h}</th>
                                             ))}
                                         </tr>
@@ -323,7 +341,7 @@ export default function TrackResultsPage() {
                                                 <td className="px-3 py-2 font-bold text-[#004785]">{row.rank ?? "-"}</td>
                                                 <td className="px-3 py-2 text-[#55616D]">{row.title}</td>
                                                 <td className="px-3 py-2 text-[#55616D]">{row.scoreCount}</td>
-                                                <td className="px-3 py-2 text-[#55616D]">{formatScore(row.totalScore)}</td>
+                                                <td className="px-3 py-2 text-[#55616D]">{formatScore(overallValue(row))}</td>
                                                 <td className="px-3 py-2 text-[#55616D]">{row.status}</td>
                                             </tr>
                                         ))}
