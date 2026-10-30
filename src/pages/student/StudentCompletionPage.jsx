@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 import Button from "../../components/ui/Button.jsx";
 import {
     fetchStudentSubmissionCompletionOptions,
@@ -33,7 +33,10 @@ export default function StudentCompletionPage() {
                 }
 
                 const [data, optionData] = await Promise.all([
-                    fetchStudentSubmissionCompletionRows(personId, eventInstanceId),
+                    fetchStudentSubmissionCompletionRows(
+                        personId,
+                        eventInstanceId,
+                    ),
                     fetchStudentSubmissionCompletionOptions(),
                 ]);
 
@@ -41,7 +44,9 @@ export default function StudentCompletionPage() {
                 setOptions(optionData);
             } catch (loadError) {
                 console.error(loadError);
-                setError(loadError.message || "Could not load completion data.");
+                setError(
+                    loadError.message || "Could not load completion data.",
+                );
             } finally {
                 setLoading(false);
             }
@@ -52,19 +57,35 @@ export default function StudentCompletionPage() {
 
     function setField(submissionId, field, value) {
         setRows((prev) =>
-            prev.map((row) => (row.submission_id === submissionId ? { ...row, [field]: value } : row))
+            prev.map((row) =>
+                row.submission_id === submissionId
+                    ? { ...row, [field]: value }
+                    : row,
+            ),
         );
     }
 
     function findCollegeOptionId(collegeValue) {
-        const normalized = String(collegeValue || "").trim().toUpperCase();
+        const normalized = String(collegeValue || "")
+            .trim()
+            .toUpperCase();
         if (!normalized) return null;
 
         const match = options.collegeOptions.find((option) => {
-            const display = String(option.display || "").trim().toUpperCase();
-            const value = String(option.value || "").trim().toUpperCase();
-            const label = String(option.label || "").trim().toUpperCase();
-            return normalized === display || normalized === value || normalized === label;
+            const display = String(option.display || "")
+                .trim()
+                .toUpperCase();
+            const value = String(option.value || "")
+                .trim()
+                .toUpperCase();
+            const label = String(option.label || "")
+                .trim()
+                .toUpperCase();
+            return (
+                normalized === display ||
+                normalized === value ||
+                normalized === label
+            );
         });
 
         return match?.id ?? null;
@@ -72,7 +93,9 @@ export default function StudentCompletionPage() {
 
     function getMajorOptionsForRow(row) {
         const majors = options.majorOptions ?? [];
-        const hasParentedMajors = majors.some((option) => option.parentOptionId !== null);
+        const hasParentedMajors = majors.some(
+            (option) => option.parentOptionId !== null,
+        );
 
         if (!hasParentedMajors) {
             return majors;
@@ -83,13 +106,18 @@ export default function StudentCompletionPage() {
             return [];
         }
 
-        return majors.filter((option) => option.parentOptionId === selectedCollegeOptionId);
+        return majors.filter(
+            (option) => option.parentOptionId === selectedCollegeOptionId,
+        );
     }
 
     function handleCollegeChange(row, nextCollege) {
         const nextRow = { ...row, college: nextCollege };
-        const allowedMajors = getMajorOptionsForRow(nextRow).map((option) => option.display);
-        const keepMajor = !nextRow.major || allowedMajors.includes(nextRow.major);
+        const allowedMajors = getMajorOptionsForRow(nextRow).map(
+            (option) => option.display,
+        );
+        const keepMajor =
+            !nextRow.major || allowedMajors.includes(nextRow.major);
 
         setRows((prev) =>
             prev.map((item) =>
@@ -99,8 +127,8 @@ export default function StudentCompletionPage() {
                           college: nextCollege,
                           major: keepMajor ? item.major : "",
                       }
-                    : item
-            )
+                    : item,
+            ),
         );
     }
 
@@ -139,8 +167,8 @@ export default function StudentCompletionPage() {
                                   level: false,
                               },
                           }
-                        : item
-                )
+                        : item,
+                ),
             );
         } catch (saveError) {
             console.error(saveError);
@@ -151,27 +179,38 @@ export default function StudentCompletionPage() {
     }
 
     const rowsNeedingAction = rows.filter(
-        (row) => row.missing?.college || row.missing?.major || row.missing?.level
+        (row) =>
+            row.missing?.college || row.missing?.major || row.missing?.level,
     );
 
     return (
         <div className="max-w-5xl mx-auto p-6 space-y-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-[#004785]">Complete Required Student Data</h1>
-                <Button variant="secondary" onClick={() => navigate(`/students/${eventInstanceId}/projects`)}>
+                <h1 className="text-2xl font-bold text-[#004785]">
+                    Complete Required Student Data
+                </h1>
+                <Button
+                    variant="secondary"
+                    onClick={() =>
+                        navigate(`/students/${eventInstanceId}/projects`)
+                    }
+                >
                     Back to Projects
                 </Button>
             </div>
 
             <p className="text-sm text-[#55616D]">
-                College, major, and level are required for filtering. Fill missing fields below.
+                College, major, and level are required for filtering. Fill
+                missing fields below.
             </p>
 
             {loading && <p className="text-sm text-[#55616D]">Loading...</p>}
             {error && <p className="text-sm text-red-600">{error}</p>}
 
             {!loading && !rowsNeedingAction.length && (
-                <p className="text-sm text-[#00794C]">All your submissions are complete for this event.</p>
+                <p className="text-sm text-[#00794C]">
+                    All your submissions are complete for this event.
+                </p>
             )}
 
             <div className="space-y-3">
@@ -179,18 +218,31 @@ export default function StudentCompletionPage() {
                     const isSaving = savingId === row.submission_id;
 
                     return (
-                        <div key={row.submission_id} className="rounded border p-3">
-                            <p className="font-semibold text-[#004785]">{row.title}</p>
+                        <div
+                            key={row.submission_id}
+                            className="rounded border p-3"
+                        >
+                            <p className="font-semibold text-[#004785]">
+                                {row.title}
+                            </p>
                             <div className="mt-2 grid gap-2 md:grid-cols-3">
                                 <select
                                     required
                                     className="rounded border p-2 text-sm"
                                     value={row.college || ""}
-                                    onChange={(event) => handleCollegeChange(row, event.target.value)}
+                                    onChange={(event) =>
+                                        handleCollegeChange(
+                                            row,
+                                            event.target.value,
+                                        )
+                                    }
                                 >
                                     <option value="">Select college</option>
                                     {options.collegeOptions.map((option) => (
-                                        <option key={option.id} value={option.display}>
+                                        <option
+                                            key={option.id}
+                                            value={option.display}
+                                        >
                                             {option.display}
                                         </option>
                                     ))}
@@ -199,24 +251,44 @@ export default function StudentCompletionPage() {
                                     required
                                     className="rounded border p-2 text-sm"
                                     value={row.major || ""}
-                                    onChange={(event) => setField(row.submission_id, "major", event.target.value)}
+                                    onChange={(event) =>
+                                        setField(
+                                            row.submission_id,
+                                            "major",
+                                            event.target.value,
+                                        )
+                                    }
                                 >
                                     <option value="">Select major</option>
-                                    {getMajorOptionsForRow(row).map((option) => (
-                                        <option key={option.id} value={option.display}>
-                                            {option.display}
-                                        </option>
-                                    ))}
+                                    {getMajorOptionsForRow(row).map(
+                                        (option) => (
+                                            <option
+                                                key={option.id}
+                                                value={option.display}
+                                            >
+                                                {option.display}
+                                            </option>
+                                        ),
+                                    )}
                                 </select>
                                 <select
                                     required
                                     className="rounded border p-2 text-sm"
                                     value={row.level || ""}
-                                    onChange={(event) => setField(row.submission_id, "level", event.target.value)}
+                                    onChange={(event) =>
+                                        setField(
+                                            row.submission_id,
+                                            "level",
+                                            event.target.value,
+                                        )
+                                    }
                                 >
                                     <option value="">Select level</option>
                                     {options.levelOptions.map((option) => (
-                                        <option key={option.id} value={option.display}>
+                                        <option
+                                            key={option.id}
+                                            value={option.display}
+                                        >
                                             {option.display}
                                         </option>
                                     ))}

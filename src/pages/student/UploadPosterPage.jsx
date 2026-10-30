@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router";
 import { uploadPoster } from "../../services/studentProjects/studentApi";
 import Button from "../../components/ui/Button.jsx";
 
 export default function UploadPosterPage() {
-
     const { submissionId } = useParams();
     const navigate = useNavigate();
 
@@ -33,7 +32,6 @@ export default function UploadPosterPage() {
 
     return (
         <div className="max-w-xl mx-auto p-6 space-y-6">
-
             {/* Header */}
             <div className="flex items-center gap-4">
                 <Button variant="secondary" onClick={() => navigate(-1)}>
@@ -47,7 +45,6 @@ export default function UploadPosterPage() {
 
             {/* Upload Card */}
             <div className="bg-white border border-[#55616D]/30 rounded-xl p-6 shadow-sm space-y-4">
-
                 <p className="text-sm text-[#55616D]">
                     Upload your poster as a PDF file.
                 </p>
@@ -97,9 +94,7 @@ export default function UploadPosterPage() {
                         Cancel
                     </Button>
                 </div>
-
             </div>
-
         </div>
     );
 }

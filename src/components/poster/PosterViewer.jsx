@@ -1,11 +1,6 @@
 export default function PosterViewer({ fileUrl }) {
-
     if (!fileUrl) {
-        return (
-            <p className="text-gray-500 text-sm">
-                No poster uploaded yet.
-            </p>
-        );
+        return <p className="text-gray-500 text-sm">No poster uploaded yet.</p>;
     }
 
     return (

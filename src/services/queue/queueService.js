@@ -36,12 +36,15 @@ import {
     toUniqueIds,
 } from "./queueUtils.js";
 
-const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
+const DEBUG_LOGS =
+    import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
 const SESSION_FILTER_FACET_ID = "__SESSION_FILTER__";
 const SCORING_ACTIVITY_TTL_MS = 5 * 60 * 1000;
 
 function normalizeSessionCode(value) {
-    const text = String(value ?? "").trim().toUpperCase();
+    const text = String(value ?? "")
+        .trim()
+        .toUpperCase();
     if (!text) return "";
 
     const match = text.match(/[A-Z]/);
@@ -54,7 +57,10 @@ function deriveSessionCodeFromTable(tableInfo) {
     const explicitSession = normalizeSessionCode(tableInfo.session);
     if (explicitSession) return explicitSession;
 
-    const assignmentNameCandidates = [tableInfo.table_number, tableInfo.location_description];
+    const assignmentNameCandidates = [
+        tableInfo.table_number,
+        tableInfo.location_description,
+    ];
     for (const candidate of assignmentNameCandidates) {
         const derived = normalizeSessionCode(candidate);
         if (derived) return derived;
@@ -88,8 +94,12 @@ function attachSessionFilters({
         const sessionCode = deriveSessionCodeFromTable(tableInfo);
         if (!sessionCode) continue;
 
-        const token = optionTokenBySessionCode?.get(sessionCode) || `session:${sessionCode}`;
-        const label = optionLabelBySessionCode?.get(sessionCode) || `Session ${sessionCode}`;
+        const token =
+            optionTokenBySessionCode?.get(sessionCode) ||
+            `session:${sessionCode}`;
+        const label =
+            optionLabelBySessionCode?.get(sessionCode) ||
+            `Session ${sessionCode}`;
 
         if (!facetTokensBySubmissionId.has(submissionId)) {
             facetTokensBySubmissionId.set(submissionId, new Map());
@@ -105,7 +115,12 @@ function attachSessionFilters({
         }
 
         const displayFacets = displayFacetsBySubmissionId.get(submissionId);
-        if (!displayFacets.some((item) => item.facetId === sessionFacetId && item.token === token)) {
+        if (
+            !displayFacets.some(
+                (item) =>
+                    item.facetId === sessionFacetId && item.token === token,
+            )
+        ) {
             displayFacets.push({
                 facetId: sessionFacetId,
                 facetOptionId: null,
@@ -116,7 +131,12 @@ function attachSessionFilters({
     }
 }
 
-function attachSessionDefaults({ defaultFiltersMap, judgeFacetValues, optionById, facetById }) {
+function attachSessionDefaults({
+    defaultFiltersMap,
+    judgeFacetValues,
+    optionById,
+    facetById,
+}) {
     const sessionDefaults = [];
 
     for (const valueRow of judgeFacetValues) {
@@ -124,8 +144,12 @@ function attachSessionDefaults({ defaultFiltersMap, judgeFacetValues, optionById
         const facetCode = String(facetMeta?.code || "").toUpperCase();
         if (!facetCode.includes("SESSION")) continue;
 
-        const option = valueRow.facet_option_id ? optionById.get(valueRow.facet_option_id) : null;
-        const sessionCode = normalizeSessionCode(option?.value || option?.label || valueRow.value_text || "");
+        const option = valueRow.facet_option_id
+            ? optionById.get(valueRow.facet_option_id)
+            : null;
+        const sessionCode = normalizeSessionCode(
+            option?.value || option?.label || valueRow.value_text || "",
+        );
         if (!sessionCode) continue;
 
         const token = `session:${sessionCode}`;
@@ -136,8 +160,12 @@ function attachSessionDefaults({ defaultFiltersMap, judgeFacetValues, optionById
 
     if (sessionDefaults.length) {
         const current = defaultFiltersMap[SESSION_FILTER_FACET_ID] ?? [];
-        defaultFiltersMap[SESSION_FILTER_FACET_ID] = [...current, ...sessionDefaults].filter(
-            (item, index, arr) => arr.findIndex((next) => next.token === item.token) === index
+        defaultFiltersMap[SESSION_FILTER_FACET_ID] = [
+            ...current,
+            ...sessionDefaults,
+        ].filter(
+            (item, index, arr) =>
+                arr.findIndex((next) => next.token === item.token) === index,
         );
     }
 }
@@ -182,7 +210,10 @@ export async function pullNext(judgeId) {
     // Pick the first submission this judge has not scored yet.
     for (const submission of submissions) {
         const alreadyScored = isUuid(judgeId)
-            ? await hasJudgeScoreSheet({ judgeId, submissionId: submission.submission_id })
+            ? await hasJudgeScoreSheet({
+                  judgeId,
+                  submissionId: submission.submission_id,
+              })
             : false;
 
         if (!alreadyScored) return submission;
@@ -191,9 +222,17 @@ export async function pullNext(judgeId) {
     return null;
 }
 
-export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstanceId, trackId }) {
+export async function fetchQueueSubmissionsForJudge({
+    judgePersonId,
+    eventInstanceId,
+    trackId,
+}) {
     if (DEBUG_LOGS) {
-        console.log("Fetching queue submissions with params:", { judgePersonId, eventInstanceId, trackId });
+        console.log("Fetching queue submissions with params:", {
+            judgePersonId,
+            eventInstanceId,
+            trackId,
+        });
     }
     if (!judgePersonId) {
         throw new Error("Judge person id is required.");
@@ -209,38 +248,60 @@ export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstan
     if (trackId) {
         // single track selected
         trackIds = [trackId];
-        const track = await fetchTracksByEventInstance(eventInstanceId)
-            .then((tracks) => tracks.find((t) => String(t.track_id) === String(trackId)));
+        const track = await fetchTracksByEventInstance(eventInstanceId).then(
+            (tracks) =>
+                tracks.find((t) => String(t.track_id) === String(trackId)),
+        );
         trackNameById.set(trackId, track?.name ?? "Track");
     } else {
         // fallback: all tracks
         const tracks = await fetchTracksByEventInstance(eventInstanceId);
         if (!tracks.length) return buildEmptyQueueResult();
         trackIds = tracks.map((track) => track.track_id);
-        trackNameById = new Map(tracks.map((track) => [track.track_id, track.name ?? "Track"]));
+        trackNameById = new Map(
+            tracks.map((track) => [track.track_id, track.name ?? "Track"]),
+        );
     }
 
     if (DEBUG_LOGS) {
         console.log("Determined trackIds for queue fetch:", trackIds);
     }
 
-    const submissions = await fetchEligibleSubmissionsByTracks({ trackIds, judgePersonId });
+    const submissions = await fetchEligibleSubmissionsByTracks({
+        trackIds,
+        judgePersonId,
+    });
     if (!submissions.length) return buildEmptyQueueResult();
 
-    const submissionIds = submissions.map((submission) => submission.submission_id);
-    const scoredRows = await fetchScoredSubmissionRows({ judgePersonId, submissionIds });
+    const submissionIds = submissions.map(
+        (submission) => submission.submission_id,
+    );
+    const scoredRows = await fetchScoredSubmissionRows({
+        judgePersonId,
+        submissionIds,
+    });
 
-    const scoredSubmissionIds = new Set((scoredRows ?? []).map((row) => row.submission_id));
+    const scoredSubmissionIds = new Set(
+        (scoredRows ?? []).map((row) => row.submission_id),
+    );
     const unscoredSubmissions = submissions.filter(
         (submission) =>
             !scoredSubmissionIds.has(submission.submission_id) &&
-            submission.supervisor_person_id !== judgePersonId
+            submission.supervisor_person_id !== judgePersonId,
     );
 
     if (!unscoredSubmissions.length) return buildEmptyQueueResult();
 
-    const eligibleSubmissionIds = unscoredSubmissions.map((submission) => submission.submission_id);
-    const [submissionFacetValues, judgeFacetValues, tableAssignmentRows, scoreSheetRows, assignmentRows] = await Promise.all([
+    const eligibleSubmissionIds = unscoredSubmissions.map(
+        (submission) => submission.submission_id,
+    );
+    const [
+        submissionFacetValues,
+        judgeFacetValues,
+        tableAssignmentRows,
+        scoreSheetRows,
+        assignmentRows,
+    ] = await Promise.all([
         fetchSubmissionFacetValues(eligibleSubmissionIds),
         fetchJudgeFacetValuesForEvent({ judgePersonId, eventInstanceId }),
         fetchTableAssignmentsBySubmissions(eligibleSubmissionIds),
@@ -251,7 +312,10 @@ export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstan
     const scoreCountBySubmissionId = new Map();
     for (const row of scoreSheetRows ?? []) {
         const submissionId = row.submission_id;
-        scoreCountBySubmissionId.set(submissionId, (scoreCountBySubmissionId.get(submissionId) ?? 0) + 1);
+        scoreCountBySubmissionId.set(
+            submissionId,
+            (scoreCountBySubmissionId.get(submissionId) ?? 0) + 1,
+        );
     }
 
     const latestAssignedAtBySubmissionId = new Map();
@@ -261,7 +325,8 @@ export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstan
         if (!submissionId || !assignedAt) continue;
 
         const assignedAtMs = new Date(assignedAt).getTime();
-        const currentLatest = latestAssignedAtBySubmissionId.get(submissionId) ?? 0;
+        const currentLatest =
+            latestAssignedAtBySubmissionId.get(submissionId) ?? 0;
         if (assignedAtMs > currentLatest) {
             latestAssignedAtBySubmissionId.set(submissionId, assignedAtMs);
         }
@@ -270,13 +335,19 @@ export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstan
     const nowMs = Date.now();
     const isBeingScoredBySubmissionId = new Map();
     for (const submissionId of eligibleSubmissionIds) {
-        const latestAssignedAtMs = latestAssignedAtBySubmissionId.get(submissionId) ?? 0;
-        const isRecentlyAssigned = latestAssignedAtMs > 0 && (nowMs - latestAssignedAtMs) <= SCORING_ACTIVITY_TTL_MS;
+        const latestAssignedAtMs =
+            latestAssignedAtBySubmissionId.get(submissionId) ?? 0;
+        const isRecentlyAssigned =
+            latestAssignedAtMs > 0 &&
+            nowMs - latestAssignedAtMs <= SCORING_ACTIVITY_TTL_MS;
         isBeingScoredBySubmissionId.set(submissionId, isRecentlyAssigned);
     }
 
     const tableBySubmissionId = new Map(
-        tableAssignmentRows.map((row) => [row.submission_id, row.event_table ?? null])
+        tableAssignmentRows.map((row) => [
+            row.submission_id,
+            row.event_table ?? null,
+        ]),
     );
 
     const facetIds = toUniqueIds([
@@ -295,10 +366,16 @@ export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstan
         fetchFacetOptionsByFacetIds(facetIds),
     ]);
 
-    const facetById = new Map(facetRows.map((facet) => [facet.facet_id, facet]));
-    const optionById = new Map(optionRows.map((option) => [option.facet_option_id, option]));
+    const facetById = new Map(
+        facetRows.map((facet) => [facet.facet_id, facet]),
+    );
+    const optionById = new Map(
+        optionRows.map((option) => [option.facet_option_id, option]),
+    );
     const includesRealSessionFacet = hasRealSessionFacet(facetById);
-    const realSessionFacetId = includesRealSessionFacet ? findRealSessionFacetId(facetById) : null;
+    const realSessionFacetId = includesRealSessionFacet
+        ? findRealSessionFacetId(facetById)
+        : null;
     const sessionOptionTokenBySessionCode = new Map();
     const sessionOptionLabelBySessionCode = new Map();
 
@@ -310,20 +387,30 @@ export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstan
 
             const token = String(option.facet_option_id);
             sessionOptionTokenBySessionCode.set(code, token);
-            sessionOptionLabelBySessionCode.set(code, option.label || option.value || `Session ${code}`);
+            sessionOptionLabelBySessionCode.set(
+                code,
+                option.label || option.value || `Session ${code}`,
+            );
         }
     }
 
-    const defaultFiltersMap = buildSelectedFiltersMap(judgeFacetValues, optionById);
-    if (!includesRealSessionFacet) {
-        attachSessionDefaults({ defaultFiltersMap, judgeFacetValues, optionById, facetById });
-    }
-    const defaultSelectedTokensByFacetId = buildDefaultSelectedTokensByFacetId(defaultFiltersMap);
-
-    const { facetTokensBySubmissionId, displayFacetsBySubmissionId } = buildSubmissionFacetMaps(
-        submissionFacetValues ?? [],
-        optionById
+    const defaultFiltersMap = buildSelectedFiltersMap(
+        judgeFacetValues,
+        optionById,
     );
+    if (!includesRealSessionFacet) {
+        attachSessionDefaults({
+            defaultFiltersMap,
+            judgeFacetValues,
+            optionById,
+            facetById,
+        });
+    }
+    const defaultSelectedTokensByFacetId =
+        buildDefaultSelectedTokensByFacetId(defaultFiltersMap);
+
+    const { facetTokensBySubmissionId, displayFacetsBySubmissionId } =
+        buildSubmissionFacetMaps(submissionFacetValues ?? [], optionById);
 
     // Always map table-assigned sessions into the session filter.
     // If a real SESSION facet exists, enrich that facet; otherwise create synthetic SESSION facet.
@@ -359,7 +446,7 @@ export async function fetchQueueSubmissionsForJudge({ judgePersonId, eventInstan
 
     const filteredSubmissions = applySubmissionFilters(
         normalizedSubmissions,
-        defaultSelectedTokensByFacetId
+        defaultSelectedTokensByFacetId,
     );
 
     return {

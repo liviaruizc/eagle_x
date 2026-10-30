@@ -23,7 +23,9 @@ function buildDisplayNameFromEmail(email) {
 }
 
 function normalizeEmail(email) {
-    return String(email || "").trim().toLowerCase();
+    return String(email || "")
+        .trim()
+        .toLowerCase();
 }
 
 export async function findOrCreatePersonByEmail(createdByEmail) {
@@ -104,7 +106,9 @@ async function resolveStudentEventRoleId() {
         // Intentionally ignore and fail with explicit message below.
     }
 
-    throw new Error("No STUDENT role found in event_role. Add a STUDENT role first.");
+    throw new Error(
+        "No STUDENT role found in event_role. Add a STUDENT role first.",
+    );
 }
 
 export async function ensureStudentRoleForPersonInEvent({ trackId, personId }) {
@@ -127,15 +131,21 @@ export async function ensureStudentRoleForPersonInEvent({ trackId, personId }) {
     });
 }
 
-export async function createSubmissionRelations({ submissionId, authorPersonIds, facetValues }) {
-    const uniquePersonIds = [...new Set((authorPersonIds ?? []).filter(Boolean))];
+export async function createSubmissionRelations({
+    submissionId,
+    authorPersonIds,
+    facetValues,
+}) {
+    const uniquePersonIds = [
+        ...new Set((authorPersonIds ?? []).filter(Boolean)),
+    ];
 
     for (const personId of uniquePersonIds) {
         await insertSubmissionAuthor({ submissionId, personId });
     }
 
     const payloads = (facetValues ?? []).map((facetValue) =>
-        normalizeFacetValuePayload(submissionId, facetValue)
+        normalizeFacetValuePayload(submissionId, facetValue),
     );
 
     await insertSubmissionFacetValues(payloads);

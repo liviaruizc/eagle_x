@@ -38,8 +38,12 @@ function buildOptionLookup(options) {
     const byLabel = new Map();
 
     for (const option of options ?? []) {
-        const normalizedValue = String(option.value || "").trim().toUpperCase();
-        const normalizedLabel = String(option.label || "").trim().toUpperCase();
+        const normalizedValue = String(option.value || "")
+            .trim()
+            .toUpperCase();
+        const normalizedLabel = String(option.label || "")
+            .trim()
+            .toUpperCase();
 
         if (normalizedValue && !byValue.has(normalizedValue)) {
             byValue.set(normalizedValue, option);
@@ -58,10 +62,14 @@ function resolveOptionIds(codes, lookup) {
     const unmatchedCodes = [];
 
     for (const code of codes ?? []) {
-        const normalizedCode = String(code || "").trim().toUpperCase();
+        const normalizedCode = String(code || "")
+            .trim()
+            .toUpperCase();
         if (!normalizedCode) continue;
 
-        const matched = lookup.byValue.get(normalizedCode) || lookup.byLabel.get(normalizedCode);
+        const matched =
+            lookup.byValue.get(normalizedCode) ||
+            lookup.byLabel.get(normalizedCode);
         if (matched?.facet_option_id) {
             matchedOptionIds.push(matched.facet_option_id);
         } else {
@@ -83,7 +91,9 @@ async function fetchFacetByCandidateCodes(candidateCodes) {
     if (error) throw error;
 
     const rows = data ?? [];
-    const byCode = new Map(rows.map((row) => [String(row.code || "").toUpperCase(), row]));
+    const byCode = new Map(
+        rows.map((row) => [String(row.code || "").toUpperCase(), row]),
+    );
 
     for (const code of candidateCodes) {
         const matched = byCode.get(code.toUpperCase());
@@ -110,19 +120,28 @@ async function replaceFacetValues({ personEventRoleId, facetId, optionIds }) {
     await insertPersonEventRoleFacetValues(payloads);
 }
 
-async function assignJudgeFacetValues({ personEventRoleId, collegeCodes, classCodes, sessionCodes }) {
+async function assignJudgeFacetValues({
+    personEventRoleId,
+    collegeCodes,
+    classCodes,
+    sessionCodes,
+}) {
     const [collegeFacet, classFacet, sessionFacet] = await Promise.all([
         fetchFacetByCandidateCodes(FACET_CODE_GROUPS.college),
         fetchFacetByCandidateCodes(FACET_CODE_GROUPS.class),
         fetchFacetByCandidateCodes(FACET_CODE_GROUPS.session),
     ]);
 
-    const managedFacets = [collegeFacet, classFacet, sessionFacet].filter(Boolean);
+    const managedFacets = [collegeFacet, classFacet, sessionFacet].filter(
+        Boolean,
+    );
     if (!managedFacets.length) {
         return { unmatched: [] };
     }
 
-    const facetRows = await fetchFacetRowsByIds(managedFacets.map((facet) => facet.facet_id));
+    const facetRows = await fetchFacetRowsByIds(
+        managedFacets.map((facet) => facet.facet_id),
+    );
     const facetIds = (facetRows ?? []).map((row) => row.facet_id);
     const options = await fetchFacetOptionsByFacetIds(facetIds);
 
@@ -136,13 +155,19 @@ async function assignJudgeFacetValues({ personEventRoleId, collegeCodes, classCo
     }
 
     const collegeLookup = collegeFacet
-        ? buildOptionLookup(optionsByFacetId.get(String(collegeFacet.facet_id)) ?? [])
+        ? buildOptionLookup(
+              optionsByFacetId.get(String(collegeFacet.facet_id)) ?? [],
+          )
         : null;
     const classLookup = classFacet
-        ? buildOptionLookup(optionsByFacetId.get(String(classFacet.facet_id)) ?? [])
+        ? buildOptionLookup(
+              optionsByFacetId.get(String(classFacet.facet_id)) ?? [],
+          )
         : null;
     const sessionLookup = sessionFacet
-        ? buildOptionLookup(optionsByFacetId.get(String(sessionFacet.facet_id)) ?? [])
+        ? buildOptionLookup(
+              optionsByFacetId.get(String(sessionFacet.facet_id)) ?? [],
+          )
         : null;
 
     const collegeResult = collegeLookup
@@ -180,9 +205,18 @@ async function assignJudgeFacetValues({ personEventRoleId, collegeCodes, classCo
     }
 
     const unmatched = [
-        ...collegeResult.unmatchedCodes.map((code) => ({ column: "college_codes", code })),
-        ...classResult.unmatchedCodes.map((code) => ({ column: "class_codes", code })),
-        ...sessionResult.unmatchedCodes.map((code) => ({ column: "session_code", code })),
+        ...collegeResult.unmatchedCodes.map((code) => ({
+            column: "college_codes",
+            code,
+        })),
+        ...classResult.unmatchedCodes.map((code) => ({
+            column: "class_codes",
+            code,
+        })),
+        ...sessionResult.unmatchedCodes.map((code) => ({
+            column: "session_code",
+            code,
+        })),
     ];
 
     return { unmatched };
@@ -197,20 +231,22 @@ async function resolveRoleId(roleCode) {
         }
 
         if (roleCode === "admin") {
-            const { data: adminByCode, error: adminByCodeError } = await supabase
-                .from("event_role")
-                .select("event_role_id")
-                .ilike("code", "admin")
-                .maybeSingle();
+            const { data: adminByCode, error: adminByCodeError } =
+                await supabase
+                    .from("event_role")
+                    .select("event_role_id")
+                    .ilike("code", "admin")
+                    .maybeSingle();
 
             if (adminByCodeError) throw adminByCodeError;
             if (adminByCode?.event_role_id) return adminByCode.event_role_id;
 
-            const { data: adminByName, error: adminByNameError } = await supabase
-                .from("event_role")
-                .select("event_role_id")
-                .ilike("name", "%admin%")
-                .maybeSingle();
+            const { data: adminByName, error: adminByNameError } =
+                await supabase
+                    .from("event_role")
+                    .select("event_role_id")
+                    .ilike("name", "%admin%")
+                    .maybeSingle();
 
             if (adminByNameError) throw adminByNameError;
             if (adminByName?.event_role_id) return adminByName.event_role_id;
@@ -223,7 +259,9 @@ async function resolveRoleId(roleCode) {
         // Last resort: use first available role
         const fallbackRoleId = await findFirstEventRoleId();
         if (fallbackRoleId) {
-            console.warn(`Falling back to first event_role_id for ${roleCode} role resolution.`);
+            console.warn(
+                `Falling back to first event_role_id for ${roleCode} role resolution.`,
+            );
             return fallbackRoleId;
         }
     } catch (error) {
@@ -231,7 +269,7 @@ async function resolveRoleId(roleCode) {
     }
 
     throw new Error(
-        `No role found in event_role table. Please run SQL migrations to ensure roles are seeded.`
+        `No role found in event_role table. Please run SQL migrations to ensure roles are seeded.`,
     );
 }
 
@@ -273,9 +311,8 @@ export async function createJudgeOrAdmin({
     // Resolve the role ID
     const roleId = await resolveRoleId(role);
 
-    const targetEventInstanceId = role === "admin" && isGlobalAdmin
-        ? null
-        : eventInstanceId;
+    const targetEventInstanceId =
+        role === "admin" && isGlobalAdmin ? null : eventInstanceId;
 
     let personId = await findPersonIdByEmail(normalizedEmail);
     let personWasCreated = false;

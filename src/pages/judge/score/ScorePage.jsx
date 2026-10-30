@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 import {
     calculateScoreTotal,
     clearJudgeScoringActivity,
@@ -34,7 +34,7 @@ export default function ScorePage() {
 
     const total = useMemo(
         () => calculateScoreTotal(criteria, responsesByCriterionId),
-        [criteria, responsesByCriterionId]
+        [criteria, responsesByCriterionId],
     );
 
     const navigate = useNavigate();
@@ -56,15 +56,28 @@ export default function ScorePage() {
             setJudgeId(resolvedJudgeId);
 
             try {
-                const context = await fetchScoringContext(submissionId, resolvedJudgeId);
+                const context = await fetchScoringContext(
+                    submissionId,
+                    resolvedJudgeId,
+                );
 
-                const activeJudge = await fetchActiveJudgeAssignment(submissionId, resolvedJudgeId);
+                const activeJudge = await fetchActiveJudgeAssignment(
+                    submissionId,
+                    resolvedJudgeId,
+                );
                 if (activeJudge) {
-                    setError("This project is currently being scored by another judge. Redirecting back to queue...");
+                    setError(
+                        "This project is currently being scored by another judge. Redirecting back to queue...",
+                    );
                     setIsLoading(false);
                     redirectTimerRef.current = window.setTimeout(() => {
-                        const savedTrackId = sessionStorage.getItem("judge_track_id");
-                        navigate(savedTrackId ? `/queue?trackId=${savedTrackId}` : "/queue");
+                        const savedTrackId =
+                            sessionStorage.getItem("judge_track_id");
+                        navigate(
+                            savedTrackId
+                                ? `/queue?trackId=${savedTrackId}`
+                                : "/queue",
+                        );
                     }, 2500);
                     return;
                 }
@@ -80,17 +93,24 @@ export default function ScorePage() {
                 setOverallComment(context.existingOverallComment || "");
 
                 // Seed with existing answers if the judge already scored this submission.
-                const initialResponses = (context.criteria || []).reduce((acc, criterion) => {
-                    acc[criterion.id] = context.existingResponsesByCriterionId?.[criterion.id] ?? {
-                        value: "",
-                        comment: "",
-                    };
-                    return acc;
-                }, {});
+                const initialResponses = (context.criteria || []).reduce(
+                    (acc, criterion) => {
+                        acc[criterion.id] = context
+                            .existingResponsesByCriterionId?.[criterion.id] ?? {
+                            value: "",
+                            comment: "",
+                        };
+                        return acc;
+                    },
+                    {},
+                );
 
                 setResponsesByCriterionId(initialResponses);
             } catch (loadError) {
-                console.error("[ScorePage] Failed to load scoring context:", loadError);
+                console.error(
+                    "[ScorePage] Failed to load scoring context:",
+                    loadError,
+                );
                 setError(loadError.message || "Could not load scoring form.");
             } finally {
                 setIsLoading(false);
@@ -100,9 +120,10 @@ export default function ScorePage() {
         loadScoringContext();
 
         return () => {
-            if (redirectTimerRef.current) window.clearTimeout(redirectTimerRef.current);
+            if (redirectTimerRef.current)
+                window.clearTimeout(redirectTimerRef.current);
         };
-    }, [submissionId]);
+    }, [navigate, submissionId]);
 
     useEffect(() => {
         if (!judgeId || !trackId || !submissionId) return;
@@ -118,7 +139,10 @@ export default function ScorePage() {
                 });
             } catch (activityError) {
                 if (!isDisposed) {
-                    console.error("[ScorePage] Could not update scoring activity:", activityError);
+                    console.error(
+                        "[ScorePage] Could not update scoring activity:",
+                        activityError,
+                    );
                 }
             }
         }
@@ -134,7 +158,10 @@ export default function ScorePage() {
                 judgePersonId: judgeId,
                 submissionId,
             }).catch((activityError) => {
-                console.error("[ScorePage] Could not clear scoring activity:", activityError);
+                console.error(
+                    "[ScorePage] Could not clear scoring activity:",
+                    activityError,
+                );
             });
         };
     }, [judgeId, trackId, submissionId]);
@@ -168,7 +195,10 @@ export default function ScorePage() {
             return;
         }
 
-        const result = validateCriterionResponses(criteria, responsesByCriterionId);
+        const result = validateCriterionResponses(
+            criteria,
+            responsesByCriterionId,
+        );
         if (!result.ok) {
             setError("Please answer all rubric questions.");
             return;

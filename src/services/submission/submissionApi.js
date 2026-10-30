@@ -80,7 +80,11 @@ export async function fetchTrackSubmissionWindow(trackId) {
     };
 }
 
-export async function findPersonEventRoleId({ eventInstanceId, personId, eventRoleId }) {
+export async function findPersonEventRoleId({
+    eventInstanceId,
+    personId,
+    eventRoleId,
+}) {
     const { data, error } = await supabase
         .from("person_event_role")
         .select("person_event_role_id")
@@ -93,15 +97,17 @@ export async function findPersonEventRoleId({ eventInstanceId, personId, eventRo
     return data?.person_event_role_id ?? null;
 }
 
-export async function insertPersonEventRole({ eventInstanceId, personId, eventRoleId }) {
-    const { error } = await supabase
-        .from("person_event_role")
-        .insert({
-            event_instance_id: eventInstanceId,
-            person_id: personId,
-            event_role_id: eventRoleId,
-            is_active: true,
-        });
+export async function insertPersonEventRole({
+    eventInstanceId,
+    personId,
+    eventRoleId,
+}) {
+    const { error } = await supabase.from("person_event_role").insert({
+        event_instance_id: eventInstanceId,
+        person_id: personId,
+        event_role_id: eventRoleId,
+        is_active: true,
+    });
 
     if (error) throw error;
 }
@@ -127,12 +133,10 @@ export async function deleteSubmissionById(submissionId) {
 }
 
 export async function insertSubmissionAuthor({ submissionId, personId }) {
-    const { error } = await supabase
-        .from("submission_author")
-        .insert({
-            submission_id: submissionId,
-            person_id: personId,
-        });
+    const { error } = await supabase.from("submission_author").insert({
+        submission_id: submissionId,
+        person_id: personId,
+    });
 
     if (error) throw error;
 }

@@ -30,7 +30,9 @@ export async function fetchHasSubmittedScoresForTrack(trackId) {
 export async function fetchTrackRubricRows(trackId) {
     const { data, error } = await supabase
         .from("track_rubric")
-        .select("track_rubric_id, track_id, rubric_id, is_default, condition_json")
+        .select(
+            "track_rubric_id, track_id, rubric_id, is_default, condition_json",
+        )
         .eq("track_id", trackId);
 
     if (error) throw error;
@@ -42,7 +44,9 @@ export async function fetchRubricsByIds(rubricIds) {
 
     const { data, error } = await supabase
         .from("rubric")
-        .select("rubric_id, name, description, max_total_points, version, is_active, created_at")
+        .select(
+            "rubric_id, name, description, max_total_points, version, is_active, created_at",
+        )
         .in("rubric_id", rubricIds);
 
     if (error) throw error;
@@ -55,7 +59,7 @@ export async function fetchRubricCriteriaByRubricIds(rubricIds) {
     const { data, error } = await supabase
         .from("rubric_criterion")
         .select(
-            "criterion_id, rubric_id, name, description, criterion_category, answer_type, answer_config_json, weight, score_min, score_max, scoring_phase, display_order"
+            "criterion_id, rubric_id, name, description, criterion_category, answer_type, answer_config_json, weight, score_min, score_max, scoring_phase, display_order",
         )
         .in("rubric_id", rubricIds)
         .order("display_order", { ascending: true });
@@ -156,7 +160,7 @@ export async function upsertTrackRubricLink({ trackId, rubricId, isDefault }) {
                 is_default: Boolean(isDefault),
                 condition_json: null,
             },
-            { onConflict: "track_id,rubric_id" }
+            { onConflict: "track_id,rubric_id" },
         )
         .select("track_rubric_id")
         .single();

@@ -59,7 +59,9 @@ export async function fetchSubmissionFacetValues(submissionIds) {
 
     const { data, error } = await supabase
         .from("submission_facet_value")
-        .select("submission_id, facet_id, facet_option_id, value_text, value_number, value_date")
+        .select(
+            "submission_id, facet_id, facet_option_id, value_text, value_number, value_date",
+        )
         .in("submission_id", submissionIds);
 
     if (error) throw error;

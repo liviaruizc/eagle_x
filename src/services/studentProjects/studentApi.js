@@ -22,7 +22,8 @@ function hasFacetValue(row) {
     if (!row) return false;
     if (row.facet_option_id) return true;
     if (String(row.value_text || "").trim()) return true;
-    if (row.value_number !== null && row.value_number !== undefined) return true;
+    if (row.value_number !== null && row.value_number !== undefined)
+        return true;
     if (row.value_date) return true;
     return false;
 }
@@ -38,7 +39,10 @@ function buildRequiredFacetMap(facetRows) {
         const code = normalizeCode(row.code);
         const name = normalizeName(row.name);
 
-        if (REQUIRED_FIELD_GROUPS.college.includes(code) || name === "college") {
+        if (
+            REQUIRED_FIELD_GROUPS.college.includes(code) ||
+            name === "college"
+        ) {
             groups.college.add(row.facet_id);
         }
 
@@ -71,7 +75,9 @@ async function fetchFacetOptionsByFacetIds(facetIds) {
 
     const { data, error } = await supabase
         .from("facet_option")
-        .select("facet_option_id, facet_id, value, label, parent_option_id, sort_order")
+        .select(
+            "facet_option_id, facet_id, value, label, parent_option_id, sort_order",
+        )
         .in("facet_id", facetIds)
         .order("sort_order", { ascending: true });
 
@@ -92,8 +98,12 @@ async function resolveFacetOptionId(facetId, rawValue) {
 
     const upper = normalized.toUpperCase();
     const option = (data ?? []).find((row) => {
-        const value = String(row.value || "").trim().toUpperCase();
-        const label = String(row.label || "").trim().toUpperCase();
+        const value = String(row.value || "")
+            .trim()
+            .toUpperCase();
+        const label = String(row.label || "")
+            .trim()
+            .toUpperCase();
         return value === upper || label === upper;
     });
 
@@ -101,10 +111,10 @@ async function resolveFacetOptionId(facetId, rawValue) {
 }
 
 export async function fetchStudentProjectsForEvent(personId, eventInstanceId) {
-
     const { data, error } = await supabase
         .from("submission_author")
-        .select(`
+        .select(
+            `
             submission:submission_id (
                 submission_id,
                 title,
@@ -127,13 +137,14 @@ export async function fetchStudentProjectsForEvent(personId, eventInstanceId) {
                     )
                 )
             )
-        `)
+        `,
+        )
         .eq("person_id", personId)
         .eq("submission.track.event_instance_id", eventInstanceId);
 
     if (error) throw error;
 
-    return (data ?? []).map(row => {
+    return (data ?? []).map((row) => {
         const submission = row.submission;
 
         const tableInfo = submission.table_assignment?.event_table ?? null;
@@ -142,7 +153,7 @@ export async function fetchStudentProjectsForEvent(personId, eventInstanceId) {
             ...submission,
             poster_file_url: submission.submission_file?.file_url ?? null,
             table_number: tableInfo?.table_number ?? null,
-            session: tableInfo?.session ?? null
+            session: tableInfo?.session ?? null,
         };
     });
 }
@@ -153,7 +164,8 @@ export async function fetchStudentEventInstances(personId) {
 
     const { data, error } = await supabase
         .from("submission_author")
-        .select(`
+        .select(
+            `
             submission:submission_id (
                 submission_id,
                 submission_facet_value (
@@ -173,7 +185,8 @@ export async function fetchStudentEventInstances(personId) {
                     )
                 )
             )
-        `)
+        `,
+        )
         .eq("person_id", personId);
 
     if (error) throw error;
@@ -189,7 +202,9 @@ export async function fetchStudentEventInstances(personId) {
         const isPresentForGroup = (groupFacetIds) => {
             if (!groupFacetIds.size) return false;
             return facetValues.some(
-                (valueRow) => groupFacetIds.has(valueRow.facet_id) && hasFacetValue(valueRow)
+                (valueRow) =>
+                    groupFacetIds.has(valueRow.facet_id) &&
+                    hasFacetValue(valueRow),
             );
         };
 
@@ -219,13 +234,17 @@ export async function fetchStudentEventInstances(personId) {
     return [...eventsById.values()];
 }
 
-export async function fetchStudentSubmissionCompletionRows(personId, eventInstanceId) {
+export async function fetchStudentSubmissionCompletionRows(
+    personId,
+    eventInstanceId,
+) {
     const facetRows = await fetchRequiredFacetRows();
     const requiredFacetMap = buildRequiredFacetMap(facetRows);
 
     const { data, error } = await supabase
         .from("submission_author")
-        .select(`
+        .select(
+            `
             submission:submission_id (
                 submission_id,
                 title,
@@ -244,7 +263,8 @@ export async function fetchStudentSubmissionCompletionRows(personId, eventInstan
                     )
                 )
             )
-        `)
+        `,
+        )
         .eq("person_id", personId)
         .eq("submission.track.event_instance_id", eventInstanceId);
 
@@ -252,12 +272,14 @@ export async function fetchStudentSubmissionCompletionRows(personId, eventInstan
 
     const getFirstGroupValue = (facetValues, facetIds) => {
         const found = (facetValues ?? []).find(
-            (row) => facetIds.has(row.facet_id) && hasFacetValue(row)
+            (row) => facetIds.has(row.facet_id) && hasFacetValue(row),
         );
 
         if (!found) return "";
 
-        const optionLabel = String(found.facet_option?.label || found.facet_option?.value || "").trim();
+        const optionLabel = String(
+            found.facet_option?.label || found.facet_option?.value || "",
+        ).trim();
         if (optionLabel) return optionLabel;
 
         return String(found.value_text || "").trim();
@@ -269,9 +291,18 @@ export async function fetchStudentSubmissionCompletionRows(personId, eventInstan
         .map((submission) => {
             const facetValues = submission.submission_facet_value ?? [];
 
-            const college = getFirstGroupValue(facetValues, requiredFacetMap.college);
-            const major = getFirstGroupValue(facetValues, requiredFacetMap.major);
-            const level = getFirstGroupValue(facetValues, requiredFacetMap.level);
+            const college = getFirstGroupValue(
+                facetValues,
+                requiredFacetMap.college,
+            );
+            const major = getFirstGroupValue(
+                facetValues,
+                requiredFacetMap.major,
+            );
+            const level = getFirstGroupValue(
+                facetValues,
+                requiredFacetMap.level,
+            );
 
             const missing = {
                 college: !college,
@@ -304,7 +335,9 @@ export async function fetchStudentSubmissionCompletionOptions() {
     const majorFacetId = pickFacetId(requiredFacetMap.major);
     const levelFacetId = pickFacetId(requiredFacetMap.level);
 
-    const facetIds = [collegeFacetId, majorFacetId, levelFacetId].filter(Boolean);
+    const facetIds = [collegeFacetId, majorFacetId, levelFacetId].filter(
+        Boolean,
+    );
     const options = await fetchFacetOptionsByFacetIds(facetIds);
 
     const toOption = (row) => ({
@@ -335,7 +368,12 @@ export async function fetchStudentSubmissionCompletionOptions() {
     };
 }
 
-export async function saveStudentSubmissionCompletion({ submissionId, college, major, level }) {
+export async function saveStudentSubmissionCompletion({
+    submissionId,
+    college,
+    major,
+    level,
+}) {
     const normalized = {
         college: String(college || "").trim(),
         major: String(major || "").trim(),
@@ -356,13 +394,25 @@ export async function saveStudentSubmissionCompletion({ submissionId, college, m
     };
 
     const targets = [
-        { facetId: pickFacetId(requiredFacetMap.college), value: normalized.college },
-        { facetId: pickFacetId(requiredFacetMap.major), value: normalized.major },
-        { facetId: pickFacetId(requiredFacetMap.level), value: normalized.level },
+        {
+            facetId: pickFacetId(requiredFacetMap.college),
+            value: normalized.college,
+        },
+        {
+            facetId: pickFacetId(requiredFacetMap.major),
+            value: normalized.major,
+        },
+        {
+            facetId: pickFacetId(requiredFacetMap.level),
+            value: normalized.level,
+        },
     ];
 
     for (const target of targets) {
-        const optionId = await resolveFacetOptionId(target.facetId, target.value);
+        const optionId = await resolveFacetOptionId(
+            target.facetId,
+            target.value,
+        );
 
         const { error: deleteError } = await supabase
             .from("submission_facet_value")
@@ -387,13 +437,13 @@ export async function saveStudentSubmissionCompletion({ submissionId, college, m
     }
 }
 
-export async function uploadPoster(submissionId, file, personId) {
+export async function uploadPoster(submissionId, file /*, personId*/) {
     // Sanitize filename: strip accents and replace any character that isn't
     // alphanumeric / dot / dash / underscore with "_" to avoid Supabase
     // Storage "invalid key" errors (spaces, accented chars, etc. can trigger this).
     const sanitizedName = file.name
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")   // strip combining accent marks
+        .replace(/[\u0300-\u036f]/g, "") // strip combining accent marks
         .replace(/[^a-zA-Z0-9._-]/g, "_"); // replace everything else with _
 
     const filePath = `posters/${submissionId}/${sanitizedName}`;
@@ -413,13 +463,14 @@ export async function uploadPoster(submissionId, file, personId) {
     const publicUrl = data.publicUrl;
 
     // 3️⃣ Insert or update row in submission_file table
-    const { error: dbError } = await supabase
-        .from("submission_file")
-        .upsert({
+    const { error: dbError } = await supabase.from("submission_file").upsert(
+        {
             submission_id: submissionId,
             file_url: publicUrl,
-            file_type: file.type
-        }, { onConflict: ['submission_id'] });
+            file_type: file.type,
+        },
+        { onConflict: ["submission_id"] },
+    );
 
     if (dbError) {
         alert(`Database error: ${dbError.message}`);
@@ -429,9 +480,7 @@ export async function uploadPoster(submissionId, file, personId) {
     return publicUrl;
 }
 
-
 export async function fetchSubmissionDetails(submissionId) {
-
     function getDisplayName(person) {
         const explicitDisplayName = String(person?.display_name || "").trim();
         if (explicitDisplayName) return explicitDisplayName;
@@ -450,7 +499,9 @@ export async function fetchSubmissionDetails(submissionId) {
     // Step 1: Fetch submission
     const { data: submission, error: submissionError } = await supabase
         .from("submission")
-        .select("submission_id, title, description, track_id, supervisor_person_id")
+        .select(
+            "submission_id, title, description, track_id, supervisor_person_id",
+        )
         .eq("submission_id", submissionId)
         .single();
     if (submissionError) throw submissionError;
@@ -494,8 +545,6 @@ export async function fetchSubmissionDetails(submissionId) {
         .maybeSingle();
     if (fileError) throw fileError;
 
-    
-
     const posterFile = files?.file_url ? { file_url: files.file_url } : null;
 
     // Step 5: Fetch track info
@@ -505,8 +554,6 @@ export async function fetchSubmissionDetails(submissionId) {
         .eq("track_id", submission.track_id)
         .single();
     if (trackError) throw trackError;
-
-
 
     return {
         submission_id: submission.submission_id,
@@ -518,4 +565,3 @@ export async function fetchSubmissionDetails(submissionId) {
         file_url: posterFile,
     };
 }
-

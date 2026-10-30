@@ -38,15 +38,18 @@ function mapProjectRow(row) {
         if (!fv.facet) continue;
 
         const option = fv.facet_option;
-        const label = option?.label || option?.value || fv.value_text
-            || (fv.value_number != null ? String(fv.value_number) : null);
+        const label =
+            option?.label ||
+            option?.value ||
+            fv.value_text ||
+            (fv.value_number != null ? String(fv.value_number) : null);
         if (!label) continue;
 
         const token = fv.facet_option_id
             ? String(fv.facet_option_id)
             : fv.value_text
-            ? `text:${fv.value_text}`
-            : `number:${fv.value_number}`;
+              ? `text:${fv.value_text}`
+              : `number:${fv.value_number}`;
 
         facets.push({
             facetId: fv.facet_id,
@@ -62,7 +65,9 @@ function mapProjectRow(row) {
     }
 
     // Synthesize a Session facet from the table assignment session field
-    const sessionCode = String(tableInfo?.session ?? "").trim().toUpperCase();
+    const sessionCode = String(tableInfo?.session ?? "")
+        .trim()
+        .toUpperCase();
     if (sessionCode) {
         const sessionToken = `session:${sessionCode}`;
         const sessionLabel = `Session ${sessionCode}`;
@@ -116,11 +121,27 @@ export async function fetchAdminProjectsByTrack(trackId) {
     return rows.map(mapProjectRow);
 }
 
-export async function assignTableToSubmission({ submissionId, eventInstanceId, trackId, tableNumber, session }) {
-    let table = await fetchEventTableByNumber(eventInstanceId, trackId, tableNumber, session);
+export async function assignTableToSubmission({
+    submissionId,
+    eventInstanceId,
+    trackId,
+    tableNumber,
+    session,
+}) {
+    let table = await fetchEventTableByNumber(
+        eventInstanceId,
+        trackId,
+        tableNumber,
+        session,
+    );
 
     if (!table) {
-        table = await createEventTable(eventInstanceId, trackId, tableNumber, session);
+        table = await createEventTable(
+            eventInstanceId,
+            trackId,
+            tableNumber,
+            session,
+        );
     }
 
     await upsertSubmissionTableAssignment(submissionId, table.table_id);

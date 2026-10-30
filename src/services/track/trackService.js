@@ -35,8 +35,6 @@ export async function fetchTracksForEvent(eventInstanceId) {
     return fetchTracksByEventInstance(eventInstanceId);
 }
 
-
-
 // Reads a single track name for pages that receive only track_id in the route.
 export async function fetchTrackName(trackId) {
     const data = await fetchTrackNameRow(trackId);

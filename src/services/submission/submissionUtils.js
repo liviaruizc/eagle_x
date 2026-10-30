@@ -30,7 +30,9 @@ export function normalizeSubmissionStatus(statusValue) {
 }
 
 export function normalizeSubmissionPayload(trackId, submission) {
-    const createdByEmail = String(submission.created_by_email || "").trim().toLowerCase();
+    const createdByEmail = String(submission.created_by_email || "")
+        .trim()
+        .toLowerCase();
 
     return {
         track_id: trackId,
@@ -68,7 +70,9 @@ export function normalizeFacetValuePayload(submissionId, facetValue) {
 }
 
 function normalizeCompareValue(value) {
-    return String(value || "").trim().toLowerCase();
+    return String(value || "")
+        .trim()
+        .toLowerCase();
 }
 
 function getImportedFacetColumnValues(submission) {
@@ -96,13 +100,17 @@ function findFacetByKey(trackFacets, key) {
 function findBestFacetOption(facet, rawValue, selectedCollegeOptionId) {
     const normalizedRawValue = normalizeCompareValue(rawValue);
     const options = facet.options ?? [];
-    const hasParentedOptions = options.some((option) => option.parent_option_id);
+    const hasParentedOptions = options.some(
+        (option) => option.parent_option_id,
+    );
 
     let candidateOptions = options;
 
     if (hasParentedOptions && selectedCollegeOptionId) {
         const filteredByParent = options.filter(
-            (option) => String(option.parent_option_id || "") === String(selectedCollegeOptionId)
+            (option) =>
+                String(option.parent_option_id || "") ===
+                String(selectedCollegeOptionId),
         );
 
         if (filteredByParent.length) {
@@ -111,14 +119,28 @@ function findBestFacetOption(facet, rawValue, selectedCollegeOptionId) {
     }
 
     return (
-        candidateOptions.find((option) => normalizeCompareValue(option.label) === normalizedRawValue) ??
-        candidateOptions.find((option) => normalizeCompareValue(option.value) === normalizedRawValue) ??
+        candidateOptions.find(
+            (option) =>
+                normalizeCompareValue(option.label) === normalizedRawValue,
+        ) ??
+        candidateOptions.find(
+            (option) =>
+                normalizeCompareValue(option.value) === normalizedRawValue,
+        ) ??
         null
     );
 }
 
-function buildFacetValueFromImport({ facet, rawValue, selectedCollegeOptionId }) {
-    const option = findBestFacetOption(facet, rawValue, selectedCollegeOptionId);
+function buildFacetValueFromImport({
+    facet,
+    rawValue,
+    selectedCollegeOptionId,
+}) {
+    const option = findBestFacetOption(
+        facet,
+        rawValue,
+        selectedCollegeOptionId,
+    );
 
     return {
         facet_id: facet.facetId,
@@ -133,10 +155,12 @@ function buildFacetValueFromImport({ facet, rawValue, selectedCollegeOptionId })
 export function mergeFacetValues(existingFacetValues, importedFacetValues) {
     const mergedByFacetId = new Map();
 
-    [...(existingFacetValues ?? []), ...(importedFacetValues ?? [])].forEach((value) => {
-        if (!value?.facet_id) return;
-        mergedByFacetId.set(value.facet_id, value);
-    });
+    [...(existingFacetValues ?? []), ...(importedFacetValues ?? [])].forEach(
+        (value) => {
+            if (!value?.facet_id) return;
+            mergedByFacetId.set(value.facet_id, value);
+        },
+    );
 
     return [...mergedByFacetId.values()];
 }
@@ -171,7 +195,7 @@ export function buildImportedFacetValues(trackFacets, submission) {
                 facet: facetsByKey.degree,
                 rawValue: columnValues.degree,
                 selectedCollegeOptionId,
-            })
+            }),
         );
     }
 
@@ -181,7 +205,7 @@ export function buildImportedFacetValues(trackFacets, submission) {
                 facet: facetsByKey.level,
                 rawValue: columnValues.level,
                 selectedCollegeOptionId,
-            })
+            }),
         );
     }
 
@@ -191,7 +215,7 @@ export function buildImportedFacetValues(trackFacets, submission) {
                 facet: facetsByKey.program,
                 rawValue: columnValues.program,
                 selectedCollegeOptionId,
-            })
+            }),
         );
     }
 

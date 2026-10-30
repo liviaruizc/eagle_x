@@ -71,7 +71,7 @@ export default function TrackSubmissionForm({ trackId }) {
                 valueField,
                 value,
                 trackFacets,
-            })
+            }),
         );
     }
 
@@ -88,7 +88,10 @@ export default function TrackSubmissionForm({ trackId }) {
         setStatusMessage("");
 
         try {
-            const submissionFacetValues = buildSubmissionFacetValues(trackFacets, facetValues);
+            const submissionFacetValues = buildSubmissionFacetValues(
+                trackFacets,
+                facetValues,
+            );
 
             await createSubmissionForTrack(trackId, {
                 ...formData,
@@ -104,7 +107,10 @@ export default function TrackSubmissionForm({ trackId }) {
             setFacetValues({});
         } catch (submissionError) {
             console.error(submissionError);
-            setStatusMessage(submissionError.message || "Could not create submission.", "error");
+            setStatusMessage(
+                submissionError.message || "Could not create submission.",
+                "error",
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -122,11 +128,17 @@ export default function TrackSubmissionForm({ trackId }) {
             const submissions = await parseSubmissionExcelFile(file);
 
             if (!submissions.length) {
-                setStatusMessage("No valid rows found. Add at least a title column.", "error");
+                setStatusMessage(
+                    "No valid rows found. Add at least a title column.",
+                    "error",
+                );
                 return;
             }
 
-            const result = await createSubmissionsForTrack(trackId, submissions);
+            const result = await createSubmissionsForTrack(
+                trackId,
+                submissions,
+            );
 
             if (result.failed > 0) {
                 const rowPreview = (result.rowErrors ?? [])
@@ -136,14 +148,20 @@ export default function TrackSubmissionForm({ trackId }) {
 
                 setStatusMessage(
                     `${result.inserted} imported, ${result.failed} failed. ${rowPreview}`,
-                    result.inserted > 0 ? "success" : "error"
+                    result.inserted > 0 ? "success" : "error",
                 );
             } else {
-                setStatusMessage(`${result.inserted} submissions imported.`, "success");
+                setStatusMessage(
+                    `${result.inserted} submissions imported.`,
+                    "success",
+                );
             }
         } catch (uploadError) {
             console.error(uploadError);
-            setStatusMessage(uploadError.message || "Could not import Excel file.", "error");
+            setStatusMessage(
+                uploadError.message || "Could not import Excel file.",
+                "error",
+            );
         } finally {
             event.target.value = "";
             setIsUploading(false);
@@ -151,8 +169,13 @@ export default function TrackSubmissionForm({ trackId }) {
     }
 
     return (
-        <div className="rounded border p-3" onClick={(event) => event.stopPropagation()}>
-            <p className="mb-2 text-sm font-semibold text-gray-800">Add Submissions to This Track</p>
+        <div
+            className="rounded border p-3"
+            onClick={(event) => event.stopPropagation()}
+        >
+            <p className="mb-2 text-sm font-semibold text-gray-800">
+                Add Submissions to This Track
+            </p>
 
             <TrackSubmissionImportPanel
                 isUploading={isUploading}
@@ -171,7 +194,9 @@ export default function TrackSubmissionForm({ trackId }) {
             />
 
             {message && (
-                <p className={`mt-2 text-xs ${messageTone === "error" ? "text-red-600" : "text-gray-600"}`}>
+                <p
+                    className={`mt-2 text-xs ${messageTone === "error" ? "text-red-600" : "text-gray-600"}`}
+                >
                     {message}
                 </p>
             )}

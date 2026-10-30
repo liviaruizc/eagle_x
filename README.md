@@ -7,6 +7,7 @@ FGCU Scoring System is a web application built for Florida Gulf Coast University
 ## What it does
 
 ### For Admins
+
 - Create and manage events and tracks (e.g. undergraduate research, graduate research)
 - Import student submissions in bulk
 - Configure rubrics per track with custom criteria, scoring types (numeric scale, true/false, dropdown), and scoring phases (pre-scoring, event scoring, or both)
@@ -16,6 +17,7 @@ FGCU Scoring System is a web application built for Florida Gulf Coast University
 - Drill into individual submission evaluations in a tabular view with per-question scores from every judge
 
 ### For Judges
+
 - Self-register via a kiosk flow tied to a specific event
 - Select a track and see a live queue of eligible submissions, filtered by assigned facets
 - Score projects using the track's rubric — supports numeric scale, true/false, and dropdown answer types
@@ -23,6 +25,7 @@ FGCU Scoring System is a web application built for Florida Gulf Coast University
 - See real-time "currently being scored" indicators to avoid scoring collisions
 
 ### For Students
+
 - Log in to view their submitted project
 - Fill out completion data and facet information (department, category, etc.)
 - Upload a poster file that judges can view during scoring
@@ -31,12 +34,12 @@ FGCU Scoring System is a web application built for Florida Gulf Coast University
 
 ## Tech stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 18, Vite, Tailwind CSS |
-| Backend / DB | Supabase (PostgreSQL + Auth + Storage) |
-| Routing | React Router v6 |
-| Auth | Supabase Auth with email/password + password reset flow |
+| Layer        | Technology                                              |
+| ------------ | ------------------------------------------------------- |
+| Frontend     | React 18, Vite, Tailwind CSS                            |
+| Backend / DB | Supabase (PostgreSQL + Auth + Storage)                  |
+| Routing      | React Router v6                                         |
+| Auth         | Supabase Auth with email/password + password reset flow |
 
 ---
 
@@ -88,20 +91,4 @@ supabase/
 
 ## Running locally
 
-```bash
-npm install
-npm run dev
-```
-
-Create a `.env` file at the project root:
-
-```
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-```
-
-To enable verbose debug logging in development:
-
-```
-VITE_DEBUG_LOGS=true
-```
+See [`Onboarding Guide.md`](./Onboarding%20Guide.md).

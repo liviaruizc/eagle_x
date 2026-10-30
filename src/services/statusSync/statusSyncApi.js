@@ -9,13 +9,18 @@ import { supabase } from "../../lib/supabaseClient.js";
 export async function fetchEventInstancesForStatusSync() {
     const { data, error } = await supabase
         .from("event_instance")
-        .select("event_instance_id, status, start_at, end_at, pre_scoring_start_at, pre_scoring_end_at");
+        .select(
+            "event_instance_id, status, start_at, end_at, pre_scoring_start_at, pre_scoring_end_at",
+        );
 
     if (error) throw error;
     return data ?? [];
 }
 
-export async function updateEventInstanceStatusesByIds(status, eventInstanceIds) {
+export async function updateEventInstanceStatusesByIds(
+    status,
+    eventInstanceIds,
+) {
     if (!eventInstanceIds?.length) return;
 
     const { error } = await supabase
@@ -38,7 +43,11 @@ export async function fetchTracksByEventInstanceIds(eventInstanceIds) {
     return data ?? [];
 }
 
-export async function updateSubmissionStatusByTrackIds({ trackIds, fromStatuses, toStatus }) {
+export async function updateSubmissionStatusByTrackIds({
+    trackIds,
+    fromStatuses,
+    toStatus,
+}) {
     if (!trackIds?.length) return;
 
     const { error } = await supabase
@@ -76,7 +85,11 @@ export async function fetchSubmittedScoreSheetsForSubmissions(submissionIds) {
     return data ?? [];
 }
 
-export async function updateSubmissionStatusBySubmissionIds({ submissionIds, fromStatus, toStatus }) {
+export async function updateSubmissionStatusBySubmissionIds({
+    submissionIds,
+    fromStatus,
+    toStatus,
+}) {
     if (!submissionIds?.length) return;
 
     const { error } = await supabase

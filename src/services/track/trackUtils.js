@@ -48,7 +48,9 @@ export function mapFallbackFacets(facets, options) {
 }
 
 export function mapTrackFacets(trackFacets, facets, options) {
-    const facetById = new Map((facets ?? []).map((facet) => [facet.facet_id, facet]));
+    const facetById = new Map(
+        (facets ?? []).map((facet) => [facet.facet_id, facet]),
+    );
     const optionsByFacetId = groupOptionsByFacetId(options);
 
     return (trackFacets ?? []).map((trackFacet) => {

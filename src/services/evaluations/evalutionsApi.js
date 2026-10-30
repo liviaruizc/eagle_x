@@ -29,7 +29,7 @@ export async function fetchEvaluationsBySubmission(submissionId) {
                      display_order,
                      scoring_phase
                  )
-             )`
+             )`,
         )
         .eq("submission_id", submissionId)
         .eq("status", "submitted")

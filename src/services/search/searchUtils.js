@@ -10,9 +10,7 @@ export function matchesSearchTerm(values, searchTerm) {
     if (!normalizedTerm) return true;
 
     const haystack = normalizeSearchText(
-        (values ?? [])
-            .filter(Boolean)
-            .join(" ")
+        (values ?? []).filter(Boolean).join(" "),
     );
 
     return haystack.includes(normalizedTerm);

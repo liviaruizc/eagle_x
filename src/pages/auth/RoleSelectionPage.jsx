@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import Button from "../../components/ui/Button.jsx";
 import { setAuthIntent } from "../../services/loginAuth/authIntent.js";
 import FGCUlogo from "../../assets/FGCU logo.jpg";
@@ -14,7 +14,6 @@ export default function RoleSelectionPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#F3F3F3] p-4">
             <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-md text-center space-y-6">
-
                 {/* Logo (same style as sidebar) */}
                 <div className="w-full bg-white rounded-xl shadow-sm p-4 flex justify-center items-center">
                     <img
@@ -23,8 +22,6 @@ export default function RoleSelectionPage() {
                         className="w-full h-auto object-contain"
                     />
                 </div>
-
-                
 
                 <p className="text-[#55616D]">
                     Select how you will use the system
@@ -56,7 +53,6 @@ export default function RoleSelectionPage() {
                         Login as Admin
                     </Button>
                 </div>
-
             </div>
         </div>
     );

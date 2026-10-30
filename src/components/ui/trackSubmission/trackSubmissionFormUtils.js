@@ -8,9 +8,11 @@ export function getDependentParentFacetId(facet, trackFacets) {
     }
 
     const isProgramFacet = normalizeCode(facet.code) === "PROGRAM";
-    const hasParentedOptions = (facet.options ?? []).some((option) => option.parent_option_id);
+    const hasParentedOptions = (facet.options ?? []).some(
+        (option) => option.parent_option_id,
+    );
     const collegeFacet = (trackFacets ?? []).find(
-        (candidate) => normalizeCode(candidate.code) === "COLLEGE"
+        (candidate) => normalizeCode(candidate.code) === "COLLEGE",
     );
 
     if (isProgramFacet && hasParentedOptions && collegeFacet) {

@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router";
 
 export default function ProtectedRoute() {
     const location = useLocation();
@@ -9,7 +9,10 @@ export default function ProtectedRoute() {
         return <Navigate to="/login" replace />;
     }
 
-    if (profileComplete === "false" && location.pathname !== "/complete-profile") {
+    if (
+        profileComplete === "false" &&
+        location.pathname !== "/complete-profile"
+    ) {
         return <Navigate to="/complete-profile" replace />;
     }
 

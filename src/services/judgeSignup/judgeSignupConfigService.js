@@ -28,7 +28,9 @@ async function withFallbackFacetRows(eventRoleId) {
     const roleFacetRows = await fetchRoleFacets(eventRoleId);
     if (roleFacetRows.length) return roleFacetRows;
 
-    const fallbackFacets = await fetchFacetIdsByCodes(JUDGE_SIGNUP_FALLBACK_FACET_CODES);
+    const fallbackFacets = await fetchFacetIdsByCodes(
+        JUDGE_SIGNUP_FALLBACK_FACET_CODES,
+    );
 
     return fallbackFacets.map((facet, index) => ({
         event_role_facet_id: null,
@@ -39,7 +41,9 @@ async function withFallbackFacetRows(eventRoleId) {
 }
 
 async function withRequiredFacetRows(facetRows) {
-    const requiredFacets = await fetchFacetIdsByCodes(JUDGE_SIGNUP_REQUIRED_FACET_CODES);
+    const requiredFacets = await fetchFacetIdsByCodes(
+        JUDGE_SIGNUP_REQUIRED_FACET_CODES,
+    );
     return appendMissingFacetRows(facetRows, requiredFacets);
 }
 
@@ -47,7 +51,8 @@ async function withChildFacetRows(facetRows) {
     const baseFacetIds = toUniqueFacetIds(facetRows);
     const baseOptions = await fetchFacetOptionRowsByFacetIds(baseFacetIds);
     const baseOptionIds = baseOptions.map((option) => option.facet_option_id);
-    const childFacetRows = await fetchChildFacetRowsByParentOptionIds(baseOptionIds);
+    const childFacetRows =
+        await fetchChildFacetRowsByParentOptionIds(baseOptionIds);
 
     return appendMissingFacetRows(facetRows, childFacetRows);
 }
@@ -71,7 +76,9 @@ export async function buildJudgeSignupConfig(eventRoleId) {
         fetchFacetOptionsByFacetIds(facetIds),
     ]);
 
-    const facetById = new Map((facets ?? []).map((facet) => [facet.facet_id, facet]));
+    const facetById = new Map(
+        (facets ?? []).map((facet) => [facet.facet_id, facet]),
+    );
     const optionsByFacetId = groupFacetOptionsByFacetId(options);
 
     return {

@@ -7,6 +7,9 @@ export async function parseJudgeImportExcelFile(file) {
     const rawRows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
 
     return rawRows
-        .map((rawRow, index) => ({ rowNumber: index + 2, ...normalizeJudgeImportRow(rawRow) }))
+        .map((rawRow, index) => ({
+            rowNumber: index + 2,
+            ...normalizeJudgeImportRow(rawRow),
+        }))
         .filter((row) => row.email);
 }

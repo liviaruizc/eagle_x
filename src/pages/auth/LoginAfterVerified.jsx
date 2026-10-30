@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router";
 import Button from "../../components/ui/Button.jsx";
 import { signInWithPassword } from "../../services/loginAuth/authService.js";
 import { fetchPersonByEmail } from "../../services/loginAuth/authApi.js";
@@ -47,9 +47,16 @@ export default function LoginPasswordPage() {
             sessionStorage.setItem("auth_person_id", person.person_id);
             sessionStorage.setItem("auth_role", role);
 
-            const hasFirstName = String(person.first_name || "").trim().length > 0;
-            const hasLastName = String(person.last_name || "").trim().length > 0;
-            const nextPath = role === "student" ? "/student" : role === "judge" ? "/judge" : "/admin";
+            const hasFirstName =
+                String(person.first_name || "").trim().length > 0;
+            const hasLastName =
+                String(person.last_name || "").trim().length > 0;
+            const nextPath =
+                role === "student"
+                    ? "/student"
+                    : role === "judge"
+                      ? "/judge"
+                      : "/admin";
 
             if (!hasFirstName || !hasLastName) {
                 sessionStorage.setItem("profile_complete", "false");
@@ -61,7 +68,6 @@ export default function LoginPasswordPage() {
             sessionStorage.setItem("profile_complete", "true");
 
             navigate(nextPath, { replace: true });
-
         } catch (err) {
             console.error(err);
             setError("Invalid email or password.");
@@ -73,7 +79,6 @@ export default function LoginPasswordPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#F3F3F3] p-4">
             <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-md space-y-6">
-
                 {/* Logo */}
                 <div className="w-full bg-white rounded-xl shadow-sm p-4 flex justify-center items-center">
                     <img
@@ -88,14 +93,11 @@ export default function LoginPasswordPage() {
                     <h1 className="text-3xl font-bold text-[#004785]">
                         Enter Password
                     </h1>
-                    <p className="text-md text-[#55616D] mt-3">
-                        {email}
-                    </p>
+                    <p className="text-md text-[#55616D] mt-3">{email}</p>
                 </div>
 
                 {/* Form */}
                 <form onSubmit={handleLogin} className="space-y-4">
-
                     {/* Password Input */}
                     <input
                         type="password"
@@ -116,7 +118,11 @@ export default function LoginPasswordPage() {
                     <div className="text-left">
                         <button
                             type="button"
-                            onClick={() => navigate("/forgot-password", { state: { email } })}
+                            onClick={() =>
+                                navigate("/forgot-password", {
+                                    state: { email },
+                                })
+                            }
                             className="text-sm text-[#004785] hover:underline"
                         >
                             Forgot Password?
@@ -147,11 +153,8 @@ export default function LoginPasswordPage() {
 
                 {/* Error */}
                 {error && (
-                    <p className="text-sm text-red-600 text-center">
-                        {error}
-                    </p>
+                    <p className="text-sm text-red-600 text-center">{error}</p>
                 )}
-
             </div>
         </div>
     );

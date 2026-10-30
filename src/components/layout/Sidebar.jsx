@@ -1,5 +1,12 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import { HiHome, HiPlus, HiClipboardList, HiLogout, HiUser, HiClipboardCheck } from "react-icons/hi";
+import { useNavigate, useLocation } from "react-router";
+import {
+    HiHome,
+    HiPlus,
+    HiClipboardList,
+    HiLogout,
+    HiUser,
+    HiClipboardCheck,
+} from "react-icons/hi";
 import FGCUlogo from "../../assets/FGCU logo.jpg";
 
 export default function Sidebar({ isOpen, setIsOpen }) {
@@ -19,15 +26,31 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         ...(role === "admin"
             ? [
                   { icon: HiHome, label: "Home", path: "/admin" },
-                  { icon: HiPlus, label: "Create Event", path: "/admin/create-event" },
+                  {
+                      icon: HiPlus,
+                      label: "Create Event",
+                      path: "/admin/create-event",
+                  },
               ]
             : []),
         ...(role === "judge"
             ? [
-                { icon: HiClipboardList, label: "Judge Panel", path: "/judge" },
-                { icon: HiUser, label: "My Profile", path: "/judge/profile" },
-                { icon: HiClipboardCheck, label: "My Scores", path: "/judge/scores" },
-            ]
+                  {
+                      icon: HiClipboardList,
+                      label: "Judge Panel",
+                      path: "/judge",
+                  },
+                  {
+                      icon: HiUser,
+                      label: "My Profile",
+                      path: "/judge/profile",
+                  },
+                  {
+                      icon: HiClipboardCheck,
+                      label: "My Scores",
+                      path: "/judge/scores",
+                  },
+              ]
             : []),
     ];
 
@@ -39,7 +62,6 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     className="fixed inset-0 bg-black bg-opacity-50 md:hidden z-40"
                     onClick={() => setIsOpen(false)}
                 />
-                
             )}
 
             {/* Sidebar */}
@@ -51,11 +73,9 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     z-50 text-white
                     ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
                 `}
-    >
-                
+            >
                 {/* Main content (fills space) */}
                 <div className="flex flex-col flex-1 shadow-inner mb-6">
-
                     {/* Logo */}
                     <div className="flex justify-between items-center mb-6">
                         <div className="w-full bg-white rounded-xl shadow-sm p-3 flex justify-center items-center">
@@ -76,10 +96,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
                     {/* White panel that stretches */}
                     <div className="flex flex-col flex-1 bg-white p-4 rounded-lg shadow-inner">
-
                         <nav className="space-y-2 flex-1">
-                            {links.map(link => {
-                                const isActive = location.pathname === link.path;
+                            {links.map((link) => {
+                                const isActive =
+                                    location.pathname === link.path;
 
                                 return (
                                     <button
@@ -90,20 +110,22 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                                         }}
                                         className={`
                                             w-full flex items-center gap-3 px-4 py-2 rounded transition text-gray-700
-                                            ${isActive
-                                                ? "bg-[#004785] text-white"
-                                                : "hover:bg-[#55616D] hover:text-white"}
+                                            ${
+                                                isActive
+                                                    ? "bg-[#004785] text-white"
+                                                    : "hover:bg-[#55616D] hover:text-white"
+                                            }
                                         `}
                                     >
-                                        {link.icon && <link.icon className="w-5 h-5" />}
+                                        {link.icon && (
+                                            <link.icon className="w-5 h-5" />
+                                        )}
                                         <span>{link.label}</span>
                                     </button>
                                 );
                             })}
                         </nav>
-
                     </div>
-
                 </div>
 
                 {/* Bottom logout */}

@@ -58,7 +58,11 @@ export function validateCriterionResponses(criteria, responsesByCriterionId) {
     const missing = (criteria ?? [])
         .filter((criterion) => {
             const response = responsesByCriterionId?.[criterion.id];
-            return response == null || response.value === "" || response.value == null;
+            return (
+                response == null ||
+                response.value === "" ||
+                response.value == null
+            );
         })
         .map((criterion) => criterion.id);
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import Button from "../../components/ui/Button.jsx";
 import FGCUlogo from "../../assets/FGCU logo.jpg";
@@ -17,9 +17,7 @@ export default function SetPasswordPage() {
     if (!email) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <p className="text-[#55616D]">
-                    Email not provided!
-                </p>
+                <p className="text-[#55616D]">Email not provided!</p>
             </div>
         );
     }
@@ -41,7 +39,9 @@ export default function SetPasswordPage() {
 
             const authUserId = data?.user?.id;
             if (!authUserId) {
-                throw new Error("Auth account creation did not return a user id.");
+                throw new Error(
+                    "Auth account creation did not return a user id.",
+                );
             }
 
             const { error: updateError } = await supabase
@@ -51,7 +51,7 @@ export default function SetPasswordPage() {
 
             if (updateError?.code === "22P02") {
                 throw new Error(
-                    "Database column person.auth_user_id has the wrong type. It must store UUID values from Supabase Auth."
+                    "Database column person.auth_user_id has the wrong type. It must store UUID values from Supabase Auth.",
                 );
             }
 
@@ -59,7 +59,6 @@ export default function SetPasswordPage() {
 
             alert("Password set! Please verify your email before logging in.");
             navigate("/login");
-
         } catch (err) {
             console.error(err);
             setError(err.message);
@@ -71,7 +70,6 @@ export default function SetPasswordPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#F3F3F3] p-4">
             <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-md space-y-6">
-
                 {/* Logo */}
                 <div className="w-full bg-white rounded-xl shadow-sm p-4 flex justify-center items-center">
                     <img
@@ -86,14 +84,11 @@ export default function SetPasswordPage() {
                     <h1 className="text-3xl font-bold text-[#004785]">
                         Set Your Password
                     </h1>
-                    <p className="text-sm text-[#55616D] mt-1">
-                        {email}
-                    </p>
+                    <p className="text-sm text-[#55616D] mt-1">{email}</p>
                 </div>
 
                 {/* Form */}
                 <form onSubmit={handleSetPassword} className="space-y-4">
-
                     {/* Password Input */}
                     <input
                         type="password"
@@ -134,11 +129,8 @@ export default function SetPasswordPage() {
 
                 {/* Error */}
                 {error && (
-                    <p className="text-sm text-red-600 text-center">
-                        {error}
-                    </p>
+                    <p className="text-sm text-red-600 text-center">{error}</p>
                 )}
-
             </div>
         </div>
     );

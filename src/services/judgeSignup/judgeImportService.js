@@ -38,7 +38,9 @@ async function fetchFacetByCandidateCodes(candidateCodes) {
     if (error) throw error;
 
     const rows = data ?? [];
-    const byCode = new Map(rows.map((row) => [String(row.code || "").toUpperCase(), row]));
+    const byCode = new Map(
+        rows.map((row) => [String(row.code || "").toUpperCase(), row]),
+    );
 
     for (const code of candidateCodes) {
         const matched = byCode.get(code.toUpperCase());
@@ -50,17 +52,17 @@ async function fetchFacetByCandidateCodes(candidateCodes) {
 
 async function ensureRoleFacetLink(eventRoleId, facetId) {
     const rows = await fetchRoleFacets(eventRoleId);
-    const alreadyLinked = (rows ?? []).some((row) => String(row.facet_id) === String(facetId));
+    const alreadyLinked = (rows ?? []).some(
+        (row) => String(row.facet_id) === String(facetId),
+    );
     if (alreadyLinked) return;
 
-    const { error } = await supabase
-        .from("event_role_facet")
-        .insert({
-            event_role_id: eventRoleId,
-            facet_id: facetId,
-            is_required: false,
-            display_order: 1,
-        });
+    const { error } = await supabase.from("event_role_facet").insert({
+        event_role_id: eventRoleId,
+        facet_id: facetId,
+        is_required: false,
+        display_order: 1,
+    });
 
     if (error) throw error;
 }
@@ -70,8 +72,12 @@ function buildOptionLookup(options) {
     const byLabel = new Map();
 
     for (const option of options ?? []) {
-        const normalizedValue = String(option.value || "").trim().toUpperCase();
-        const normalizedLabel = String(option.label || "").trim().toUpperCase();
+        const normalizedValue = String(option.value || "")
+            .trim()
+            .toUpperCase();
+        const normalizedLabel = String(option.label || "")
+            .trim()
+            .toUpperCase();
 
         if (normalizedValue && !byValue.has(normalizedValue)) {
             byValue.set(normalizedValue, option);
@@ -158,7 +164,10 @@ async function findOrCreatePerson({ email, displayName, firstName, lastName }) {
 
     const personId = await insertPerson({
         email,
-        displayName: displayName || `${firstName || ""} ${lastName || ""}`.trim() || email,
+        displayName:
+            displayName ||
+            `${firstName || ""} ${lastName || ""}`.trim() ||
+            email,
     });
 
     return {
@@ -167,7 +176,11 @@ async function findOrCreatePerson({ email, displayName, firstName, lastName }) {
     };
 }
 
-async function findOrCreateJudgeEventRole({ eventInstanceId, personId, eventRoleId }) {
+async function findOrCreateJudgeEventRole({
+    eventInstanceId,
+    personId,
+    eventRoleId,
+}) {
     const existing = await findPersonEventRoleId({
         eventInstanceId,
         personId,
@@ -223,15 +236,25 @@ export async function importJudgesFromCleanedExcel({ file, eventInstanceId }) {
         fetchFacetByCandidateCodes(FACET_CODE_GROUPS.session),
     ]);
 
-    const managedFacets = [collegeFacet, classFacet, sessionFacet].filter(Boolean);
+    const managedFacets = [collegeFacet, classFacet, sessionFacet].filter(
+        Boolean,
+    );
 
     if (!managedFacets.length) {
-        throw new Error("No judge import facets found. Create facets for college/class/session first.");
+        throw new Error(
+            "No judge import facets found. Create facets for college/class/session first.",
+        );
     }
 
-    await Promise.all(managedFacets.map((facet) => ensureRoleFacetLink(judgeRoleId, facet.facet_id)));
+    await Promise.all(
+        managedFacets.map((facet) =>
+            ensureRoleFacetLink(judgeRoleId, facet.facet_id),
+        ),
+    );
 
-    const facetRows = await fetchFacetRowsByIds(managedFacets.map((facet) => facet.facet_id));
+    const facetRows = await fetchFacetRowsByIds(
+        managedFacets.map((facet) => facet.facet_id),
+    );
     const facetIdSet = new Set((facetRows ?? []).map((row) => row.facet_id));
 
     const options = await fetchFacetOptionsByFacetIds([...facetIdSet]);
@@ -246,13 +269,19 @@ export async function importJudgesFromCleanedExcel({ file, eventInstanceId }) {
     }
 
     const collegeLookup = collegeFacet
-        ? buildOptionLookup(optionsByFacetId.get(String(collegeFacet.facet_id)) ?? [])
+        ? buildOptionLookup(
+              optionsByFacetId.get(String(collegeFacet.facet_id)) ?? [],
+          )
         : null;
     const classLookup = classFacet
-        ? buildOptionLookup(optionsByFacetId.get(String(classFacet.facet_id)) ?? [])
+        ? buildOptionLookup(
+              optionsByFacetId.get(String(classFacet.facet_id)) ?? [],
+          )
         : null;
     const sessionLookup = sessionFacet
-        ? buildOptionLookup(optionsByFacetId.get(String(sessionFacet.facet_id)) ?? [])
+        ? buildOptionLookup(
+              optionsByFacetId.get(String(sessionFacet.facet_id)) ?? [],
+          )
         : null;
 
     let imported = 0;

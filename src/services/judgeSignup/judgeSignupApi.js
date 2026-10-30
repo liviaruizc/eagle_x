@@ -20,11 +20,11 @@ export async function findJudgeRoleByCode() {
     return data?.event_role_id ?? null;
 }
 
-
 export async function fetchJudgeEventInstances(personId) {
     const { data, error } = await supabase
         .from("person_event_role")
-        .select(`
+        .select(
+            `
             event_instance (
                 event_instance_id,
                 name,
@@ -36,7 +36,8 @@ export async function fetchJudgeEventInstances(personId) {
                 location
             ),
             event_role (code, name)
-        `)
+        `,
+        )
         .eq("person_id", personId)
         .eq("is_active", true);
 
@@ -44,8 +45,12 @@ export async function fetchJudgeEventInstances(personId) {
 
     return (data ?? [])
         .filter((row) => {
-            const code = String(row.event_role?.code || "").trim().toUpperCase();
-            const name = String(row.event_role?.name || "").trim().toUpperCase();
+            const code = String(row.event_role?.code || "")
+                .trim()
+                .toUpperCase();
+            const name = String(row.event_role?.name || "")
+                .trim()
+                .toUpperCase();
             return code === "JUDGE" || name.includes("JUDGE");
         })
         .map((row) => row.event_instance)
@@ -101,7 +106,11 @@ export async function insertPerson({ email, displayName }) {
     return data.person_id;
 }
 
-export async function findPersonEventRoleId({ eventInstanceId, personId, eventRoleId }) {
+export async function findPersonEventRoleId({
+    eventInstanceId,
+    personId,
+    eventRoleId,
+}) {
     let query = supabase
         .from("person_event_role")
         .select("person_event_role_id")
@@ -120,7 +129,11 @@ export async function findPersonEventRoleId({ eventInstanceId, personId, eventRo
     return data?.person_event_role_id ?? null;
 }
 
-export async function insertPersonEventRole({ eventInstanceId, personId, eventRoleId }) {
+export async function insertPersonEventRole({
+    eventInstanceId,
+    personId,
+    eventRoleId,
+}) {
     const payload = {
         person_id: personId,
         event_role_id: eventRoleId,
@@ -205,7 +218,9 @@ export async function fetchFacetOptionsByFacetIds(facetIds) {
 
     const { data, error } = await supabase
         .from("facet_option")
-        .select("facet_option_id, facet_id, value, label, parent_option_id, sort_order")
+        .select(
+            "facet_option_id, facet_id, value, label, parent_option_id, sort_order",
+        )
         .in("facet_id", facetIds)
         .order("sort_order", { ascending: true });
 
@@ -225,10 +240,14 @@ export async function fetchFacetOptionsByIds(facetOptionIds) {
     return data ?? [];
 }
 
-export async function fetchPersonEventRoleWithFacets(personId, eventInstanceId) {
+export async function fetchPersonEventRoleWithFacets(
+    personId,
+    eventInstanceId,
+) {
     let query = supabase
         .from("person_event_role")
-        .select(`
+        .select(
+            `
             person_event_role_id,
             event_instance_id,
             event_role (code, name),
@@ -236,7 +255,8 @@ export async function fetchPersonEventRoleWithFacets(personId, eventInstanceId) 
                 facet_id,
                 facet_option_id
             )
-        `)
+        `,
+        )
         .eq("person_id", personId)
         .eq("is_active", true);
 
@@ -244,21 +264,30 @@ export async function fetchPersonEventRoleWithFacets(personId, eventInstanceId) 
         query = query.eq("event_instance_id", eventInstanceId);
     }
 
-    const { data, error } = await query.order("person_event_role_id", { ascending: false });
+    const { data, error } = await query.order("person_event_role_id", {
+        ascending: false,
+    });
 
     if (error) throw error;
 
     const rows = data ?? [];
     const judgeRows = rows.filter((row) => {
-        const code = String(row.event_role?.code || "").trim().toUpperCase();
-        const name = String(row.event_role?.name || "").trim().toUpperCase();
+        const code = String(row.event_role?.code || "")
+            .trim()
+            .toUpperCase();
+        const name = String(row.event_role?.name || "")
+            .trim()
+            .toUpperCase();
         return code === "JUDGE" || name.includes("JUDGE");
     });
 
     return judgeRows[0] ?? rows[0] ?? null;
 }
 
-export async function deletePersonEventRoleFacetValues(personEventRoleId, facetIds) {
+export async function deletePersonEventRoleFacetValues(
+    personEventRoleId,
+    facetIds,
+) {
     if (!facetIds?.length) return;
 
     const { error } = await supabase
@@ -283,7 +312,8 @@ export async function insertPersonEventRoleFacetValues(payloads) {
 export async function fetchJudgesForEvent(eventInstanceId) {
     const { data, error } = await supabase
         .from("person_event_role")
-        .select(`
+        .select(
+            `
             person_event_role_id,
             person (
                 person_id,
@@ -295,7 +325,8 @@ export async function fetchJudgesForEvent(eventInstanceId) {
                 facet_option_id
             ),
             event_role!inner (code)
-        `)
+        `,
+        )
         .eq("event_instance_id", eventInstanceId)
         .eq("is_active", true)
         .ilike("event_role.code", "judge");

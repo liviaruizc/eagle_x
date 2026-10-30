@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router";
 
 export default function PublicRoute() {
     const personId = sessionStorage.getItem("auth_person_id");

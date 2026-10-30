@@ -10,7 +10,12 @@ function formatDateTimeLocal(date) {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
-export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, onCreateTrackType }) {
+export default function EventCreationForm({
+    trackTypes,
+    isSubmitting,
+    onSubmit,
+    onCreateTrackType,
+}) {
     const now = new Date();
     const plus30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     const plus90 = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
@@ -54,7 +59,8 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
 
     function handleTrackTypeToggle(trackTypeId) {
         setFormData((prev) => {
-            const hasTrackType = prev.selectedTrackTypeIds.includes(trackTypeId);
+            const hasTrackType =
+                prev.selectedTrackTypeIds.includes(trackTypeId);
             const nextSelectedTrackTypeIds = hasTrackType
                 ? prev.selectedTrackTypeIds.filter((id) => id !== trackTypeId)
                 : [...prev.selectedTrackTypeIds, trackTypeId];
@@ -89,7 +95,11 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
         }
 
         // Check if code already exists
-        if (trackTypes.some((t) => t.code.toUpperCase() === newTrackData.code.toUpperCase())) {
+        if (
+            trackTypes.some(
+                (t) => t.code.toUpperCase() === newTrackData.code.toUpperCase(),
+            )
+        ) {
             setTrackCreationError("Track code already exists.");
             return;
         }
@@ -106,7 +116,10 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
             // Auto-select the newly created track type
             setFormData((prev) => ({
                 ...prev,
-                selectedTrackTypeIds: [...prev.selectedTrackTypeIds, newTrackType.track_type_id],
+                selectedTrackTypeIds: [
+                    ...prev.selectedTrackTypeIds,
+                    newTrackType.track_type_id,
+                ],
                 trackPreScoringEnabledByTrackTypeId: {
                     ...prev.trackPreScoringEnabledByTrackTypeId,
                     [newTrackType.track_type_id]: false,
@@ -121,7 +134,9 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
             });
         } catch (error) {
             console.error(error);
-            setTrackCreationError("Could not create track type. Please try again.");
+            setTrackCreationError(
+                "Could not create track type. Please try again.",
+            );
         } finally {
             setIsCreatingTrackType(false);
         }
@@ -130,7 +145,7 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
     async function handleSubmit(event) {
         event.preventDefault();
 
-        const hasTracks = formData.selectedTrackTypeIds.length > 0;
+        //const hasTracks = formData.selectedTrackTypeIds.length > 0;
 
         const eventStartAt = new Date(formData.startAt);
         const eventEndAt = new Date(formData.endAt);
@@ -144,11 +159,15 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
             const preScoringStartAt = new Date(formData.preScoringStartAt);
             const preScoringEndAt = new Date(formData.preScoringEndAt);
             if (!(preScoringStartAt < preScoringEndAt)) {
-                setFormError("Pre-scoring end must be after pre-scoring start.");
+                setFormError(
+                    "Pre-scoring end must be after pre-scoring start.",
+                );
                 return;
             }
             if (!(preScoringEndAt <= eventStartAt)) {
-                setFormError("Pre-scoring must end on or before the event start.");
+                setFormError(
+                    "Pre-scoring must end on or before the event start.",
+                );
                 return;
             }
         }
@@ -166,7 +185,9 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
 
     return (
         <form onSubmit={handleSubmit} className="mb-8 grid gap-3 text-left">
-            <p className="text-base font-semibold text-gray-900">Create Event</p>
+            <p className="text-base font-semibold text-gray-900">
+                Create Event
+            </p>
 
             <input
                 type="text"
@@ -238,7 +259,9 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
 
             {formData.selectedTrackTypeIds.length === 0 && (
                 <>
-                    <label className="text-sm text-gray-700">Pre scoring? (Event-level)</label>
+                    <label className="text-sm text-gray-700">
+                        Pre scoring? (Event-level)
+                    </label>
                     <select
                         name="preScoringEnabled"
                         value={formData.preScoringEnabled}
@@ -252,7 +275,9 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
 
                     {formData.preScoringEnabled === "yes" && (
                         <>
-                            <label className="text-sm text-gray-700">Pre-scoring starts</label>
+                            <label className="text-sm text-gray-700">
+                                Pre-scoring starts
+                            </label>
                             <input
                                 type="datetime-local"
                                 name="preScoringStartAt"
@@ -262,7 +287,9 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
                                 required
                             />
 
-                            <label className="text-sm text-gray-700">Pre-scoring ends</label>
+                            <label className="text-sm text-gray-700">
+                                Pre-scoring ends
+                            </label>
                             <input
                                 type="datetime-local"
                                 name="preScoringEndAt"
@@ -286,7 +313,9 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
             />
 
             <input type="hidden" name="status" value={formData.status} />
-            <p className="text-sm text-gray-500">Initial event status: closed</p>
+            <p className="text-sm text-gray-500">
+                Initial event status: closed
+            </p>
 
             <input
                 type="text"
@@ -321,11 +350,20 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
                 <p className="mb-2 text-sm text-gray-700">Track types</p>
                 <div className="grid gap-2">
                     {trackTypes.map((trackType) => (
-                        <label key={trackType.track_type_id} className="text-sm text-gray-700">
+                        <label
+                            key={trackType.track_type_id}
+                            className="text-sm text-gray-700"
+                        >
                             <input
                                 type="checkbox"
-                                checked={formData.selectedTrackTypeIds.includes(trackType.track_type_id)}
-                                onChange={() => handleTrackTypeToggle(trackType.track_type_id)}
+                                checked={formData.selectedTrackTypeIds.includes(
+                                    trackType.track_type_id,
+                                )}
+                                onChange={() =>
+                                    handleTrackTypeToggle(
+                                        trackType.track_type_id,
+                                    )
+                                }
                                 className="mr-2"
                             />
                             {trackType.name} ({trackType.code})
@@ -333,14 +371,17 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
                     ))}
                 </div>
                 <p className="mt-3 text-xs text-gray-500">
-                    Leave blank if you don't want to include any tracks with this event.
+                    Leave blank if you don&apos;t want to include any tracks
+                    with this event.
                 </p>
             </div>
 
             {/* Track-level pre-scoring UI removed. */}
 
             <div className="rounded border border-dashed border-blue-400 bg-blue-50 p-3">
-                <p className="mb-3 text-sm font-semibold text-gray-700">Create New Track Type</p>
+                <p className="mb-3 text-sm font-semibold text-gray-700">
+                    Create New Track Type
+                </p>
                 <input
                     type="text"
                     name="code"
@@ -373,13 +414,21 @@ export default function EventCreationForm({ trackTypes, isSubmitting, onSubmit, 
                 <Button
                     type="button"
                     variant="secondary"
-                    disabled={isCreatingTrackType || !newTrackData.code.trim() || !newTrackData.name.trim()}
+                    disabled={
+                        isCreatingTrackType ||
+                        !newTrackData.code.trim() ||
+                        !newTrackData.name.trim()
+                    }
                     onClick={handleCreateTrackType}
                 >
                     {isCreatingTrackType ? "Creating..." : "Create Track Type"}
                 </Button>
 
-                {trackCreationError && <p className="mt-2 text-sm text-red-600">{trackCreationError}</p>}
+                {trackCreationError && (
+                    <p className="mt-2 text-sm text-red-600">
+                        {trackCreationError}
+                    </p>
+                )}
             </div>
             {formError && <p className="text-sm text-red-600">{formError}</p>}
 

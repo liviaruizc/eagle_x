@@ -22,12 +22,15 @@ export default function TrackRubricFormView({
     return (
         <form onSubmit={onSubmit} className="rounded border p-3 space-y-3">
             <p className="font-medium">
-                {mode === "edit" ? "Edit Rubric" : "Create Rubric for this Track"}
+                {mode === "edit"
+                    ? "Edit Rubric"
+                    : "Create Rubric for this Track"}
             </p>
 
             {isScoreLocked && (
                 <p className="rounded bg-yellow-50 border border-yellow-300 px-3 py-2 text-sm text-yellow-800">
-                    Submitted scores exist for this track. The rubric cannot be saved to prevent corrupting existing score data.
+                    Submitted scores exist for this track. The rubric cannot be
+                    saved to prevent corrupting existing score data.
                 </p>
             )}
 
@@ -92,7 +95,11 @@ export default function TrackRubricFormView({
                     />
                 ))}
 
-                <Button type="button" variant="secondary" onClick={onAddCriterion}>
+                <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={onAddCriterion}
+                >
                     Add criterion
                 </Button>
             </div>
@@ -101,7 +108,11 @@ export default function TrackRubricFormView({
             {message && <p className="text-sm text-gray-700">{message}</p>}
 
             <div className="flex justify-start gap-2">
-                <Button type="submit" variant="primary" disabled={isSubmitting || isScoreLocked}>
+                <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={isSubmitting || isScoreLocked}
+                >
                     {isSubmitting
                         ? mode === "edit"
                             ? "Updating rubric..."
