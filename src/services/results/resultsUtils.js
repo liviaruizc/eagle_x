@@ -5,7 +5,7 @@
 // - Build category/overall rankings and facet-driven filter metadata.
 // - Keep business transforms side-effect free and reusable.
 
-const EMPTY_PHASE_RANKINGS = { overallRankings: [], categoryRankingsByCategory: {}, categories: [] };
+const EMPTY_PHASE_RANKINGS = {overallRankings: [], categoryRankingsByCategory: {}, categories: [], totalOverallRankings: [], totalCategoryRankingsByCategory: {}, };
 
 export function buildEmptyResultsReport() {
     return {
@@ -33,7 +33,9 @@ export function computePhaseRankings(phase, { scoreItems, criteria, scoreSheetRo
     const normalizedSubs = buildNormalizedSubmissions(aggregateBySubmissionId, facetTokensBySubmissionId, displayFacetsBySubmissionId);
     const overallRankings = buildOverallRankings(normalizedSubs);
     const { categories, categoryRankingsByCategory } = buildCategoryRankings(normalizedSubs);
-    return { overallRankings, categoryRankingsByCategory, categories };
+    const totalOverallRankings = buildOverallRankings(normalizedSubs, "sumScore");
+    const { categoryRankingsByCategory: totalCategoryRankingsByCategory } = buildCategoryRankings(normalizedSubs, "categorySum");
+    return {overallRankings, categoryRankingsByCategory, categories, totalOverallRankings, totalCategoryRankingsByCategory, };
 }
 
 function average(values) {
@@ -275,12 +277,12 @@ export function buildNormalizedSubmissions(aggregateBySubmissionId, facetTokensB
     });
 }
 
-export function buildOverallRankings(normalizedSubmissions) {
+export function buildOverallRankings(normalizedSubmissions, scoreKey = "totalScore") {
     const scored = normalizedSubmissions.filter((s) => s.scoreCount > 0);
-    return rankRows(sortByScoreDesc(scored, "totalScore"), "totalScore");
+    return rankRows(sortByScoreDesc(scored, scoreKey), scoreKey);
 }
 
-export function buildCategoryRankings(normalizedSubmissions) {
+export function buildCategoryRankings(normalizedSubmissions, scoreKey = "categoryScore") {
     const categories = toUnique(
         normalizedSubmissions.flatMap((submission) => Object.keys(submission.categoryScores || {}))
     ).sort((a, b) => a.localeCompare(b));
@@ -298,8 +300,8 @@ export function buildCategoryRankings(normalizedSubmissions) {
             }));
 
         categoryRankingsByCategory[category] = rankRows(
-            sortByScoreDesc(rows, "categoryScore"),
-            "categoryScore"
+            sortByScoreDesc(rows, scoreKey),
+            scoreKey
         );
     }
 
