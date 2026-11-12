@@ -1,6 +1,6 @@
 export function isUuid(value) {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-        String(value || "")
+        String(value || ""),
     );
 }
 
@@ -16,7 +16,8 @@ export function buildEmptyQueueResult() {
 function buildFacetToken(valueRow) {
     if (valueRow?.facet_option_id) return String(valueRow.facet_option_id);
     if (valueRow?.value_text) return `text:${valueRow.value_text}`;
-    if (valueRow?.value_number != null) return `number:${valueRow.value_number}`;
+    if (valueRow?.value_number != null)
+        return `number:${valueRow.value_number}`;
     if (valueRow?.value_date) return `date:${valueRow.value_date}`;
     return null;
 }
@@ -24,7 +25,9 @@ function buildFacetToken(valueRow) {
 function buildFacetDisplayLabel(valueRow, optionById) {
     if (valueRow?.facet_option_id) {
         const option = optionById.get(valueRow.facet_option_id);
-        return option?.label || option?.value || String(valueRow.facet_option_id);
+        return (
+            option?.label || option?.value || String(valueRow.facet_option_id)
+        );
     }
 
     if (valueRow?.value_text) return valueRow.value_text;
@@ -58,7 +61,7 @@ export function buildDefaultSelectedTokensByFacetId(selectedFiltersByFacetId) {
         Object.entries(selectedFiltersByFacetId).map(([facetId, items]) => [
             facetId,
             items.map((item) => item.token),
-        ])
+        ]),
     );
 }
 
@@ -88,7 +91,11 @@ export function buildSubmissionFacetMaps(submissionFacetValues, optionById) {
         const displayList = displayFacetsBySubmissionId.get(submissionId);
         const label = buildFacetDisplayLabel(row, optionById);
 
-        if (!displayList.some((item) => item.facetId === facetId && item.token === token)) {
+        if (
+            !displayList.some(
+                (item) => item.facetId === facetId && item.token === token,
+            )
+        ) {
             displayList.push({
                 facetId,
                 facetOptionId: row.facet_option_id ?? null,
@@ -111,7 +118,8 @@ export function buildFilterFacets({
     const optionsByFacetId = new Map();
 
     for (const submission of submissions) {
-        const facets = displayFacetsBySubmissionId.get(submission.submission_id) ?? [];
+        const facets =
+            displayFacetsBySubmissionId.get(submission.submission_id) ?? [];
 
         for (const facet of facets) {
             const current = optionsByFacetId.get(facet.facetId) ?? new Map();
@@ -127,21 +135,23 @@ export function buildFilterFacets({
         }
     }
 
-    Object.entries(judgeDefaultFiltersByFacetId).forEach(([facetId, defaults]) => {
-        const current = optionsByFacetId.get(facetId) ?? new Map();
+    Object.entries(judgeDefaultFiltersByFacetId).forEach(
+        ([facetId, defaults]) => {
+            const current = optionsByFacetId.get(facetId) ?? new Map();
 
-        defaults.forEach((defaultItem) => {
-            if (!current.has(defaultItem.token)) {
-                current.set(defaultItem.token, {
-                    token: defaultItem.token,
-                    label: defaultItem.label,
-                    count: 0,
-                });
-            }
-        });
+            defaults.forEach((defaultItem) => {
+                if (!current.has(defaultItem.token)) {
+                    current.set(defaultItem.token, {
+                        token: defaultItem.token,
+                        label: defaultItem.label,
+                        count: 0,
+                    });
+                }
+            });
 
-        optionsByFacetId.set(facetId, current);
-    });
+            optionsByFacetId.set(facetId, current);
+        },
+    );
 
     for (const option of allFacetOptionRows) {
         const facetId = option.facet_id;
@@ -164,7 +174,9 @@ export function buildFilterFacets({
     return [...optionsByFacetId.entries()]
         .map(([facetId, optionsMap]) => {
             const facetMeta = facetById.get(facetId);
-            const options = [...optionsMap.values()].sort((a, b) => a.label.localeCompare(b.label));
+            const options = [...optionsMap.values()].sort((a, b) =>
+                a.label.localeCompare(b.label),
+            );
 
             return {
                 facetId,
@@ -185,7 +197,9 @@ export function applySubmissionFilters(submissions, selectedFiltersByFacetId) {
             if (!selectedTokens?.length) continue;
 
             const submissionTokens = facetTokensByFacetId[facetId] ?? [];
-            const hasMatch = selectedTokens.some((token) => submissionTokens.includes(token));
+            const hasMatch = selectedTokens.some((token) =>
+                submissionTokens.includes(token),
+            );
 
             if (!hasMatch) return false;
         }
@@ -206,14 +220,17 @@ export function buildNormalizedSubmissions({
 }) {
     return submissions.map((submission) => {
         const submissionId = submission.submission_id;
-        const submissionFacetMap = facetTokensBySubmissionId.get(submissionId) ?? new Map();
+        const submissionFacetMap =
+            facetTokensBySubmissionId.get(submissionId) ?? new Map();
 
         const facetTokensByFacetId = {};
         submissionFacetMap.forEach((tokenSet, facetId) => {
             facetTokensByFacetId[facetId] = [...tokenSet.values()];
         });
 
-        const facets = (displayFacetsBySubmissionId.get(submissionId) ?? []).map((facet) => {
+        const facets = (
+            displayFacetsBySubmissionId.get(submissionId) ?? []
+        ).map((facet) => {
             const meta = facetById.get(facet.facetId);
             return {
                 facetId: facet.facetId,
@@ -235,7 +252,8 @@ export function buildNormalizedSubmissions({
             supervisorPersonId: submission.supervisor_person_id ?? null,
             createdAt: submission.created_at,
             scoreCount: scoreCountBySubmissionId.get(submissionId) ?? 0,
-            isBeingScored: isBeingScoredBySubmissionId.get(submissionId) ?? false,
+            isBeingScored:
+                isBeingScoredBySubmissionId.get(submissionId) ?? false,
             tableNumber: tableInfo?.table_number ?? null,
             tableSession: tableInfo?.session ?? null,
             facetTokensByFacetId,

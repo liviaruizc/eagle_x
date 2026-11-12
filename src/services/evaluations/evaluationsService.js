@@ -1,4 +1,7 @@
-import { fetchEvaluationsBySubmission, fetchSubmissionById } from "./evalutionsApi.js";
+import {
+    fetchEvaluationsBySubmission,
+    fetchSubmissionById,
+} from "./evalutionsApi.js";
 
 export async function fetchSubmissionEvaluations(submissionId) {
     const [submission, sheets] = await Promise.all([

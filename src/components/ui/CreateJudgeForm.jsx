@@ -47,7 +47,7 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
             setSuccessMessage(
                 role === "admin" && isGlobalAdmin
                     ? `Created global admin "${displayName}" (${email}). They can now log in and set their password.`
-                    : `Created ${role === "admin" ? "event admin" : "judge"} "${displayName}" (${email}). They can now log in and set their password.${unmatchedSummary}`
+                    : `Created ${role === "admin" ? "event admin" : "judge"} "${displayName}" (${email}). They can now log in and set their password.${unmatchedSummary}`,
             );
 
             // Reset form
@@ -65,7 +65,9 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
             }
         } catch (err) {
             console.error(err);
-            setError(err.message || "Could not create judge. Please try again.");
+            setError(
+                err.message || "Could not create judge. Please try again.",
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -82,7 +84,9 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
             .filter(Boolean);
 
         if (!rows.length) {
-            setError("Paste at least one row in the format: email,display name");
+            setError(
+                "Paste at least one row in the format: email,display name",
+            );
             return;
         }
 
@@ -93,10 +97,14 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
 
         for (let index = 0; index < rows.length; index += 1) {
             const row = rows[index];
-            const [rowEmail = "", rowDisplayName = ""] = row.split(",").map((cell) => cell.trim());
+            const [rowEmail = "", rowDisplayName = ""] = row
+                .split(",")
+                .map((cell) => cell.trim());
 
             if (!rowEmail || !rowDisplayName) {
-                failures.push(`Row ${index + 1}: expected \"email,display name\".`);
+                failures.push(
+                    `Row ${index + 1}: expected "email,display name".`,
+                );
                 continue;
             }
 
@@ -114,7 +122,9 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
                     onJudgeCreated(result);
                 }
             } catch (createError) {
-                failures.push(`Row ${index + 1} (${rowEmail}): ${createError.message || "Could not create user."}`);
+                failures.push(
+                    `Row ${index + 1} (${rowEmail}): ${createError.message || "Could not create user."}`,
+                );
             }
         }
 
@@ -150,7 +160,9 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
             if (result.rowErrors.length) {
                 summaryLines.push("Row errors (first 10):");
                 result.rowErrors.slice(0, 10).forEach((rowError) => {
-                    summaryLines.push(`- Row ${rowError.rowNumber} (${rowError.email}): ${rowError.message}`);
+                    summaryLines.push(
+                        `- Row ${rowError.rowNumber} (${rowError.email}): ${rowError.message}`,
+                    );
                 });
             }
 
@@ -158,7 +170,7 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
                 summaryLines.push("Unmatched normalized codes (first 20):");
                 result.unmatched.slice(0, 20).forEach((item) => {
                     summaryLines.push(
-                        `- Row ${item.rowNumber} (${item.email}) [${item.column}]: ${item.code}`
+                        `- Row ${item.rowNumber} (${item.email}) [${item.column}]: ${item.code}`,
                     );
                 });
             }
@@ -166,7 +178,10 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
             setBulkResultMessage(summaryLines.join("\n"));
         } catch (importError) {
             console.error(importError);
-            setError(importError.message || "Could not import cleaned judge Excel file.");
+            setError(
+                importError.message ||
+                    "Could not import cleaned judge Excel file.",
+            );
         } finally {
             event.target.value = "";
             setIsExcelImporting(false);
@@ -186,7 +201,9 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
             {isOpen && (
                 <form onSubmit={handleSubmit} className="mt-3 space-y-3">
                     <div>
-                        <label className="text-sm text-gray-700">Email Address</label>
+                        <label className="text-sm text-gray-700">
+                            Email Address
+                        </label>
                         <input
                             type="email"
                             value={email}
@@ -194,12 +211,18 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
                             placeholder="judge@example.com"
                             className="mt-1 w-full rounded border p-2"
                             required
-                            disabled={isSubmitting || isBulkSubmitting || isExcelImporting}
+                            disabled={
+                                isSubmitting ||
+                                isBulkSubmitting ||
+                                isExcelImporting
+                            }
                         />
                     </div>
 
                     <div>
-                        <label className="text-sm text-gray-700">Display Name</label>
+                        <label className="text-sm text-gray-700">
+                            Display Name
+                        </label>
                         <input
                             type="text"
                             value={displayName}
@@ -207,7 +230,11 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
                             placeholder="John Smith"
                             className="mt-1 w-full rounded border p-2"
                             required
-                            disabled={isSubmitting || isBulkSubmitting || isExcelImporting}
+                            disabled={
+                                isSubmitting ||
+                                isBulkSubmitting ||
+                                isExcelImporting
+                            }
                         />
                     </div>
 
@@ -223,7 +250,11 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
                                 }
                             }}
                             className="mt-1 w-full rounded border p-2"
-                            disabled={isSubmitting || isBulkSubmitting || isExcelImporting}
+                            disabled={
+                                isSubmitting ||
+                                isBulkSubmitting ||
+                                isExcelImporting
+                            }
                         >
                             <option value="judge">Judge</option>
                             <option value="admin">Admin</option>
@@ -235,8 +266,14 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
                             <input
                                 type="checkbox"
                                 checked={isGlobalAdmin}
-                                onChange={(e) => setIsGlobalAdmin(e.target.checked)}
-                                disabled={isSubmitting || isBulkSubmitting || isExcelImporting}
+                                onChange={(e) =>
+                                    setIsGlobalAdmin(e.target.checked)
+                                }
+                                disabled={
+                                    isSubmitting ||
+                                    isBulkSubmitting ||
+                                    isExcelImporting
+                                }
                             />
                             Create as global admin (not tied to this event)
                         </label>
@@ -244,41 +281,68 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
 
                     {role === "judge" && (
                         <div className="space-y-3 rounded border bg-gray-50 p-3">
-                            <p className="text-sm font-semibold text-gray-700">Judge matching info</p>
+                            <p className="text-sm font-semibold text-gray-700">
+                                Judge matching info
+                            </p>
                             <p className="text-xs text-gray-500">
-                                Enter normalized codes from your cleaned sheet. Use | to separate multiple codes.
+                                Enter normalized codes from your cleaned sheet.
+                                Use | to separate multiple codes.
                             </p>
                             <div>
-                                <label className="text-sm text-gray-700">College Codes</label>
+                                <label className="text-sm text-gray-700">
+                                    College Codes
+                                </label>
                                 <input
                                     type="text"
                                     value={collegeCodesInput}
-                                    onChange={(e) => setCollegeCodesInput(e.target.value)}
+                                    onChange={(e) =>
+                                        setCollegeCodesInput(e.target.value)
+                                    }
                                     placeholder="COLLEGE_OF_ARTS_AND_SCIENCES|WHITAKER_COLLEGE_OF_ENGINEERING"
                                     className="mt-1 w-full rounded border p-2"
-                                    disabled={isSubmitting || isBulkSubmitting || isExcelImporting}
+                                    disabled={
+                                        isSubmitting ||
+                                        isBulkSubmitting ||
+                                        isExcelImporting
+                                    }
                                 />
                             </div>
                             <div>
-                                <label className="text-sm text-gray-700">Class Codes</label>
+                                <label className="text-sm text-gray-700">
+                                    Class Codes
+                                </label>
                                 <input
                                     type="text"
                                     value={classCodesInput}
-                                    onChange={(e) => setClassCodesInput(e.target.value)}
+                                    onChange={(e) =>
+                                        setClassCodesInput(e.target.value)
+                                    }
                                     placeholder="COMPUTER_SCIENCE|SOFTWARE_ENGINEERING"
                                     className="mt-1 w-full rounded border p-2"
-                                    disabled={isSubmitting || isBulkSubmitting || isExcelImporting}
+                                    disabled={
+                                        isSubmitting ||
+                                        isBulkSubmitting ||
+                                        isExcelImporting
+                                    }
                                 />
                             </div>
                             <div>
-                                <label className="text-sm text-gray-700">Session Code(s)</label>
+                                <label className="text-sm text-gray-700">
+                                    Session Code(s)
+                                </label>
                                 <input
                                     type="text"
                                     value={sessionCodesInput}
-                                    onChange={(e) => setSessionCodesInput(e.target.value)}
+                                    onChange={(e) =>
+                                        setSessionCodesInput(e.target.value)
+                                    }
                                     placeholder="A|B"
                                     className="mt-1 w-full rounded border p-2"
-                                    disabled={isSubmitting || isBulkSubmitting || isExcelImporting}
+                                    disabled={
+                                        isSubmitting ||
+                                        isBulkSubmitting ||
+                                        isExcelImporting
+                                    }
                                 />
                             </div>
                         </div>
@@ -288,7 +352,13 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
                         <Button
                             type="submit"
                             variant="primary"
-                            disabled={isSubmitting || isBulkSubmitting || isExcelImporting || !email || !displayName}
+                            disabled={
+                                isSubmitting ||
+                                isBulkSubmitting ||
+                                isExcelImporting ||
+                                !email ||
+                                !displayName
+                            }
                         >
                             {isSubmitting ? "Creating..." : "Create"}
                         </Button>
@@ -296,62 +366,98 @@ export default function CreateJudgeForm({ eventInstanceId, onJudgeCreated }) {
                             type="button"
                             variant="outline"
                             onClick={() => setIsOpen(false)}
-                            disabled={isSubmitting || isBulkSubmitting || isExcelImporting}
+                            disabled={
+                                isSubmitting ||
+                                isBulkSubmitting ||
+                                isExcelImporting
+                            }
                         >
                             Close
                         </Button>
                     </div>
 
                     <div className="mt-4 rounded border p-3">
-                        <p className="text-sm font-semibold text-gray-700">Import CLEANED Judge Excel</p>
+                        <p className="text-sm font-semibold text-gray-700">
+                            Import CLEANED Judge Excel
+                        </p>
                         <p className="mt-1 text-xs text-gray-500">
-                            Required normalized columns: email, college_codes, class_codes, session_code. Uses only normalized columns for matching.
+                            Required normalized columns: email, college_codes,
+                            class_codes, session_code. Uses only normalized
+                            columns for matching.
                         </p>
                         <input
                             type="file"
                             accept=".xlsx,.xls,.csv"
                             onChange={handleExcelUpload}
                             className="mt-2 w-full rounded border p-2 text-sm"
-                            disabled={isSubmitting || isBulkSubmitting || isExcelImporting}
+                            disabled={
+                                isSubmitting ||
+                                isBulkSubmitting ||
+                                isExcelImporting
+                            }
                         />
                         {isExcelImporting && (
-                            <p className="mt-1 text-xs text-gray-500">Importing cleaned Excel...</p>
+                            <p className="mt-1 text-xs text-gray-500">
+                                Importing cleaned Excel...
+                            </p>
                         )}
                     </div>
 
                     <div className="mt-4 rounded border p-3">
-                        <p className="text-sm font-semibold text-gray-700">Bulk Upload</p>
+                        <p className="text-sm font-semibold text-gray-700">
+                            Bulk Upload
+                        </p>
                         <p className="mt-1 text-xs text-gray-500">
-                            Paste one user per line: email,display name. Uses the selected role above.
+                            Paste one user per line: email,display name. Uses
+                            the selected role above.
                         </p>
                         <textarea
                             value={bulkInput}
                             onChange={(e) => setBulkInput(e.target.value)}
-                            placeholder={"judge1@example.com,Judge One\njudge2@example.com,Judge Two"}
+                            placeholder={
+                                "judge1@example.com,Judge One\njudge2@example.com,Judge Two"
+                            }
                             className="mt-2 min-h-28 w-full rounded border p-2 text-sm"
-                            disabled={isSubmitting || isBulkSubmitting || isExcelImporting}
+                            disabled={
+                                isSubmitting ||
+                                isBulkSubmitting ||
+                                isExcelImporting
+                            }
                         />
                         <div className="mt-2 flex justify-start">
                             <Button
                                 type="button"
                                 variant="secondary"
                                 onClick={handleBulkCreate}
-                                disabled={isSubmitting || isBulkSubmitting || isExcelImporting || !bulkInput.trim()}
+                                disabled={
+                                    isSubmitting ||
+                                    isBulkSubmitting ||
+                                    isExcelImporting ||
+                                    !bulkInput.trim()
+                                }
                             >
-                                {isBulkSubmitting ? "Creating Bulk Users..." : "Create Bulk Users"}
+                                {isBulkSubmitting
+                                    ? "Creating Bulk Users..."
+                                    : "Create Bulk Users"}
                             </Button>
                         </div>
                     </div>
 
                     {successMessage && (
-                        <p className="rounded bg-green-50 p-3 text-sm text-green-700">{successMessage}</p>
+                        <p className="rounded bg-green-50 p-3 text-sm text-green-700">
+                            {successMessage}
+                        </p>
                     )}
                     {bulkResultMessage && (
                         <pre className="whitespace-pre-wrap rounded bg-blue-50 p-3 text-sm text-blue-800">
                             {bulkResultMessage}
                         </pre>
                     )}
-                    {error && <p className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+                    {error && (
+                        <p className="rounded bg-red-50 p-3 text-sm text-red-700">
+                            {error}
+                        </p>
+                    )}
                 </form>
             )}
         </div>

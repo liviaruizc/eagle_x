@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import Button from "../../components/ui/Button.jsx";
 import { getAuthIntent } from "../../services/loginAuth/authIntent.js";
-import { fetchPersonByEmail, fetchPersonRoles } from "../../services/loginAuth/authApi.js";
+import {
+    fetchPersonByEmail,
+    fetchPersonRoles,
+} from "../../services/loginAuth/authApi.js";
 import FGCUlogo from "../../assets/FGCU logo.jpg";
-
 
 export default function LoginEmailPage() {
     const navigate = useNavigate();
@@ -34,16 +36,22 @@ export default function LoginEmailPage() {
 
             const roles = await fetchPersonRoles(person.person_id);
             const requiredRole = selectedRole.toString().trim().toUpperCase();
-            const normalizedRoles = roles.map((role) => role.toString().trim().toUpperCase());
+            const normalizedRoles = roles.map((role) =>
+                role.toString().trim().toUpperCase(),
+            );
 
             if (!normalizedRoles.includes(requiredRole)) {
-                throw new Error(`You do not have the ${selectedRole} role on this account.`);
+                throw new Error(
+                    `You do not have the ${selectedRole} role on this account.`,
+                );
             }
 
             if (!person.auth_user_id) {
                 navigate("/set-password", { state: { email } });
             } else {
-                navigate("/login-password", { state: { email, role: selectedRole } });
+                navigate("/login-password", {
+                    state: { email, role: selectedRole },
+                });
             }
         } catch (err) {
             console.error(err);
@@ -56,7 +64,6 @@ export default function LoginEmailPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#F3F3F3] p-4">
             <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-md space-y-6">
-
                 {/* Logo */}
                 <div className="w-full bg-white rounded-xl shadow-sm p-4 flex justify-center items-center">
                     <img
@@ -78,7 +85,6 @@ export default function LoginEmailPage() {
 
                 {/* Form */}
                 <form onSubmit={handleContinue} className="space-y-4">
-
                     {/* Email Input */}
                     <input
                         type="email"
@@ -117,12 +123,8 @@ export default function LoginEmailPage() {
 
                 {/* Error */}
                 {error && (
-                    <p className="text-sm text-red-600 text-center">
-                        {error}
-                    </p>
+                    <p className="text-sm text-red-600 text-center">{error}</p>
                 )}
-
-
             </div>
         </div>
     );

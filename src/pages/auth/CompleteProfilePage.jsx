@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import Button from "../../components/ui/Button.jsx";
-import { fetchPersonById, updatePersonBasicProfile } from "../../services/loginAuth/authApi.js";
+import {
+    fetchPersonById,
+    updatePersonBasicProfile,
+} from "../../services/loginAuth/authApi.js";
 
 export default function CompleteProfilePage() {
     const navigate = useNavigate();
@@ -71,7 +74,9 @@ export default function CompleteProfilePage() {
 
     return (
         <div className="max-w-md mx-auto p-6">
-            <h1 className="text-2xl font-bold text-[#004785]">Complete Your Profile</h1>
+            <h1 className="text-2xl font-bold text-[#004785]">
+                Complete Your Profile
+            </h1>
             <p className="mt-2 text-sm text-[#55616D]">
                 First name and last name are required before continuing.
             </p>

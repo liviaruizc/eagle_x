@@ -1,29 +1,32 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import globals from "globals";
+import pluginJs from "@eslint/js";
+import pluginReact from "eslint-plugin-react";
+import pluginReactHooks from "eslint-plugin-react-hooks";
+import pluginReactRefresh from "eslint-plugin-react-refresh";
+import pluginPrettier from "eslint-config-prettier";
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
-    ],
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        ecmaFeatures: { jsx: true },
-        sourceType: 'module',
-      },
+/** @type {import('eslint').Linter.Config[]} */
+export default [
+    { files: ["**/*.{js,mjs,cjs,jsx}"] },
+    { languageOptions: { globals: { ...globals.browser, ...globals.node } } },
+    pluginJs.configs.recommended,
+    pluginReact.configs.flat.recommended,
+    pluginReactHooks.configs.flat.recommended,
+    pluginReactRefresh.configs.vite,
+    pluginPrettier,
+    {
+        rules: {
+            // React is a global variable, for now
+            "react/react-in-jsx-scope": "off",
+            // Some data fields/props are loaded later?
+            "react/prop-types": "off",
+        },
     },
-    rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+    {
+        ignores: [
+            // Vite builds and minifies all Javascript into a single .js file,
+            // spawning too many errors.
+            "dist/",
+        ],
     },
-  },
-])
+];

@@ -33,18 +33,25 @@ export async function fetchTrackResultsReport(trackId) {
     if (!submissionRows.length) return buildEmptyResultsReport();
 
     // Pull score data for the track submissions.
-    const submissionIds = submissionRows.map((submission) => submission.submission_id);
+    const submissionIds = submissionRows.map(
+        (submission) => submission.submission_id,
+    );
     const scoreSheetRows = await fetchSubmittedScoreSheets(submissionIds);
-    const scoreSheetIds = scoreSheetRows.map((scoreSheet) => scoreSheet.score_sheet_id);
+    const scoreSheetIds = scoreSheetRows.map(
+        (scoreSheet) => scoreSheet.score_sheet_id,
+    );
     const scoreItems = await fetchScoreItems(scoreSheetIds);
 
     // Fetch criteria with scoring_phase for phase-aware ranking.
-    const criterionIds = [...new Set(scoreItems.map((item) => item.criterion_id).filter(Boolean))];
+    const criterionIds = [
+        ...new Set(scoreItems.map((item) => item.criterion_id).filter(Boolean)),
+    ];
     const criteria = await fetchRubricCriteria(criterionIds);
 
     // Attach facet metadata for filtering and segmented views.
     const submissionFacetRows = await fetchSubmissionFacetValues(submissionIds);
-    const { facetIds, facetOptionIds } = collectFacetAndOptionIds(submissionFacetRows);
+    const { facetIds, facetOptionIds } =
+        collectFacetAndOptionIds(submissionFacetRows);
 
     const [facets, facetOptions] = await Promise.all([
         fetchFacetsByIds(facetIds),
@@ -52,12 +59,24 @@ export async function fetchTrackResultsReport(trackId) {
     ]);
 
     const facetById = new Map(facets.map((facet) => [facet.facet_id, facet]));
-    const optionById = new Map(facetOptions.map((option) => [option.facet_option_id, option]));
+    const optionById = new Map(
+        facetOptions.map((option) => [option.facet_option_id, option]),
+    );
 
-    const { facetTokensBySubmissionId, displayFacetsBySubmissionId, filterOptionsByFacetId } =
-        buildFacetMaps(submissionFacetRows, facetById, optionById);
+    const {
+        facetTokensBySubmissionId,
+        displayFacetsBySubmissionId,
+        filterOptionsByFacetId,
+    } = buildFacetMaps(submissionFacetRows, facetById, optionById);
 
-    const phaseArgs = { scoreItems, criteria, scoreSheetRows, submissionRows, facetTokensBySubmissionId, displayFacetsBySubmissionId };
+    const phaseArgs = {
+        scoreItems,
+        criteria,
+        scoreSheetRows,
+        submissionRows,
+        facetTokensBySubmissionId,
+        displayFacetsBySubmissionId,
+    };
     const rankingsByPhase = {
         all: computePhaseRankings("all", phaseArgs),
         pre_scoring: computePhaseRankings("pre_scoring", phaseArgs),
@@ -68,7 +87,8 @@ export async function fetchTrackResultsReport(trackId) {
     const { overallRankings } = rankingsByPhase.all;
     const submissionsForFilter = overallRankings.map((r) => ({
         submissionId: r.submissionId,
-        facetTokensByFacetId: facetTokensBySubmissionId.get(r.submissionId) ?? {},
+        facetTokensByFacetId:
+            facetTokensBySubmissionId.get(r.submissionId) ?? {},
     }));
     const filterFacets = buildFilterFacets(filterOptionsByFacetId, facetById);
 
@@ -78,6 +98,8 @@ export async function fetchTrackResultsReport(trackId) {
         filterFacets,
         defaultSelectedFiltersByFacetId: {},
         totalSubmissions: submissionRows.length,
-        totalScoredSubmissions: new Set(scoreSheetRows.map((s) => s.submission_id)).size,
+        totalScoredSubmissions: new Set(
+            scoreSheetRows.map((s) => s.submission_id),
+        ).size,
     };
 }

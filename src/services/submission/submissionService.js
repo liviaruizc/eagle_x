@@ -44,12 +44,16 @@ function parseDelimitedEmails(value) {
 }
 
 function parseSessionAssignment(value) {
-    const normalized = String(value || "").trim().toUpperCase();
+    const normalized = String(value || "")
+        .trim()
+        .toUpperCase();
     if (!normalized) return null;
 
     const match = normalized.match(/^([A-Z])\s*[-_]?\s*(\d{1,4})$/);
     if (!match) {
-        throw new Error(`Invalid session assignment "${value}". Expected format like A-200.`);
+        throw new Error(
+            `Invalid session assignment "${value}". Expected format like A-200.`,
+        );
     }
 
     return {
@@ -71,11 +75,16 @@ async function assignSubmissionTableFromSession({
         eventInstanceId,
         trackId,
         parsed.tableNumber,
-        parsed.session
+        parsed.session,
     );
 
     if (!table) {
-        table = await createEventTable(eventInstanceId, trackId, parsed.tableNumber, parsed.session);
+        table = await createEventTable(
+            eventInstanceId,
+            trackId,
+            parsed.tableNumber,
+            parsed.session,
+        );
     }
 
     await upsertSubmissionTableAssignment(submissionId, table.table_id);
@@ -88,7 +97,11 @@ function toDateOrNull(value) {
     return parsed;
 }
 
-function assertSubmissionWithinTrackWindow({ trackId, submittedAt, trackSubmissionWindow }) {
+function assertSubmissionWithinTrackWindow({
+    trackId,
+    submittedAt,
+    trackSubmissionWindow,
+}) {
     const submissionTimestamp = toDateOrNull(submittedAt);
 
     if (!submissionTimestamp) {
@@ -96,27 +109,36 @@ function assertSubmissionWithinTrackWindow({ trackId, submittedAt, trackSubmissi
     }
 
     const windowOpenAt = toDateOrNull(trackSubmissionWindow?.submissionOpenAt);
-    const windowCloseAt = toDateOrNull(trackSubmissionWindow?.submissionCloseAt);
+    const windowCloseAt = toDateOrNull(
+        trackSubmissionWindow?.submissionCloseAt,
+    );
 
     if (windowOpenAt && submissionTimestamp < windowOpenAt) {
         throw new Error(
-            `Submissions for track ${trackId} open at ${windowOpenAt.toISOString()}.`
+            `Submissions for track ${trackId} open at ${windowOpenAt.toISOString()}.`,
         );
     }
 
     if (windowCloseAt && submissionTimestamp > windowCloseAt) {
         throw new Error(
-            `Submissions for track ${trackId} closed at ${windowCloseAt.toISOString()}.`
+            `Submissions for track ${trackId} closed at ${windowCloseAt.toISOString()}.`,
         );
     }
 }
 
 // Creates one submission, author link, and facet values.
-export async function createSubmissionForTrack(trackId, submission, options = {}) {
-    const eventInstanceId = options.eventInstanceId ?? (await fetchTrackEventInstanceId(trackId));
+export async function createSubmissionForTrack(
+    trackId,
+    submission,
+    options = {},
+) {
+    const eventInstanceId =
+        options.eventInstanceId ?? (await fetchTrackEventInstanceId(trackId));
     const trackSubmissionWindow =
-        options.trackSubmissionWindow ?? (await fetchTrackSubmissionWindow(trackId));
-    const submissionTimestamp = submission.submitted_at || new Date().toISOString();
+        options.trackSubmissionWindow ??
+        (await fetchTrackSubmissionWindow(trackId));
+    const submissionTimestamp =
+        submission.submitted_at || new Date().toISOString();
 
     assertSubmissionWithinTrackWindow({
         trackId,
@@ -125,7 +147,9 @@ export async function createSubmissionForTrack(trackId, submission, options = {}
     });
 
     // Resolve primary author and ensure student role when author is newly created.
-    const personResult = await findOrCreatePersonByEmail(submission.created_by_email);
+    const personResult = await findOrCreatePersonByEmail(
+        submission.created_by_email,
+    );
     const personId = personResult.personId;
 
     if (personResult.wasCreated) {
@@ -135,10 +159,12 @@ export async function createSubmissionForTrack(trackId, submission, options = {}
         });
     }
 
-    const primaryEmail = String(submission.created_by_email || "").trim().toLowerCase();
-    const coAuthorEmails = parseDelimitedEmails(submission.co_author_emails).filter(
-        (email) => email !== primaryEmail
-    );
+    const primaryEmail = String(submission.created_by_email || "")
+        .trim()
+        .toLowerCase();
+    const coAuthorEmails = parseDelimitedEmails(
+        submission.co_author_emails,
+    ).filter((email) => email !== primaryEmail);
     const coAuthorPersonIds = [];
 
     for (const coAuthorEmail of coAuthorEmails) {
@@ -154,7 +180,9 @@ export async function createSubmissionForTrack(trackId, submission, options = {}
     }
 
     // Resolve optional supervisor and insert base submission row.
-    const supervisorPersonId = await findOrCreateOptionalPersonIdByEmail(submission.supervisor_email);
+    const supervisorPersonId = await findOrCreateOptionalPersonIdByEmail(
+        submission.supervisor_email,
+    );
     const payload = normalizeSubmissionPayload(trackId, {
         ...submission,
         submitted_at: submissionTimestamp,
@@ -173,7 +201,9 @@ export async function createSubmissionForTrack(trackId, submission, options = {}
 
         if (submission.session_assignment) {
             if (!eventInstanceId) {
-                throw new Error("Could not resolve event instance for table assignment.");
+                throw new Error(
+                    "Could not resolve event instance for table assignment.",
+                );
             }
 
             await assignSubmissionTableFromSession({
@@ -218,10 +248,16 @@ export async function createSubmissionsForTrack(trackId, submissions) {
                 throw new Error("created_by_email is required.");
             }
 
-            const importedFacetValues = buildImportedFacetValues(trackFacets, submission);
+            const importedFacetValues = buildImportedFacetValues(
+                trackFacets,
+                submission,
+            );
             const submissionWithFacetValues = {
                 ...submission,
-                facet_values: mergeFacetValues(submission.facet_values, importedFacetValues),
+                facet_values: mergeFacetValues(
+                    submission.facet_values,
+                    importedFacetValues,
+                ),
             };
 
             await createSubmissionForTrack(trackId, submissionWithFacetValues, {

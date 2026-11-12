@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { Card, CardBody, CardTitle } from "../../components/ui/Card.jsx";
 import { fetchScoreSheetsByJudge } from "../../services/score/scoreApi.js";
 import { getCurrentUser } from "../../services/loginAuth/authService.js";
@@ -29,12 +29,20 @@ export default function JudgeScoresPage() {
                 // Group by event instance
                 const byEvent = new Map();
                 for (const sheet of sheets) {
-                    const eventInstanceId = sheet.submission?.track?.event_instance?.event_instance_id ?? "unknown";
-                    const eventName = sheet.submission?.track?.event_instance?.name ?? "Unknown Event";
-                    const trackName = sheet.submission?.track?.name ?? "Unknown Track";
+                    const eventInstanceId =
+                        sheet.submission?.track?.event_instance
+                            ?.event_instance_id ?? "unknown";
+                    const eventName =
+                        sheet.submission?.track?.event_instance?.name ??
+                        "Unknown Event";
+                    const trackName =
+                        sheet.submission?.track?.name ?? "Unknown Track";
 
                     if (!byEvent.has(eventInstanceId)) {
-                        byEvent.set(eventInstanceId, { eventName, tracks: new Map() });
+                        byEvent.set(eventInstanceId, {
+                            eventName,
+                            tracks: new Map(),
+                        });
                     }
 
                     const event = byEvent.get(eventInstanceId);
@@ -51,13 +59,17 @@ export default function JudgeScoresPage() {
                     });
                 }
 
-                setGroupedByEvent([...byEvent.values()].map((event) => ({
-                    eventName: event.eventName,
-                    tracks: [...event.tracks.entries()].map(([trackName, submissions]) => ({
-                        trackName,
-                        submissions,
+                setGroupedByEvent(
+                    [...byEvent.values()].map((event) => ({
+                        eventName: event.eventName,
+                        tracks: [...event.tracks.entries()].map(
+                            ([trackName, submissions]) => ({
+                                trackName,
+                                submissions,
+                            }),
+                        ),
                     })),
-                })));
+                );
             } catch (err) {
                 console.error(err);
                 setError("Could not load your scoring history.");
@@ -74,62 +86,108 @@ export default function JudgeScoresPage() {
             <Card>
                 <CardTitle>My Scores</CardTitle>
                 <CardBody>
-                    {isLoading && <p className="text-[#55616D] py-4">Loading...</p>}
-                    {error && <p className="text-sm text-red-600 py-2">{error}</p>}
+                    {isLoading && (
+                        <p className="text-[#55616D] py-4">Loading...</p>
+                    )}
+                    {error && (
+                        <p className="text-sm text-red-600 py-2">{error}</p>
+                    )}
 
                     {!isLoading && !error && (
                         <>
                             <div className="mb-6 rounded-xl bg-[#004785]/8 border border-[#004785]/20 px-4 py-3">
                                 <p className="text-sm text-[#55616D]">
                                     Total scores submitted:{" "}
-                                    <span className="font-bold text-[#004785] text-base">{totalCount}</span>
+                                    <span className="font-bold text-[#004785] text-base">
+                                        {totalCount}
+                                    </span>
                                 </p>
                             </div>
 
                             {!groupedByEvent.length && (
-                                <p className="text-sm text-[#55616D] text-center py-6">You have not scored any projects yet.</p>
+                                <p className="text-sm text-[#55616D] text-center py-6">
+                                    You have not scored any projects yet.
+                                </p>
                             )}
 
                             <div className="space-y-8">
                                 {groupedByEvent.map((event) => (
                                     <section key={event.eventName}>
-                                        <h2 className="text-lg font-bold text-[#004785] mb-4">{event.eventName}</h2>
+                                        <h2 className="text-lg font-bold text-[#004785] mb-4">
+                                            {event.eventName}
+                                        </h2>
 
                                         <div className="space-y-4">
                                             {event.tracks.map((track) => (
-                                                <div key={track.trackName} className="rounded-xl border border-gray-200 overflow-hidden">
+                                                <div
+                                                    key={track.trackName}
+                                                    className="rounded-xl border border-gray-200 overflow-hidden"
+                                                >
                                                     <div className="bg-[#F3F3F3] px-4 py-2 border-b border-gray-200">
                                                         <p className="text-xs font-semibold uppercase tracking-wide text-[#004785]">
                                                             {track.trackName}
                                                             <span className="ml-2 text-[#55616D] font-normal normal-case tracking-normal">
-                                                                — {track.submissions.length} {track.submissions.length === 1 ? "score" : "scores"}
+                                                                —{" "}
+                                                                {
+                                                                    track
+                                                                        .submissions
+                                                                        .length
+                                                                }{" "}
+                                                                {track
+                                                                    .submissions
+                                                                    .length ===
+                                                                1
+                                                                    ? "score"
+                                                                    : "scores"}
                                                             </span>
                                                         </p>
                                                     </div>
                                                     <ul className="divide-y divide-gray-100 bg-white">
-                                                        {track.submissions.map((s) => (
-                                                            <li key={s.scoreSheetId} className="flex items-center justify-between px-4 py-3 text-sm gap-3">
-                                                                <span className="text-[#55616D] font-medium flex-1 min-w-0 truncate">{s.title}</span>
-                                                                <div className="flex items-center gap-2 shrink-0">
-                                                                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                                                                        s.status === "submitted" || s.status === "locked"
-                                                                            ? "bg-green-100 text-green-700"
-                                                                            : "bg-[#CCAB00]/20 text-[#8A7400]"
-                                                                    }`}>
-                                                                        {s.status}
+                                                        {track.submissions.map(
+                                                            (s) => (
+                                                                <li
+                                                                    key={
+                                                                        s.scoreSheetId
+                                                                    }
+                                                                    className="flex items-center justify-between px-4 py-3 text-sm gap-3"
+                                                                >
+                                                                    <span className="text-[#55616D] font-medium flex-1 min-w-0 truncate">
+                                                                        {
+                                                                            s.title
+                                                                        }
                                                                     </span>
-                                                                    {s.submissionId && (
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => navigate(`/score/${s.submissionId}`)}
-                                                                            className="rounded-lg border border-[#004785] px-2.5 py-0.5 text-xs font-semibold text-[#004785] hover:bg-[#004785]/10 transition"
+                                                                    <div className="flex items-center gap-2 shrink-0">
+                                                                        <span
+                                                                            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                                                                                s.status ===
+                                                                                    "submitted" ||
+                                                                                s.status ===
+                                                                                    "locked"
+                                                                                    ? "bg-green-100 text-green-700"
+                                                                                    : "bg-[#CCAB00]/20 text-[#8A7400]"
+                                                                            }`}
                                                                         >
-                                                                            Edit
-                                                                        </button>
-                                                                    )}
-                                                                </div>
-                                                            </li>
-                                                        ))}
+                                                                            {
+                                                                                s.status
+                                                                            }
+                                                                        </span>
+                                                                        {s.submissionId && (
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    navigate(
+                                                                                        `/score/${s.submissionId}`,
+                                                                                    )
+                                                                                }
+                                                                                className="rounded-lg border border-[#004785] px-2.5 py-0.5 text-xs font-semibold text-[#004785] hover:bg-[#004785]/10 transition"
+                                                                            >
+                                                                                Edit
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </li>
+                                                            ),
+                                                        )}
                                                     </ul>
                                                 </div>
                                             ))}

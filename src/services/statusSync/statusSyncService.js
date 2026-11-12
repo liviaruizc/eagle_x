@@ -30,12 +30,25 @@ async function applyEventInstanceStatusChanges(instances, now) {
     }
 }
 
-async function transitionSubmissionsToThresholdStatus({ trackIds, fromStatus, toStatus, minScores = 3 }) {
+async function transitionSubmissionsToThresholdStatus({
+    trackIds,
+    fromStatus,
+    toStatus,
+    minScores = 3,
+}) {
     if (!trackIds?.length) return;
 
-    const candidateSubmissionIds = await fetchSubmissionIdsByTrackIdsAndStatus(trackIds, fromStatus);
-    const scoreSheetRows = await fetchSubmittedScoreSheetsForSubmissions(candidateSubmissionIds);
-    const passingSubmissionIds = getSubmissionIdsMeetingScoreThreshold(scoreSheetRows, minScores);
+    const candidateSubmissionIds = await fetchSubmissionIdsByTrackIdsAndStatus(
+        trackIds,
+        fromStatus,
+    );
+    const scoreSheetRows = await fetchSubmittedScoreSheetsForSubmissions(
+        candidateSubmissionIds,
+    );
+    const passingSubmissionIds = getSubmissionIdsMeetingScoreThreshold(
+        scoreSheetRows,
+        minScores,
+    );
 
     await updateSubmissionStatusBySubmissionIds({
         submissionIds: [...passingSubmissionIds],
@@ -48,12 +61,17 @@ async function applySubmissionStatusChanges(instances) {
     if (!instances.length) return;
 
     // Group tracks by current event-instance lifecycle.
-    const eventInstanceIds = instances.map((instance) => instance.event_instance_id);
+    const eventInstanceIds = instances.map(
+        (instance) => instance.event_instance_id,
+    );
     const tracks = await fetchTracksByEventInstanceIds(eventInstanceIds);
     if (!tracks.length) return;
 
     const trackIdsByEventInstanceId = buildTrackIdsByEventInstanceId(tracks);
-    const updateGroups = buildSubmissionTrackUpdateGroups(instances, trackIdsByEventInstanceId);
+    const updateGroups = buildSubmissionTrackUpdateGroups(
+        instances,
+        trackIdsByEventInstanceId,
+    );
 
     // Pre-scoring windows open direct progression into pre_scoring.
     await updateSubmissionStatusByTrackIds({
@@ -73,7 +91,12 @@ async function applySubmissionStatusChanges(instances) {
     // Event-scoring windows open direct progression into event_scoring.
     await updateSubmissionStatusByTrackIds({
         trackIds: updateGroups.event_scoring,
-        fromStatuses: ["submitted", "pre_scoring", "pre_scored", "event_scoring"],
+        fromStatuses: [
+            "submitted",
+            "pre_scoring",
+            "pre_scored",
+            "event_scoring",
+        ],
         toStatus: "event_scoring",
     });
 
@@ -95,7 +118,10 @@ export async function syncEventAndSubmissionStatusesBySchedule() {
     if (!instances.length) return;
 
     // Apply event status updates first, then sync submission statuses.
-    const normalizedInstances = normalizeInstancesWithResolvedStatus(instances, now);
+    const normalizedInstances = normalizeInstancesWithResolvedStatus(
+        instances,
+        now,
+    );
     await applyEventInstanceStatusChanges(instances, now);
     await applySubmissionStatusChanges(normalizedInstances);
 }

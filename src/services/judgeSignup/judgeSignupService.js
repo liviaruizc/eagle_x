@@ -8,9 +8,13 @@
 // - Keep this file thin so page imports stay stable even if internal modules evolve.
 // - Business/query logic should live in sibling modules, not here.
 import { buildJudgeSignupConfig } from "./judgeSignupConfigService.js";
-import { registerJudgeForEvent, resolveJudgeEventRoleId, saveFacetSelections } from "./judgeSignupRegistrationService.js";
+import {
+    registerJudgeForEvent,
+    resolveJudgeEventRoleId,
+    saveFacetSelections,
+} from "./judgeSignupRegistrationService.js";
 import { fetchPersonEventRoleWithFacets } from "./judgeSignupApi.js";
-import { toSelectedOptionIdArray } from "./judgeSignupUtils.js";
+//import { toSelectedOptionIdArray } from "./judgeSignupUtils.js";
 
 export async function fetchJudgeSignupConfig() {
     const eventRoleId = await resolveJudgeEventRoleId();
@@ -55,6 +59,9 @@ export async function fetchJudgeProfile(personId, eventInstanceId) {
     };
 }
 
-export async function updateJudgeProfileFacets(personEventRoleId, selectedFacetOptionByFacetId) {
+export async function updateJudgeProfileFacets(
+    personEventRoleId,
+    selectedFacetOptionByFacetId,
+) {
     await saveFacetSelections(personEventRoleId, selectedFacetOptionByFacetId);
 }

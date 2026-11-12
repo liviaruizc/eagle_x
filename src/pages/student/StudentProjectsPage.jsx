@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 import { fetchStudentProjectsForEvent } from "../../services/studentProjects/studentApi.js";
 import { ProjectCard } from "../../components/ui/ProjectCard.jsx";
 
@@ -13,7 +13,10 @@ export default function StudentEventProjectsPage() {
     useEffect(() => {
         async function loadProjects() {
             const personId = sessionStorage.getItem("auth_person_id");
-            const result = await fetchStudentProjectsForEvent(personId, eventInstanceId);
+            const result = await fetchStudentProjectsForEvent(
+                personId,
+                eventInstanceId,
+            );
 
             setProjects(result);
             setLoading(false);
@@ -48,7 +51,7 @@ export default function StudentEventProjectsPage() {
                 <p className="text-[#55616D]">No projects for this event.</p>
             ) : (
                 <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                    {projects.map(project => (
+                    {projects.map((project) => (
                         <ProjectCard
                             key={project.submission_id}
                             project={project}

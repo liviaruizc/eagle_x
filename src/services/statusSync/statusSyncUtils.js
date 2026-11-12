@@ -8,14 +8,22 @@
 export function resolveEventInstanceStatus(instance, now) {
     const eventStartAt = instance.start_at ? new Date(instance.start_at) : null;
     const eventEndAt = instance.end_at ? new Date(instance.end_at) : null;
-    const preScoringStartAt = instance.pre_scoring_start_at ? new Date(instance.pre_scoring_start_at) : null;
-    const preScoringEndAt = instance.pre_scoring_end_at ? new Date(instance.pre_scoring_end_at) : null;
+    const preScoringStartAt = instance.pre_scoring_start_at
+        ? new Date(instance.pre_scoring_start_at)
+        : null;
+    const preScoringEndAt = instance.pre_scoring_end_at
+        ? new Date(instance.pre_scoring_end_at)
+        : null;
 
     if (eventEndAt && now >= eventEndAt) return "done";
     if (eventStartAt && now >= eventStartAt) return "event_scoring";
 
     const hasPreScoringWindow = preScoringStartAt && preScoringEndAt;
-    if (hasPreScoringWindow && now >= preScoringStartAt && now < preScoringEndAt) {
+    if (
+        hasPreScoringWindow &&
+        now >= preScoringStartAt &&
+        now < preScoringEndAt
+    ) {
         return "pre-scoring";
     }
 
@@ -48,13 +56,18 @@ export function buildTrackIdsByEventInstanceId(tracks) {
             trackIdsByEventInstanceId.set(track.event_instance_id, []);
         }
 
-        trackIdsByEventInstanceId.get(track.event_instance_id).push(track.track_id);
+        trackIdsByEventInstanceId
+            .get(track.event_instance_id)
+            .push(track.track_id);
     }
 
     return trackIdsByEventInstanceId;
 }
 
-export function buildSubmissionTrackUpdateGroups(instances, trackIdsByEventInstanceId) {
+export function buildSubmissionTrackUpdateGroups(
+    instances,
+    trackIdsByEventInstanceId,
+) {
     const updateGroups = {
         pre_scoring: [],
         pre_scored: [],
@@ -63,7 +76,8 @@ export function buildSubmissionTrackUpdateGroups(instances, trackIdsByEventInsta
     };
 
     for (const instance of instances ?? []) {
-        const trackIds = trackIdsByEventInstanceId.get(instance.event_instance_id) ?? [];
+        const trackIds =
+            trackIdsByEventInstanceId.get(instance.event_instance_id) ?? [];
         if (!trackIds.length) continue;
 
         if (instance.status === "pre-scoring") {
@@ -85,13 +99,17 @@ export function buildSubmissionTrackUpdateGroups(instances, trackIdsByEventInsta
     };
 }
 
-export function getSubmissionIdsMeetingScoreThreshold(scoreSheetRows, minScores = 10) {
+export function getSubmissionIdsMeetingScoreThreshold(
+    scoreSheetRows,
+    minScores = 10,
+) {
     const judgeSetBySubmissionId = new Map();
 
     for (const row of scoreSheetRows ?? []) {
         if (!row?.submission_id || !row?.judge_person_id) continue;
 
-        const current = judgeSetBySubmissionId.get(row.submission_id) ?? new Set();
+        const current =
+            judgeSetBySubmissionId.get(row.submission_id) ?? new Set();
         current.add(row.judge_person_id);
         judgeSetBySubmissionId.set(row.submission_id, current);
     }

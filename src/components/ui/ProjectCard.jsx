@@ -11,8 +11,10 @@ export function ProjectCard({ project, onView, onUpload }) {
         ? new Date(project.track.submission_close_at)
         : null;
 
-    const hasValidOpenAt = submissionOpenAt && !Number.isNaN(submissionOpenAt.getTime());
-    const hasValidCloseAt = submissionCloseAt && !Number.isNaN(submissionCloseAt.getTime());
+    const hasValidOpenAt =
+        submissionOpenAt && !Number.isNaN(submissionOpenAt.getTime());
+    const hasValidCloseAt =
+        submissionCloseAt && !Number.isNaN(submissionCloseAt.getTime());
     const now = new Date();
 
     const isBeforeWindow = hasValidOpenAt && now < submissionOpenAt;
@@ -35,9 +37,7 @@ export function ProjectCard({ project, onView, onUpload }) {
                     {project.title}
                 </h2>
 
-                <p className="text-sm text-[#55616D]">
-                    {project.track?.name}
-                </p>
+                <p className="text-sm text-[#55616D]">{project.track?.name}</p>
 
                 <p className="text-sm text-[#55616D]">
                     Table: {project.table_number ?? "Not assigned yet"}
@@ -74,7 +74,9 @@ export function ProjectCard({ project, onView, onUpload }) {
             </div>
 
             {uploadWindowMessage && (
-                <p className="mt-3 text-xs text-amber-700">{uploadWindowMessage}</p>
+                <p className="mt-3 text-xs text-amber-700">
+                    {uploadWindowMessage}
+                </p>
             )}
         </div>
     );

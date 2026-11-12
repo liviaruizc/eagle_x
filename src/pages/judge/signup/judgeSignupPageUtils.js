@@ -15,8 +15,12 @@ export function isCollegeFacet(facet) {
 
 export function isMultiProgramFacet(facet) {
     const code = String(facet?.code || "").toUpperCase();
-    const hasParentLinkedOptions = (facet?.options ?? []).some((option) => option.parent_option_id);
-    return code === "PROGRAM" || code === "DEPARTMENT" || hasParentLinkedOptions;
+    const hasParentLinkedOptions = (facet?.options ?? []).some(
+        (option) => option.parent_option_id,
+    );
+    return (
+        code === "PROGRAM" || code === "DEPARTMENT" || hasParentLinkedOptions
+    );
 }
 
 export function getCollegeFacetId(facets) {
@@ -24,18 +28,26 @@ export function getCollegeFacetId(facets) {
     return collegeFacet?.facetId ?? null;
 }
 
-export function pruneProgramSelectionsByColleges({ nextSelections, facets, collegeFacetId }) {
+export function pruneProgramSelectionsByColleges({
+    nextSelections,
+    facets,
+    collegeFacetId,
+}) {
     if (!collegeFacetId) {
         return nextSelections;
     }
 
-    const selectedCollegeOptionIds = new Set(normalizeSelectedOptionIds(nextSelections[collegeFacetId]));
+    const selectedCollegeOptionIds = new Set(
+        normalizeSelectedOptionIds(nextSelections[collegeFacetId]),
+    );
     const prunedSelections = { ...nextSelections };
 
     for (const facet of facets ?? []) {
         if (!isMultiProgramFacet(facet)) continue;
 
-        const hasParentLinkedOptions = (facet.options ?? []).some((option) => option.parent_option_id);
+        const hasParentLinkedOptions = (facet.options ?? []).some(
+            (option) => option.parent_option_id,
+        );
         if (!hasParentLinkedOptions) continue;
 
         const allowedOptionIds = new Set(
@@ -43,21 +55,30 @@ export function pruneProgramSelectionsByColleges({ nextSelections, facets, colle
                 .filter(
                     (option) =>
                         !option.parent_option_id ||
-                        selectedCollegeOptionIds.has(String(option.parent_option_id))
+                        selectedCollegeOptionIds.has(
+                            String(option.parent_option_id),
+                        ),
                 )
-                .map((option) => String(option.facet_option_id))
+                .map((option) => String(option.facet_option_id)),
         );
 
-        const currentSelections = normalizeSelectedOptionIds(prunedSelections[facet.facetId]);
-        prunedSelections[facet.facetId] = currentSelections.filter((selectedId) =>
-            allowedOptionIds.has(selectedId)
+        const currentSelections = normalizeSelectedOptionIds(
+            prunedSelections[facet.facetId],
+        );
+        prunedSelections[facet.facetId] = currentSelections.filter(
+            (selectedId) => allowedOptionIds.has(selectedId),
         );
     }
 
     return prunedSelections;
 }
 
-function maybePruneByCollege({ nextSelections, facetId, collegeFacetId, facets }) {
+function maybePruneByCollege({
+    nextSelections,
+    facetId,
+    collegeFacetId,
+    facets,
+}) {
     if (facetId !== collegeFacetId) {
         return nextSelections;
     }
@@ -69,7 +90,13 @@ function maybePruneByCollege({ nextSelections, facetId, collegeFacetId, facets }
     });
 }
 
-export function updateSingleFacetSelection({ previousSelections, facetId, optionId, collegeFacetId, facets }) {
+export function updateSingleFacetSelection({
+    previousSelections,
+    facetId,
+    optionId,
+    collegeFacetId,
+    facets,
+}) {
     const nextSelections = {
         ...previousSelections,
         [facetId]: optionId,
@@ -83,8 +110,16 @@ export function updateSingleFacetSelection({ previousSelections, facetId, option
     });
 }
 
-export function updatePrimarySelection({ previousSelections, facetId, optionId, collegeFacetId, facets }) {
-    const current = Array.isArray(previousSelections[facetId]) ? previousSelections[facetId] : [];
+export function updatePrimarySelection({
+    previousSelections,
+    facetId,
+    optionId,
+    collegeFacetId,
+    facets,
+}) {
+    const current = Array.isArray(previousSelections[facetId])
+        ? previousSelections[facetId]
+        : [];
     const secondValue = current[1];
     const normalizedPrimary = optionId ? String(optionId) : "";
 
@@ -107,8 +142,16 @@ export function updatePrimarySelection({ previousSelections, facetId, optionId, 
     });
 }
 
-export function updateSecondarySelection({ previousSelections, facetId, optionId, collegeFacetId, facets }) {
-    const current = Array.isArray(previousSelections[facetId]) ? previousSelections[facetId] : [];
+export function updateSecondarySelection({
+    previousSelections,
+    facetId,
+    optionId,
+    collegeFacetId,
+    facets,
+}) {
+    const current = Array.isArray(previousSelections[facetId])
+        ? previousSelections[facetId]
+        : [];
     const primaryValue = current[0] ? String(current[0]) : "";
     const normalizedSecondary = optionId ? String(optionId) : "";
 
@@ -134,8 +177,15 @@ export function updateSecondarySelection({ previousSelections, facetId, optionId
     });
 }
 
-export function removeSecondSelectionFromFacet({ previousSelections, facetId, collegeFacetId, facets }) {
-    const current = Array.isArray(previousSelections[facetId]) ? previousSelections[facetId] : [];
+export function removeSecondSelectionFromFacet({
+    previousSelections,
+    facetId,
+    collegeFacetId,
+    facets,
+}) {
+    const current = Array.isArray(previousSelections[facetId])
+        ? previousSelections[facetId]
+        : [];
 
     const nextSelections = {
         ...previousSelections,
@@ -150,16 +200,22 @@ export function removeSecondSelectionFromFacet({ previousSelections, facetId, co
     });
 }
 
-export function getProgramOptionsForFacet({ facet, collegeFacetId, selectedFacetOptionByFacetId }) {
+export function getProgramOptionsForFacet({
+    facet,
+    collegeFacetId,
+    selectedFacetOptionByFacetId,
+}) {
     const options = facet.options ?? [];
-    const hasParentLinkedOptions = options.some((option) => option.parent_option_id);
+    const hasParentLinkedOptions = options.some(
+        (option) => option.parent_option_id,
+    );
 
     if (!hasParentLinkedOptions) {
         return options;
     }
 
     const selectedCollegeOptionIds = normalizeSelectedOptionIds(
-        collegeFacetId ? selectedFacetOptionByFacetId[collegeFacetId] : null
+        collegeFacetId ? selectedFacetOptionByFacetId[collegeFacetId] : null,
     );
 
     if (!selectedCollegeOptionIds.length) {
@@ -169,7 +225,7 @@ export function getProgramOptionsForFacet({ facet, collegeFacetId, selectedFacet
     return options.filter(
         (option) =>
             !option.parent_option_id ||
-            selectedCollegeOptionIds.includes(String(option.parent_option_id))
+            selectedCollegeOptionIds.includes(String(option.parent_option_id)),
     );
 }
 

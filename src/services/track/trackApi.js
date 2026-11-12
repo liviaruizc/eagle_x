@@ -31,7 +31,9 @@ export async function fetchTrackNameRow(trackId) {
 export async function fetchTrackFacetRows(trackId) {
     const { data, error } = await supabase
         .from("track_facet")
-        .select("track_facet_id, facet_id, is_required, display_order, depends_on_facet_id, depends_on_option_id")
+        .select(
+            "track_facet_id, facet_id, is_required, display_order, depends_on_facet_id, depends_on_option_id",
+        )
         .eq("track_id", trackId)
         .order("display_order", { ascending: true });
 
@@ -61,7 +63,6 @@ export async function fetchTracksByEventInstance(eventInstanceId) {
     return data ?? [];
 }
 
-
 export async function fetchAllFacetRows() {
     const { data, error } = await supabase
         .from("facet")
@@ -77,7 +78,9 @@ export async function fetchFacetOptionRowsByFacetIds(facetIds) {
 
     const { data, error } = await supabase
         .from("facet_option")
-        .select("facet_option_id, facet_id, value, label, parent_option_id, sort_order")
+        .select(
+            "facet_option_id, facet_id, value, label, parent_option_id, sort_order",
+        )
         .in("facet_id", facetIds)
         .order("sort_order", { ascending: true });
 

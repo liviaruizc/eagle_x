@@ -33,15 +33,22 @@ export async function fetchTracksByEventInstance(eventInstanceId) {
     return data ?? [];
 }
 
-export async function fetchEligibleSubmissionsByTracks({ trackIds, judgePersonId }) {
+export async function fetchEligibleSubmissionsByTracks({
+    trackIds,
+    judgePersonId,
+}) {
     if (!trackIds?.length) return [];
 
     const { data, error } = await supabase
         .from("submission")
-        .select(`submission_id, title, track_id, status, created_at, supervisor_person_id, track(name)`)
+        .select(
+            `submission_id, title, track_id, status, created_at, supervisor_person_id, track(name)`,
+        )
         .in("track_id", trackIds)
         .in("status", ["pre_scoring", "event_scoring"])
-        .or(`supervisor_person_id.is.null,supervisor_person_id.neq.${judgePersonId}`)
+        .or(
+            `supervisor_person_id.is.null,supervisor_person_id.neq.${judgePersonId}`,
+        )
         .order("created_at", { ascending: true });
 
     if (error) throw error;
@@ -51,7 +58,8 @@ export async function fetchEligibleSubmissionsByTracks({ trackIds, judgePersonId
 export async function fetchSubmissionsForTrack(trackId) {
     const { data, error } = await supabase
         .from("submission")
-        .select(`
+        .select(
+            `
             submission_id,
             title,
             status,
@@ -62,7 +70,8 @@ export async function fetchSubmissionsForTrack(trackId) {
                 display_name,
                 email
             )
-        `)
+        `,
+        )
         .eq("track_id", trackId)
         .in("status", ["pre_scoring", "event_scoring"])
         .order("created_at", { ascending: true });
@@ -71,9 +80,10 @@ export async function fetchSubmissionsForTrack(trackId) {
     return data ?? [];
 }
 
-
-
-export async function fetchScoredSubmissionRows({ judgePersonId, submissionIds }) {
+export async function fetchScoredSubmissionRows({
+    judgePersonId,
+    submissionIds,
+}) {
     if (!submissionIds?.length) return [];
 
     const { data, error } = await supabase
@@ -116,14 +126,19 @@ export async function fetchSubmissionFacetValues(submissionIds) {
 
     const { data, error } = await supabase
         .from("submission_facet_value")
-        .select("submission_id, facet_id, facet_option_id, value_text, value_number, value_date")
+        .select(
+            "submission_id, facet_id, facet_option_id, value_text, value_number, value_date",
+        )
         .in("submission_id", submissionIds);
 
     if (error) throw error;
     return data ?? [];
 }
 
-export async function fetchJudgeFacetValuesForEvent({ judgePersonId, eventInstanceId }) {
+export async function fetchJudgeFacetValuesForEvent({
+    judgePersonId,
+    eventInstanceId,
+}) {
     const { data: roles, error: rolesError } = await supabase
         .from("person_event_role")
         .select("person_event_role_id, event_role(code, name)")
@@ -136,8 +151,12 @@ export async function fetchJudgeFacetValuesForEvent({ judgePersonId, eventInstan
 
     const judgeRoleIds = roles
         .filter((role) => {
-            const code = String(role.event_role?.code || "").trim().toUpperCase();
-            const name = String(role.event_role?.name || "").trim().toUpperCase();
+            const code = String(role.event_role?.code || "")
+                .trim()
+                .toUpperCase();
+            const name = String(role.event_role?.name || "")
+                .trim()
+                .toUpperCase();
             return code === "JUDGE" || name.includes("JUDGE");
         })
         .map((role) => role.person_event_role_id);
@@ -150,7 +169,9 @@ export async function fetchJudgeFacetValuesForEvent({ judgePersonId, eventInstan
 
     const { data: values, error: valuesError } = await supabase
         .from("person_event_role_facet_value")
-        .select("facet_id, facet_option_id, value_text, value_number, value_date")
+        .select(
+            "facet_id, facet_option_id, value_text, value_number, value_date",
+        )
         .in("person_event_role_id", roleIdsToUse);
 
     if (valuesError) throw valuesError;
@@ -174,14 +195,16 @@ export async function fetchTableAssignmentsBySubmissions(submissionIds) {
 
     const { data, error } = await supabase
         .from("submission_table_assignment")
-        .select(`
+        .select(
+            `
             submission_id,
             event_table:table_id (
                 table_number,
                 session,
                 location_description
             )
-        `)
+        `,
+        )
         .in("submission_id", submissionIds);
 
     if (error) throw error;

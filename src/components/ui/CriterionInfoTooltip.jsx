@@ -4,7 +4,11 @@ import { createPortal } from "react-dom";
 // Renders a small ⓘ icon. Clicking it opens a popover showing the criterion
 // name, description, and scoring phase. Uses a portal so it is never clipped
 // by overflow:hidden / overflow:auto ancestor containers (e.g. table wrappers).
-export default function CriterionInfoTooltip({ name, description, scoringPhase }) {
+export default function CriterionInfoTooltip({
+    name,
+    description,
+    scoringPhase,
+}) {
     const [open, setOpen] = useState(false);
     const [coords, setCoords] = useState({ top: 0, left: 0 });
     const btnRef = useRef(null);
@@ -43,35 +47,41 @@ export default function CriterionInfoTooltip({ name, description, scoringPhase }
     }, [open]);
 
     const phaseLabel =
-        scoringPhase === "pre_scoring" ? "Pre-Scoring"
-        : scoringPhase === "event_scoring" ? "Event Scoring"
-        : "Both Phases";
+        scoringPhase === "pre_scoring"
+            ? "Pre-Scoring"
+            : scoringPhase === "event_scoring"
+              ? "Event Scoring"
+              : "Both Phases";
 
     const popover = open
         ? createPortal(
-            <div
-                style={{
-                    position: "absolute",
-                    top: coords.top,
-                    left: coords.left,
-                    transform: "translate(-50%, -100%)",
-                    zIndex: 9999,
-                }}
-                className="w-56 rounded-xl border border-gray-200 bg-white p-3 shadow-lg text-left"
-            >
-                <p className="text-xs font-bold text-[#004785] leading-snug">{name}</p>
-                {description && (
-                    <p className="mt-1 text-xs text-[#55616D] leading-snug">{description}</p>
-                )}
-                <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-[#00794C]">
-                    {phaseLabel}
-                </p>
-                {/* caret pointing down */}
-                <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-200" />
-                <div className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-px border-4 border-transparent border-t-white" />
-            </div>,
-            document.body
-        )
+              <div
+                  style={{
+                      position: "absolute",
+                      top: coords.top,
+                      left: coords.left,
+                      transform: "translate(-50%, -100%)",
+                      zIndex: 9999,
+                  }}
+                  className="w-56 rounded-xl border border-gray-200 bg-white p-3 shadow-lg text-left"
+              >
+                  <p className="text-xs font-bold text-[#004785] leading-snug">
+                      {name}
+                  </p>
+                  {description && (
+                      <p className="mt-1 text-xs text-[#55616D] leading-snug">
+                          {description}
+                      </p>
+                  )}
+                  <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-[#00794C]">
+                      {phaseLabel}
+                  </p>
+                  {/* caret pointing down */}
+                  <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-200" />
+                  <div className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-px border-4 border-transparent border-t-white" />
+              </div>,
+              document.body,
+          )
         : null;
 
     return (

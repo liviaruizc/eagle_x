@@ -9,7 +9,8 @@ export function buildSubmissionFacetValues(trackFacets, facetValues) {
         const valueNumber = current.value_number;
         const valueDate = current.value_date || "";
 
-        const hasValue = selectedOptionId || valueText || valueDate || valueNumber !== "";
+        const hasValue =
+            selectedOptionId || valueText || valueDate || valueNumber !== "";
 
         if (facet.isRequired && !hasValue) {
             throw new Error(`${facet.name} is required.`);
@@ -24,7 +25,10 @@ export function buildSubmissionFacetValues(trackFacets, facetValues) {
             facet_option_id: selectedOptionId || null,
             value_kind: facet.valueKind,
             value_text: valueText || null,
-            value_number: valueNumber === "" || valueNumber === undefined ? null : Number(valueNumber),
+            value_number:
+                valueNumber === "" || valueNumber === undefined
+                    ? null
+                    : Number(valueNumber),
             value_date: valueDate || null,
         });
     }

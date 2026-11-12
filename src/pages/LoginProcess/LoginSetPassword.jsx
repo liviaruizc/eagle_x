@@ -1,13 +1,16 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import Button from "../../components/ui/Button.jsx";
 import FGCUlogo from "../../assets/FGCU logo.jpg";
 
 function validatePasswordRequirements(value) {
-    if (!/[A-Z]/.test(value)) return "Password must include at least one uppercase letter.";
-    if (!/[a-z]/.test(value)) return "Password must include at least one lowercase letter.";
-    if (!/[0-9]/.test(value)) return "Password must include at least one number.";
+    if (!/[A-Z]/.test(value))
+        return "Password must include at least one uppercase letter.";
+    if (!/[a-z]/.test(value))
+        return "Password must include at least one lowercase letter.";
+    if (!/[0-9]/.test(value))
+        return "Password must include at least one number.";
     return "";
 }
 
@@ -25,9 +28,7 @@ export default function SetPasswordPage() {
     if (!email) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <p className="text-[#55616D]">
-                    Email not provided!
-                </p>
+                <p className="text-[#55616D]">Email not provided!</p>
             </div>
         );
     }
@@ -61,7 +62,9 @@ export default function SetPasswordPage() {
 
             const authUserId = data?.user?.id;
             if (!authUserId) {
-                throw new Error("Auth account creation did not return a user id.");
+                throw new Error(
+                    "Auth account creation did not return a user id.",
+                );
             }
 
             const { error: updateError } = await supabase
@@ -71,14 +74,13 @@ export default function SetPasswordPage() {
 
             if (updateError?.code === "22P02") {
                 throw new Error(
-                    "Database column person.auth_user_id has the wrong type. It must store UUID values from Supabase Auth."
+                    "Database column person.auth_user_id has the wrong type. It must store UUID values from Supabase Auth.",
                 );
             }
 
             if (updateError) throw updateError;
 
             navigate("/login");
-
         } catch (err) {
             console.error(err);
             setError(err.message);
@@ -90,7 +92,6 @@ export default function SetPasswordPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#F3F3F3] p-4">
             <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-md space-y-6">
-
                 {/* Logo */}
                 <div className="w-full bg-white rounded-xl shadow-sm p-4 flex justify-center items-center">
                     <img
@@ -105,22 +106,24 @@ export default function SetPasswordPage() {
                     <h1 className="text-3xl font-bold text-[#004785]">
                         Set Your Password
                     </h1>
-                    <p className="text-sm text-[#55616D] mt-1">
-                        {email}
-                    </p>
+                    <p className="text-sm text-[#55616D] mt-1">{email}</p>
                 </div>
 
                 {/* Form */}
                 <form onSubmit={handleSetPassword} className="space-y-4">
-
                     <div className="rounded-lg border border-[#004785]/20 bg-[#004785]/5 p-3 text-xs text-[#1F2D3A]">
-                        <p className="font-semibold text-[#004785]">Password creation guide</p>
+                        <p className="font-semibold text-[#004785]">
+                            Password creation guide
+                        </p>
                         <ul className="list-disc list-inside mt-1 space-y-1">
                             <li>Use at least 8 characters.</li>
                             <li>Include at least one uppercase letter.</li>
                             <li>Include at least one lowercase letter.</li>
                             <li>Include at least one number.</li>
-                            <li>Avoid using personal info like your name or email.</li>
+                            <li>
+                                Avoid using personal info like your name or
+                                email.
+                            </li>
                         </ul>
                     </div>
 
@@ -141,7 +144,8 @@ export default function SetPasswordPage() {
                         "
                     />
                     <p className="text-xs text-[#55616D]">
-                        Use at least 8 characters with one uppercase letter, one lowercase letter, and one number.
+                        Use at least 8 characters with one uppercase letter, one
+                        lowercase letter, and one number.
                     </p>
 
                     <input
@@ -184,11 +188,8 @@ export default function SetPasswordPage() {
 
                 {/* Error */}
                 {error && (
-                    <p className="text-sm text-red-600 text-center">
-                        {error}
-                    </p>
+                    <p className="text-sm text-red-600 text-center">{error}</p>
                 )}
-
             </div>
         </div>
     );

@@ -40,7 +40,8 @@ import {
     updateSubmissionStatusIfThresholdReached,
 } from "./scoreWorkflow.js";
 
-const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
+const DEBUG_LOGS =
+    import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
 
 export {
     computeCriterionScore,
@@ -48,10 +49,7 @@ export {
     calculateScoreTotal,
 };
 
-export {
-    markJudgeScoringActivity,
-    clearJudgeScoringActivity,
-};
+export { markJudgeScoringActivity, clearJudgeScoringActivity };
 
 export async function fetchScoringContext(submissionId, judgePersonId) {
     // Enforce conflict-of-interest before loading form data.
@@ -79,7 +77,13 @@ export async function fetchScoringContext(submissionId, judgePersonId) {
     if (DEBUG_LOGS) {
         console.log("[scoring] eventStatus:", eventStatus);
         console.log("[scoring] allowedPhases:", allowedPhases);
-        console.log("[scoring] criteriaRows (before filter):", criteriaRows.map((r) => ({ name: r.name, scoring_phase: r.scoring_phase })));
+        console.log(
+            "[scoring] criteriaRows (before filter):",
+            criteriaRows.map((r) => ({
+                name: r.name,
+                scoring_phase: r.scoring_phase,
+            })),
+        );
     }
 
     const criteria = (criteriaRows ?? [])
@@ -87,18 +91,27 @@ export async function fetchScoringContext(submissionId, judgePersonId) {
         .map(normalizeCriterion);
 
     if (DEBUG_LOGS) {
-        console.log("[scoring] criteria (after filter):", criteria.map((c) => ({ name: c.name })));
+        console.log(
+            "[scoring] criteria (after filter):",
+            criteria.map((c) => ({ name: c.name })),
+        );
     }
 
     // Hydrate existing responses when judge already scored this submission.
     let existingResponsesByCriterionId = {};
     let existingOverallComment = "";
     if (judgePersonId) {
-        const existingScoreSheet = await fetchLatestScoreSheet(submissionId, judgePersonId);
+        const existingScoreSheet = await fetchLatestScoreSheet(
+            submissionId,
+            judgePersonId,
+        );
 
         if (existingScoreSheet?.score_sheet_id) {
-            const scoreItems = await fetchScoreItems(existingScoreSheet.score_sheet_id);
-            existingResponsesByCriterionId = mapScoreItemsToResponses(scoreItems);
+            const scoreItems = await fetchScoreItems(
+                existingScoreSheet.score_sheet_id,
+            );
+            existingResponsesByCriterionId =
+                mapScoreItemsToResponses(scoreItems);
             existingOverallComment = existingScoreSheet.overall_comment ?? "";
         }
     }
@@ -159,7 +172,10 @@ export async function submitScoreSheet({
     // Persist criterion-level score rows.
     const itemPayload = criteria.map((criterion) => {
         const response = responsesByCriterionId?.[criterion.id] ?? {};
-        const resolvedScoreValue = computeCriterionScore(criterion, response.value);
+        const resolvedScoreValue = computeCriterionScore(
+            criterion,
+            response.value,
+        );
 
         return {
             score_sheet_id: scoreSheetId,

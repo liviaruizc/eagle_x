@@ -86,7 +86,7 @@ export async function fetchRubricCriteria(rubricId) {
     const { data, error } = await supabase
         .from("rubric_criterion")
         .select(
-            "criterion_id, name, description, criterion_category, answer_type, answer_config_json, weight, score_min, score_max, display_order, scoring_phase"
+            "criterion_id, name, description, criterion_category, answer_type, answer_config_json, weight, score_min, score_max, display_order, scoring_phase",
         )
         .eq("rubric_id", rubricId)
         .order("display_order", { ascending: true });
@@ -118,7 +118,11 @@ export async function fetchScoreItems(scoreSheetId) {
     return data ?? [];
 }
 
-export async function findJudgeAssignment({ trackId, judgePersonId, submissionId }) {
+export async function findJudgeAssignment({
+    trackId,
+    judgePersonId,
+    submissionId,
+}) {
     const { data, error } = await supabase
         .from("judge_assignment")
         .select("judge_assignment_id")
@@ -131,20 +135,28 @@ export async function findJudgeAssignment({ trackId, judgePersonId, submissionId
     return data ?? [];
 }
 
-export async function insertJudgeAssignment({ trackId, judgePersonId, submissionId, assignedAt }) {
-    const { error } = await supabase
-        .from("judge_assignment")
-        .insert({
-            track_id: trackId,
-            person_id: judgePersonId,
-            submission_id: submissionId,
-            assigned_at: assignedAt,
-        });
+export async function insertJudgeAssignment({
+    trackId,
+    judgePersonId,
+    submissionId,
+    assignedAt,
+}) {
+    const { error } = await supabase.from("judge_assignment").insert({
+        track_id: trackId,
+        person_id: judgePersonId,
+        submission_id: submissionId,
+        assigned_at: assignedAt,
+    });
 
     if (error) throw error;
 }
 
-export async function updateJudgeAssignmentTimestamp({ trackId, judgePersonId, submissionId, assignedAt }) {
+export async function updateJudgeAssignmentTimestamp({
+    trackId,
+    judgePersonId,
+    submissionId,
+    assignedAt,
+}) {
     const { error } = await supabase
         .from("judge_assignment")
         .update({ assigned_at: assignedAt })
@@ -187,9 +199,7 @@ export async function deleteScoreItemsByScoreSheetId(scoreSheetId) {
 export async function insertScoreItems(itemPayload) {
     if (!itemPayload?.length) return;
 
-    const { error } = await supabase
-        .from("score_item")
-        .insert(itemPayload);
+    const { error } = await supabase.from("score_item").insert(itemPayload);
 
     if (error) throw error;
 }
@@ -208,7 +218,8 @@ export async function fetchSubmittedJudgeRowsBySubmission(submissionId) {
 export async function fetchScoreSheetsByJudge(judgePersonId) {
     const { data, error } = await supabase
         .from("score_sheet")
-        .select(`
+        .select(
+            `
             score_sheet_id,
             status,
             submitted_at,
@@ -223,7 +234,8 @@ export async function fetchScoreSheetsByJudge(judgePersonId) {
                     )
                 )
             )
-        `)
+        `,
+        )
         .eq("judge_person_id", judgePersonId)
         .order("submitted_at", { ascending: false });
 
@@ -243,7 +255,10 @@ export async function fetchScoreSheetsBySubmissionIds(submissionIds) {
     return data ?? [];
 }
 
-export async function fetchActiveJudgeAssignment(submissionId, excludeJudgePersonId) {
+export async function fetchActiveJudgeAssignment(
+    submissionId,
+    excludeJudgePersonId,
+) {
     const thresholdTs = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     const { data, error } = await supabase
         .from("judge_assignment")
@@ -257,7 +272,11 @@ export async function fetchActiveJudgeAssignment(submissionId, excludeJudgePerso
     return data?.[0] ?? null;
 }
 
-export async function updateSubmissionStatusIfCurrent(submissionId, fromStatus, toStatus) {
+export async function updateSubmissionStatusIfCurrent(
+    submissionId,
+    fromStatus,
+    toStatus,
+) {
     const { error } = await supabase
         .from("submission")
         .update({ status: toStatus })

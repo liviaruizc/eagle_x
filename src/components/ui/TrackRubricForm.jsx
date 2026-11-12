@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { createRubricAndAssignToTrack, updateRubricAndTrackAssignment } from "../../services/rubric/rubricService.js";
+import {
+    createRubricAndAssignToTrack,
+    updateRubricAndTrackAssignment,
+} from "../../services/rubric/rubricService.js";
 import { fetchHasSubmittedScoresForTrack } from "../../services/rubric/rubricApi.js";
 import {
     buildFormState,
@@ -29,13 +32,20 @@ export default function TrackRubricForm({
 }) {
     // Build a stable initial state from incoming rubric props.
     // `useMemo` avoids rebuilding unless `initialRubric` actually changes.
-    const initialState = useMemo(() => buildFormState(initialRubric), [initialRubric]);
+    const initialState = useMemo(
+        () => buildFormState(initialRubric),
+        [initialRubric],
+    );
 
     // Top-level rubric fields (name/version/default flag).
     const [formData, setFormData] = useState(initialState.formData);
 
     // Criteria list edited dynamically (add/remove/reorder by array position).
-    const [criteria, setCriteria] = useState(initialState.criteria.length ? initialState.criteria : [emptyCriterion()]);
+    const [criteria, setCriteria] = useState(
+        initialState.criteria.length
+            ? initialState.criteria
+            : [emptyCriterion()],
+    );
 
     // Submission and user feedback state.
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,14 +55,20 @@ export default function TrackRubricForm({
     // Guard: prevent saving if submitted scores already exist for this track.
     const [hasExistingScores, setHasExistingScores] = useState(false);
 
+    /*
     // Keep local form state synchronized whenever the source rubric changes
     // (for example when switching between different rubrics in edit mode).
     useEffect(() => {
         setFormData(initialState.formData);
-        setCriteria(initialState.criteria.length ? initialState.criteria : [emptyCriterion()]);
+        setCriteria(
+            initialState.criteria.length
+                ? initialState.criteria
+                : [emptyCriterion()],
+        );
         setError("");
         setMessage("");
     }, [initialState]);
+    */
 
     // In edit mode, check whether submitted scores exist so we can lock the form.
     useEffect(() => {
@@ -60,7 +76,9 @@ export default function TrackRubricForm({
 
         fetchHasSubmittedScoresForTrack(trackId)
             .then(setHasExistingScores)
-            .catch((err) => console.error("Could not check submitted scores:", err));
+            .catch((err) =>
+                console.error("Could not check submitted scores:", err),
+            );
     }, [mode, trackId]);
 
     // Generic input handler for top-level rubric fields.
@@ -79,44 +97,52 @@ export default function TrackRubricForm({
             prev.map((criterion, criterionIndex) =>
                 criterionIndex === index
                     ? {
-                        ...criterion,
-                        [field]: value,
-                        ...(field === "answerType" && value === "true_false"
-                            ? { scoreMin: 0, scoreMax: 0 }
-                            : {}),
-                        ...(field === "answerType" && value === "numeric_scale"
-                            ? { scoreMin: 0, scoreMax: 5 }
-                            : {}),
-                        ...(field === "answerType" && value === "dropdown"
-                            ? {
-                                scoreMin: 0,
-                                scoreMax: 0,
-                                dropdownOptions: criterion.dropdownOptions?.length
-                                    ? criterion.dropdownOptions
-                                    : [{ label: "", points: 0 }],
-                            }
-                            : {}),
-                    }
-                    : criterion
-            )
+                          ...criterion,
+                          [field]: value,
+                          ...(field === "answerType" && value === "true_false"
+                              ? { scoreMin: 0, scoreMax: 0 }
+                              : {}),
+                          ...(field === "answerType" &&
+                          value === "numeric_scale"
+                              ? { scoreMin: 0, scoreMax: 5 }
+                              : {}),
+                          ...(field === "answerType" && value === "dropdown"
+                              ? {
+                                    scoreMin: 0,
+                                    scoreMax: 0,
+                                    dropdownOptions: criterion.dropdownOptions
+                                        ?.length
+                                        ? criterion.dropdownOptions
+                                        : [{ label: "", points: 0 }],
+                                }
+                              : {}),
+                      }
+                    : criterion,
+            ),
         );
     }
 
     // Updates a single dropdown option row inside a specific criterion.
-    function handleDropdownOptionChange(criterionIndex, optionIndex, field, value) {
+    function handleDropdownOptionChange(
+        criterionIndex,
+        optionIndex,
+        field,
+        value,
+    ) {
         setCriteria((prev) =>
             prev.map((criterion, currentCriterionIndex) => {
                 if (currentCriterionIndex !== criterionIndex) return criterion;
 
                 return {
                     ...criterion,
-                    dropdownOptions: criterion.dropdownOptions.map((option, currentOptionIndex) =>
-                        currentOptionIndex === optionIndex
-                            ? { ...option, [field]: value }
-                            : option
+                    dropdownOptions: criterion.dropdownOptions.map(
+                        (option, currentOptionIndex) =>
+                            currentOptionIndex === optionIndex
+                                ? { ...option, [field]: value }
+                                : option,
                     ),
                 };
-            })
+            }),
         );
     }
 
@@ -126,11 +152,14 @@ export default function TrackRubricForm({
             prev.map((criterion, currentCriterionIndex) =>
                 currentCriterionIndex === criterionIndex
                     ? {
-                        ...criterion,
-                        dropdownOptions: [...criterion.dropdownOptions, { label: "", points: 0 }],
-                    }
-                    : criterion
-            )
+                          ...criterion,
+                          dropdownOptions: [
+                              ...criterion.dropdownOptions,
+                              { label: "", points: 0 },
+                          ],
+                      }
+                    : criterion,
+            ),
         );
     }
 
@@ -140,13 +169,17 @@ export default function TrackRubricForm({
             prev.map((criterion, currentCriterionIndex) => {
                 if (currentCriterionIndex !== criterionIndex) return criterion;
 
-                const filtered = criterion.dropdownOptions.filter((_, idx) => idx !== optionIndex);
+                const filtered = criterion.dropdownOptions.filter(
+                    (_, idx) => idx !== optionIndex,
+                );
 
                 return {
                     ...criterion,
-                    dropdownOptions: filtered.length ? filtered : [{ label: "", points: 0 }],
+                    dropdownOptions: filtered.length
+                        ? filtered
+                        : [{ label: "", points: 0 }],
                 };
-            })
+            }),
         );
     }
 
@@ -157,7 +190,9 @@ export default function TrackRubricForm({
 
     // Removes one criterion by index.
     function removeCriterion(index) {
-        setCriteria((prev) => prev.filter((_, criterionIndex) => criterionIndex !== index));
+        setCriteria((prev) =>
+            prev.filter((_, criterionIndex) => criterionIndex !== index),
+        );
     }
 
     // Handles form submission for both create and edit flows.
@@ -178,14 +213,16 @@ export default function TrackRubricForm({
             return;
         }
 
-        if (!criteria.length || criteria.some((criterion) => !criterion.name.trim())) {
+        if (
+            !criteria.length ||
+            criteria.some((criterion) => !criterion.name.trim())
+        ) {
             setError("Each criterion must have a name.");
             return;
         }
 
         // Normalize UI state into consistent scoring schema expected by service layer.
         const normalizedCriteria = normalizeCriteria(criteria);
-
 
         // Dropdown criteria must define at least one option.
         if (hasDropdownWithoutOptions(normalizedCriteria)) {
@@ -200,7 +237,8 @@ export default function TrackRubricForm({
         }
 
         // Derived rubric total is always computed from criterion rules.
-        const computedMaxTotalPoints = computeRubricMaxTotalPoints(normalizedCriteria);
+        const computedMaxTotalPoints =
+            computeRubricMaxTotalPoints(normalizedCriteria);
 
         setIsSubmitting(true);
 
@@ -215,19 +253,18 @@ export default function TrackRubricForm({
                 criteria: normalizedCriteria,
             };
 
-
             // Decide whether to update an existing rubric or create a new one.
             const result =
                 mode === "edit" && initialRubric?.rubricId
                     ? await updateRubricAndTrackAssignment({
-                        ...payload,
-                        rubricId: initialRubric.rubricId,
-                    })
+                          ...payload,
+                          rubricId: initialRubric.rubricId,
+                      })
                     : await createRubricAndAssignToTrack(payload);
 
             // Human-readable status for admin feedback.
             setMessage(
-                `Rubric ${mode === "edit" ? "updated" : "created"} (${result.rubricId}). Max points: ${computedMaxTotalPoints}.`
+                `Rubric ${mode === "edit" ? "updated" : "created"} (${result.rubricId}). Max points: ${computedMaxTotalPoints}.`,
             );
 
             // In create mode we reset the form for quick additional rubric creation.
@@ -247,7 +284,9 @@ export default function TrackRubricForm({
             }
         } catch (submitError) {
             console.error(submitError);
-            setError(`Could not ${mode === "edit" ? "update" : "create"} rubric for this track.`);
+            setError(
+                `Could not ${mode === "edit" ? "update" : "create"} rubric for this track.`,
+            );
         } finally {
             setIsSubmitting(false);
         }

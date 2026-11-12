@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router";
 import { getStudentProjectInfo } from "../../services/studentProjects/studentService.js";
 import PosterViewer from "../../components/poster/PosterViewer.jsx";
 import Button from "../../components/ui/Button.jsx";
 
 export default function StudentProjectDetails() {
-
     const { submissionId } = useParams();
     const navigate = useNavigate();
 
@@ -41,11 +40,7 @@ export default function StudentProjectDetails() {
     }
 
     if (error) {
-        return (
-            <div className="text-center text-red-600">
-                {error}
-            </div>
-        );
+        return <div className="text-center text-red-600">{error}</div>;
     }
 
     if (!submission) {
@@ -53,17 +48,15 @@ export default function StudentProjectDetails() {
     }
 
     const posterUrl = submission.file_url?.file_url ?? null;
-    const groupMembers = Array.isArray(submission.group_members) ? submission.group_members : [];
+    const groupMembers = Array.isArray(submission.group_members)
+        ? submission.group_members
+        : [];
 
     return (
         <div className="max-w-5xl mx-auto p-6 space-y-8">
-
             {/* Header */}
             <div className="flex items-center gap-4">
-                <Button
-                    variant="secondary"
-                    onClick={() => navigate(-1)}
-                >
+                <Button variant="secondary" onClick={() => navigate(-1)}>
                     ← Back
                 </Button>
 
@@ -89,20 +82,29 @@ export default function StudentProjectDetails() {
                 </h2>
 
                 <div className="grid md:grid-cols-2 gap-4 text-sm text-[#55616D]">
-
                     <div>
-                        <span className="font-semibold text-[#004785]">Track:</span>
+                        <span className="font-semibold text-[#004785]">
+                            Track:
+                        </span>
                         <p>{submission.track || "N/A"}</p>
                     </div>
 
                     <div>
-                        <span className="font-semibold text-[#004785]">Group Members:</span>
+                        <span className="font-semibold text-[#004785]">
+                            Group Members:
+                        </span>
                         {groupMembers.length ? (
                             <ul className="space-y-1">
                                 {groupMembers.map((member, index) => (
-                                    <li key={`${member.email || member.name}-${index}`}>
+                                    <li
+                                        key={`${member.email || member.name}-${index}`}
+                                    >
                                         <p>{member.name || "Unnamed member"}</p>
-                                        {member.email && <p className="text-xs">{member.email}</p>}
+                                        {member.email && (
+                                            <p className="text-xs">
+                                                {member.email}
+                                            </p>
+                                        )}
                                     </li>
                                 ))}
                             </ul>
@@ -112,13 +114,16 @@ export default function StudentProjectDetails() {
                     </div>
 
                     <div>
-                        <span className="font-semibold text-[#004785]">Supervisor:</span>
+                        <span className="font-semibold text-[#004785]">
+                            Supervisor:
+                        </span>
                         <p>{submission.supervisor?.name || "N/A"}</p>
                         {submission.supervisor?.email && (
-                            <p className="text-xs">{submission.supervisor.email}</p>
+                            <p className="text-xs">
+                                {submission.supervisor.email}
+                            </p>
                         )}
                     </div>
-
                 </div>
             </div>
 
@@ -130,7 +135,6 @@ export default function StudentProjectDetails() {
 
                 <PosterViewer fileUrl={posterUrl} />
             </div>
-
         </div>
     );
 }

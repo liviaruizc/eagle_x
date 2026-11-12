@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 
 import Button from "../../components/ui/Button.jsx";
 import { fetchTracksForEvent } from "../../services/track/trackService.js";
@@ -17,7 +17,9 @@ export default function AdminProjectsPage() {
     const { eventInstanceId, trackId } = useParams();
 
     const [projects, setProjects] = useState([]);
-    const [selectedFiltersByFacetId, setSelectedFiltersByFacetId] = useState({});
+    const [selectedFiltersByFacetId, setSelectedFiltersByFacetId] = useState(
+        {},
+    );
     const [searchTerm, setSearchTerm] = useState("");
     const [sortField, setSortField] = useState("title");
     const [sortDir, setSortDir] = useState("asc");
@@ -57,13 +59,18 @@ export default function AdminProjectsPage() {
                 facetId: f.facetId,
                 code: f.code,
                 name: f.name,
-                options: [...f.optionsMap.values()].sort((a, b) => a.label.localeCompare(b.label)),
+                options: [...f.optionsMap.values()].sort((a, b) =>
+                    a.label.localeCompare(b.label),
+                ),
             }))
             .sort((a, b) => (a.name || a.code).localeCompare(b.name || b.code));
     }, [projects]);
 
     const filteredProjects = useMemo(() => {
-        const filtered = filterQueueSubmissions(projects, selectedFiltersByFacetId).filter((project) =>
+        const filtered = filterQueueSubmissions(
+            projects,
+            selectedFiltersByFacetId,
+        ).filter((project) =>
             matchesSearchTerm(
                 [
                     project.title,
@@ -72,8 +79,12 @@ export default function AdminProjectsPage() {
                     project.track?.name,
                     project.supervisor?.displayName,
                     project.supervisor?.email,
-                    project.tableNumber != null ? `table ${project.tableNumber}` : "",
-                    project.tableSession ? `session ${project.tableSession}` : "",
+                    project.tableNumber != null
+                        ? `table ${project.tableNumber}`
+                        : "",
+                    project.tableSession
+                        ? `session ${project.tableSession}`
+                        : "",
                     ...(project.participants ?? []).flatMap((participant) => [
                         participant.displayName,
                         participant.email,
@@ -84,8 +95,8 @@ export default function AdminProjectsPage() {
                         facet.label,
                     ]),
                 ],
-                deferredSearchTerm
-            )
+                deferredSearchTerm,
+            ),
         );
         const dir = sortDir === "asc" ? 1 : -1;
 
@@ -94,16 +105,32 @@ export default function AdminProjectsPage() {
                 case "scoreCount":
                     return dir * ((a.scoreCount ?? 0) - (b.scoreCount ?? 0));
                 case "createdAt":
-                    return dir * (new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+                    return (
+                        dir *
+                        (new Date(a.createdAt || 0) -
+                            new Date(b.createdAt || 0))
+                    );
                 case "tableNumber":
-                    return dir * ((a.tableNumber ?? Infinity) - (b.tableNumber ?? Infinity));
+                    return (
+                        dir *
+                        ((a.tableNumber ?? Infinity) -
+                            (b.tableNumber ?? Infinity))
+                    );
                 default: // title
                     return dir * (a.title ?? "").localeCompare(b.title ?? "");
             }
         });
-    }, [projects, selectedFiltersByFacetId, deferredSearchTerm, sortField, sortDir]);
+    }, [
+        projects,
+        selectedFiltersByFacetId,
+        deferredSearchTerm,
+        sortField,
+        sortDir,
+    ]);
 
-    const hasActiveFilters = Object.values(selectedFiltersByFacetId).some((t) => t?.length > 0);
+    const hasActiveFilters = Object.values(selectedFiltersByFacetId).some(
+        (t) => t?.length > 0,
+    );
     const hasActiveSearch = Boolean(searchTerm.trim());
 
     // tableInputs: { [submissionId]: { tableNumber: string, session: string } }
@@ -119,7 +146,9 @@ export default function AdminProjectsPage() {
             try {
                 if (trackId) {
                     const tracks = await fetchTracksForEvent(eventInstanceId);
-                    const selectedTrack = (tracks ?? []).find((track) => String(track.track_id) === String(trackId));
+                    const selectedTrack = (tracks ?? []).find(
+                        (track) => String(track.track_id) === String(trackId),
+                    );
 
                     if (!selectedTrack) {
                         setError("Track not found for this event.");
@@ -127,14 +156,16 @@ export default function AdminProjectsPage() {
                         return;
                     }
 
-                    const trackProjects = await fetchAdminProjectsByTrack(trackId);
+                    const trackProjects =
+                        await fetchAdminProjectsByTrack(trackId);
                     setProjects(trackProjects);
                     setViewMode("track");
                     setViewLabel(`Track-level: ${selectedTrack.name}`);
                     return;
                 }
 
-                const eventProjects = await fetchAdminProjectsByEvent(eventInstanceId);
+                const eventProjects =
+                    await fetchAdminProjectsByEvent(eventInstanceId);
                 setProjects(eventProjects);
                 setViewMode("event");
                 setViewLabel("Event-level (all projects)");
@@ -148,14 +179,15 @@ export default function AdminProjectsPage() {
         }
 
         loadProjects();
-        setSelectedFiltersByFacetId({});
-        setShowAllUnscored(false);
+        //setSelectedFiltersByFacetId({});
+        //setShowAllUnscored(false);
     }, [eventInstanceId, trackId]);
 
     function getTableInput(submissionId, project) {
         if (tableInputs[submissionId]) return tableInputs[submissionId];
         return {
-            tableNumber: project.tableNumber != null ? String(project.tableNumber) : "",
+            tableNumber:
+                project.tableNumber != null ? String(project.tableNumber) : "",
             session: project.tableSession ?? "",
         };
     }
@@ -164,7 +196,10 @@ export default function AdminProjectsPage() {
         setTableInputs((prev) => ({
             ...prev,
             [submissionId]: {
-                ...getTableInput(submissionId, projects.find((p) => p.submissionId === submissionId)),
+                ...getTableInput(
+                    submissionId,
+                    projects.find((p) => p.submissionId === submissionId),
+                ),
                 [field]: value,
             },
         }));
@@ -175,7 +210,10 @@ export default function AdminProjectsPage() {
         const tableNumber = parseInt(input.tableNumber, 10);
 
         if (!tableNumber || isNaN(tableNumber)) {
-            setSaveError((prev) => ({ ...prev, [project.submissionId]: "Enter a valid table number." }));
+            setSaveError((prev) => ({
+                ...prev,
+                [project.submissionId]: "Enter a valid table number.",
+            }));
             return;
         }
 
@@ -194,9 +232,13 @@ export default function AdminProjectsPage() {
             setProjects((prev) =>
                 prev.map((p) =>
                     p.submissionId === project.submissionId
-                        ? { ...p, tableNumber, tableSession: input.session || null }
-                        : p
-                )
+                        ? {
+                              ...p,
+                              tableNumber,
+                              tableSession: input.session || null,
+                          }
+                        : p,
+                ),
             );
             setTableInputs((prev) => {
                 const next = { ...prev };
@@ -205,7 +247,10 @@ export default function AdminProjectsPage() {
             });
         } catch (err) {
             console.error(err);
-            setSaveError((prev) => ({ ...prev, [project.submissionId]: "Could not save table assignment." }));
+            setSaveError((prev) => ({
+                ...prev,
+                [project.submissionId]: "Could not save table assignment.",
+            }));
         } finally {
             setSavingId(null);
         }
@@ -214,14 +259,19 @@ export default function AdminProjectsPage() {
     return (
         <div className="max-w-5xl mx-auto p-6">
             <div className="mb-6">
-                <Button variant="outline" onClick={() => navigate(`/admin/events/${eventInstanceId}`)}>
+                <Button
+                    variant="outline"
+                    onClick={() => navigate(`/admin/events/${eventInstanceId}`)}
+                >
                     ← Back to Event
                 </Button>
             </div>
 
             <div className="mb-6 flex items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold text-[#004785]">Projects</h1>
+                    <h1 className="text-3xl font-bold text-[#004785]">
+                        Projects
+                    </h1>
                     <p className="text-[#55616D] mt-1 text-sm">{viewLabel}</p>
                 </div>
                 {!isLoading && !!projects.length && (
@@ -234,27 +284,35 @@ export default function AdminProjectsPage() {
                             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
                         />
                         <div className="flex items-center gap-2 md:mt-1 md:shrink-0">
-                        <p className="text-sm text-[#55616D] hidden sm:block">
-                            {filteredProjects.length} of {projects.length}
-                        </p>
-                        <select
-                            value={sortField}
-                            onChange={(e) => setSortField(e.target.value)}
-                            className="rounded-lg border border-gray-300 px-2 py-1 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
-                        >
-                            <option value="title">Title</option>
-                            <option value="scoreCount">Scores</option>
-                            <option value="createdAt">Date</option>
-                            <option value="tableNumber">Table #</option>
-                        </select>
-                        <button
-                            type="button"
-                            onClick={() => setSortDir((d) => d === "asc" ? "desc" : "asc")}
-                            className="rounded-lg border border-gray-300 px-2 py-1 text-sm text-[#55616D] hover:bg-gray-100 focus:outline-none"
-                            title={sortDir === "asc" ? "Ascending" : "Descending"}
-                        >
-                            {sortDir === "asc" ? "↑ Asc" : "↓ Desc"}
-                        </button>
+                            <p className="text-sm text-[#55616D] hidden sm:block">
+                                {filteredProjects.length} of {projects.length}
+                            </p>
+                            <select
+                                value={sortField}
+                                onChange={(e) => setSortField(e.target.value)}
+                                className="rounded-lg border border-gray-300 px-2 py-1 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
+                            >
+                                <option value="title">Title</option>
+                                <option value="scoreCount">Scores</option>
+                                <option value="createdAt">Date</option>
+                                <option value="tableNumber">Table #</option>
+                            </select>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setSortDir((d) =>
+                                        d === "asc" ? "desc" : "asc",
+                                    )
+                                }
+                                className="rounded-lg border border-gray-300 px-2 py-1 text-sm text-[#55616D] hover:bg-gray-100 focus:outline-none"
+                                title={
+                                    sortDir === "asc"
+                                        ? "Ascending"
+                                        : "Descending"
+                                }
+                            >
+                                {sortDir === "asc" ? "↑ Asc" : "↓ Desc"}
+                            </button>
                         </div>
                     </div>
                 )}
@@ -266,28 +324,46 @@ export default function AdminProjectsPage() {
                     <div className="mb-4 flex items-center justify-between gap-3">
                         <p className="font-semibold text-[#004785]">Filters</p>
                         {hasActiveFilters && (
-                            <Button type="button" variant="outline" onClick={() => setSelectedFiltersByFacetId({})}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setSelectedFiltersByFacetId({})}
+                            >
                                 Clear Filters
                             </Button>
                         )}
                     </div>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         {availableFilterFacets.map((facet) => (
-                            <div key={facet.facetId} className="rounded-xl border border-gray-200 bg-[#F3F3F3] p-3">
-                                <p className="text-sm font-semibold text-[#004785]">{facet.name || facet.code}</p>
+                            <div
+                                key={facet.facetId}
+                                className="rounded-xl border border-gray-200 bg-[#F3F3F3] p-3"
+                            >
+                                <p className="text-sm font-semibold text-[#004785]">
+                                    {facet.name || facet.code}
+                                </p>
                                 <select
                                     className="mt-2 w-full rounded-lg border border-gray-300 p-2 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
-                                    value={(selectedFiltersByFacetId[facet.facetId] ?? [])[0] ?? ""}
+                                    value={
+                                        (selectedFiltersByFacetId[
+                                            facet.facetId
+                                        ] ?? [])[0] ?? ""
+                                    }
                                     onChange={(e) =>
                                         setSelectedFiltersByFacetId((prev) => ({
                                             ...prev,
-                                            [facet.facetId]: e.target.value ? [e.target.value] : [],
+                                            [facet.facetId]: e.target.value
+                                                ? [e.target.value]
+                                                : [],
                                         }))
                                     }
                                 >
                                     <option value="">All</option>
                                     {facet.options.map((opt) => (
-                                        <option key={opt.token} value={opt.token}>
+                                        <option
+                                            key={opt.token}
+                                            value={opt.token}
+                                        >
                                             {opt.label} ({opt.count})
                                         </option>
                                     ))}
@@ -298,7 +374,11 @@ export default function AdminProjectsPage() {
                 </section>
             )}
 
-            {isLoading && <p className="text-[#55616D] text-center py-10">Loading projects...</p>}
+            {isLoading && (
+                <p className="text-[#55616D] text-center py-10">
+                    Loading projects...
+                </p>
+            )}
             {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
             {!isLoading && !error && !filteredProjects.length && (
                 <p className="text-[#55616D] text-center py-10">
@@ -308,59 +388,80 @@ export default function AdminProjectsPage() {
                 </p>
             )}
 
-            {!isLoading && !error && !!filteredProjects.length && (() => {
-                const unscored = filteredProjects.filter((p) => p.scoreCount === 0);
-                const visibleUnscored = showAllUnscored
-                    ? unscored
-                    : unscored.slice(0, UNSCORED_SUMMARY_LIMIT);
-                const hiddenUnscoredCount = Math.max(0, unscored.length - visibleUnscored.length);
-                const byTrack = visibleUnscored.reduce((acc, p) => {
-                    const key = p.track?.name ?? "Unknown Track";
-                    if (!acc[key]) acc[key] = [];
-                    acc[key].push(p);
-                    return acc;
-                }, {});
+            {!isLoading &&
+                !error &&
+                !!filteredProjects.length &&
+                (() => {
+                    const unscored = filteredProjects.filter(
+                        (p) => p.scoreCount === 0,
+                    );
+                    const visibleUnscored = showAllUnscored
+                        ? unscored
+                        : unscored.slice(0, UNSCORED_SUMMARY_LIMIT);
+                    const hiddenUnscoredCount = Math.max(
+                        0,
+                        unscored.length - visibleUnscored.length,
+                    );
+                    const byTrack = visibleUnscored.reduce((acc, p) => {
+                        const key = p.track?.name ?? "Unknown Track";
+                        if (!acc[key]) acc[key] = [];
+                        acc[key].push(p);
+                        return acc;
+                    }, {});
 
-                return (
-                    <div className="mb-6 rounded-2xl border border-[#CCAB00]/40 bg-[#CCAB00]/10 p-4">
-                        <p className="mb-2 font-bold text-[#8A7400]">
-                            Unscored Projects — {unscored.length} of {projects.length}
-                        </p>
-                        {!unscored.length && (
-                            <p className="text-sm text-[#00794C] font-medium">
-                                {hasActiveFilters || hasActiveSearch
-                                    ? "All visible projects have at least one score."
-                                    : "All projects have at least one score."}
+                    return (
+                        <div className="mb-6 rounded-2xl border border-[#CCAB00]/40 bg-[#CCAB00]/10 p-4">
+                            <p className="mb-2 font-bold text-[#8A7400]">
+                                Unscored Projects — {unscored.length} of{" "}
+                                {projects.length}
                             </p>
-                        )}
-                        {!!unscored.length && Object.entries(byTrack).map(([trackName, trackProjects]) => (
-                            <div key={trackName} className="mb-2">
-                                {viewMode === "event" && (
-                                    <p className="text-xs font-semibold text-[#8A7400]">{trackName}</p>
+                            {!unscored.length && (
+                                <p className="text-sm text-[#00794C] font-medium">
+                                    {hasActiveFilters || hasActiveSearch
+                                        ? "All visible projects have at least one score."
+                                        : "All projects have at least one score."}
+                                </p>
+                            )}
+                            {!!unscored.length &&
+                                Object.entries(byTrack).map(
+                                    ([trackName, trackProjects]) => (
+                                        <div key={trackName} className="mb-2">
+                                            {viewMode === "event" && (
+                                                <p className="text-xs font-semibold text-[#8A7400]">
+                                                    {trackName}
+                                                </p>
+                                            )}
+                                            <ul className="ml-2 list-disc pl-3">
+                                                {trackProjects.map((p) => (
+                                                    <li
+                                                        key={p.submissionId}
+                                                        className="text-sm text-[#55616D]"
+                                                    >
+                                                        {p.title}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ),
                                 )}
-                                <ul className="ml-2 list-disc pl-3">
-                                    {trackProjects.map((p) => (
-                                        <li key={p.submissionId} className="text-sm text-[#55616D]">{p.title}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
-                        {unscored.length > UNSCORED_SUMMARY_LIMIT && (
-                            <div className="mt-3">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setShowAllUnscored((prev) => !prev)}
-                                >
-                                    {showAllUnscored
-                                        ? "Show Less"
-                                        : `See More${hiddenUnscoredCount ? ` (${hiddenUnscoredCount} more)` : ""}`}
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-                );
-            })()}
+                            {unscored.length > UNSCORED_SUMMARY_LIMIT && (
+                                <div className="mt-3">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() =>
+                                            setShowAllUnscored((prev) => !prev)
+                                        }
+                                    >
+                                        {showAllUnscored
+                                            ? "Show Less"
+                                            : `See More${hiddenUnscoredCount ? ` (${hiddenUnscoredCount} more)` : ""}`}
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })()}
 
             <ul className="space-y-4">
                 {filteredProjects.map((project) => {
@@ -369,23 +470,46 @@ export default function AdminProjectsPage() {
                     const err = saveError[project.submissionId];
 
                     return (
-                        <li key={project.submissionId} className="rounded-2xl border border-gray-200 bg-white shadow-md p-5">
+                        <li
+                            key={project.submissionId}
+                            className="rounded-2xl border border-gray-200 bg-white shadow-md p-5"
+                        >
                             <div className="flex items-start justify-between gap-2 mb-2">
-                                <p className="font-bold text-[#004785] text-lg">{project.title}</p>
-                                <span className={`shrink-0 rounded-full px-3 py-0.5 text-xs font-semibold ${project.scoreCount === 0 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
-                                    {project.scoreCount} {project.scoreCount === 1 ? "score" : "scores"}
+                                <p className="font-bold text-[#004785] text-lg">
+                                    {project.title}
+                                </p>
+                                <span
+                                    className={`shrink-0 rounded-full px-3 py-0.5 text-xs font-semibold ${project.scoreCount === 0 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}
+                                >
+                                    {project.scoreCount}{" "}
+                                    {project.scoreCount === 1
+                                        ? "score"
+                                        : "scores"}
                                 </span>
                             </div>
 
                             {project.description && (
-                                <p className="text-sm text-[#55616D] mb-2">{project.description}</p>
+                                <p className="text-sm text-[#55616D] mb-2">
+                                    {project.description}
+                                </p>
                             )}
 
                             <div className="space-y-1 text-sm text-[#55616D]">
-                                <p><span className="font-semibold text-[#004785]">Status:</span> {project.status}</p>
-                                {viewMode === "event" && project.track?.name && (
-                                    <p><span className="font-semibold text-[#004785]">Track:</span> {project.track.name}</p>
-                                )}
+                                <p>
+                                    <span className="font-semibold text-[#004785]">
+                                        Status:
+                                    </span>{" "}
+                                    {project.status}
+                                </p>
+                                {viewMode === "event" &&
+                                    project.track?.name && (
+                                        <p>
+                                            <span className="font-semibold text-[#004785]">
+                                                Track:
+                                            </span>{" "}
+                                            {project.track.name}
+                                        </p>
+                                    )}
                                 {project.posterFileUrl && (
                                     <p>
                                         <a
@@ -399,26 +523,37 @@ export default function AdminProjectsPage() {
                                     </p>
                                 )}
                                 <p>
-                                    <span className="font-semibold text-[#004785]">Participants:</span>{" "}
+                                    <span className="font-semibold text-[#004785]">
+                                        Participants:
+                                    </span>{" "}
                                     {project.participants.length
                                         ? project.participants
                                               .map((participant) =>
                                                   participant.email
                                                       ? `${participant.displayName} (${participant.email})`
-                                                      : participant.displayName
+                                                      : participant.displayName,
                                               )
                                               .join(", ")
                                         : "No participants linked"}
                                 </p>
                                 {project.supervisor && (
                                     <p>
-                                        <span className="font-semibold text-[#004785]">Supervisor:</span>{" "}
+                                        <span className="font-semibold text-[#004785]">
+                                            Supervisor:
+                                        </span>{" "}
                                         {project.supervisor.displayName}
-                                        {project.supervisor.email ? ` (${project.supervisor.email})` : ""}
+                                        {project.supervisor.email
+                                            ? ` (${project.supervisor.email})`
+                                            : ""}
                                     </p>
                                 )}
                                 <p className="text-xs text-[#55616D]/70">
-                                    Created: {project.createdAt ? new Date(project.createdAt).toLocaleString() : "-"}
+                                    Created:{" "}
+                                    {project.createdAt
+                                        ? new Date(
+                                              project.createdAt,
+                                          ).toLocaleString()
+                                        : "-"}
                                 </p>
                             </div>
 
@@ -430,7 +565,8 @@ export default function AdminProjectsPage() {
                                             key={`${project.submissionId}-${facet.facetId}-${facet.token}`}
                                             className="rounded-full bg-[#004785]/10 px-3 py-1 text-xs font-medium text-[#004785]"
                                         >
-                                            {facet.name || facet.code}: {facet.label}
+                                            {facet.name || facet.code}:{" "}
+                                            {facet.label}
                                         </span>
                                     ))}
                                 </div>
@@ -443,10 +579,14 @@ export default function AdminProjectsPage() {
                                     {project.tableNumber != null ? (
                                         <span className="text-[#00794C]">
                                             Table {project.tableNumber}
-                                            {project.tableSession ? ` · Session ${project.tableSession}` : ""}
+                                            {project.tableSession
+                                                ? ` · Session ${project.tableSession}`
+                                                : ""}
                                         </span>
                                     ) : (
-                                        <span className="text-[#55616D] font-normal">Not assigned</span>
+                                        <span className="text-[#55616D] font-normal">
+                                            Not assigned
+                                        </span>
                                     )}
                                 </p>
                                 <div className="flex items-center gap-2 flex-wrap">
@@ -456,20 +596,41 @@ export default function AdminProjectsPage() {
                                         placeholder="Table #"
                                         className="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
                                         value={input.tableNumber}
-                                        onChange={(e) => setTableInput(project.submissionId, "tableNumber", e.target.value)}
+                                        onChange={(e) =>
+                                            setTableInput(
+                                                project.submissionId,
+                                                "tableNumber",
+                                                e.target.value,
+                                            )
+                                        }
                                     />
                                     <input
                                         type="text"
                                         placeholder="Session (optional)"
                                         className="w-36 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
                                         value={input.session}
-                                        onChange={(e) => setTableInput(project.submissionId, "session", e.target.value)}
+                                        onChange={(e) =>
+                                            setTableInput(
+                                                project.submissionId,
+                                                "session",
+                                                e.target.value,
+                                            )
+                                        }
                                     />
-                                    <Button type="button" variant="primary" disabled={isSaving} onClick={() => handleSaveTable(project)}>
+                                    <Button
+                                        type="button"
+                                        variant="primary"
+                                        disabled={isSaving}
+                                        onClick={() => handleSaveTable(project)}
+                                    >
                                         {isSaving ? "Saving..." : "Save"}
                                     </Button>
                                 </div>
-                                {err && <p className="mt-1 text-xs text-red-600">{err}</p>}
+                                {err && (
+                                    <p className="mt-1 text-xs text-red-600">
+                                        {err}
+                                    </p>
+                                )}
                             </div>
                         </li>
                     );

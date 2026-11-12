@@ -7,7 +7,11 @@
 //
 // Notes:
 // - Utilities here should be side-effect free and framework agnostic.
-export const JUDGE_SIGNUP_FALLBACK_FACET_CODES = ["COLLEGE", "DEPARTMENT", "PROGRAM"];
+export const JUDGE_SIGNUP_FALLBACK_FACET_CODES = [
+    "COLLEGE",
+    "DEPARTMENT",
+    "PROGRAM",
+];
 export const JUDGE_SIGNUP_REQUIRED_FACET_CODES = ["PROGRAM", "DEPARTMENT"];
 
 export function toSelectedOptionIdArray(selectedValue) {
@@ -19,7 +23,11 @@ export function toSelectedOptionIdArray(selectedValue) {
     return [String(selectedValue)];
 }
 
-export function buildFacetValuePayload(personEventRoleId, facetId, facetOption) {
+export function buildFacetValuePayload(
+    personEventRoleId,
+    facetId,
+    facetOption,
+) {
     return {
         person_event_role_id: personEventRoleId,
         facet_id: facetId,
@@ -55,7 +63,7 @@ export function appendMissingFacetRows(existingRows, facetRowsToAppend) {
     const includedFacetIds = new Set(facetRows.map((row) => row.facet_id));
     const maxDisplayOrder = facetRows.reduce(
         (maxValue, row) => Math.max(maxValue, Number(row.display_order) || 0),
-        0
+        0,
     );
 
     let nextDisplayOrder = maxDisplayOrder + 1;

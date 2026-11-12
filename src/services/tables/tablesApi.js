@@ -1,6 +1,11 @@
 import { supabase } from "../../lib/supabaseClient.js";
 
-export async function fetchEventTableByNumber(eventInstanceId, trackId, tableNumber, session) {
+export async function fetchEventTableByNumber(
+    eventInstanceId,
+    trackId,
+    tableNumber,
+    session,
+) {
     let query = supabase
         .from("event_table")
         .select("table_id, table_number, session")
@@ -18,10 +23,19 @@ export async function fetchEventTableByNumber(eventInstanceId, trackId, tableNum
     return data ?? null;
 }
 
-export async function createEventTable(eventInstanceId, trackId, tableNumber, session) {
+export async function createEventTable(
+    eventInstanceId,
+    trackId,
+    tableNumber,
+    session,
+) {
     const { data, error } = await supabase
         .from("event_table")
-        .insert({ event_instance_id: eventInstanceId, table_number: tableNumber, session: session || null })
+        .insert({
+            event_instance_id: eventInstanceId,
+            table_number: tableNumber,
+            session: session || null,
+        })
         .select("table_id, table_number, session")
         .single();
 
@@ -32,7 +46,10 @@ export async function createEventTable(eventInstanceId, trackId, tableNumber, se
 export async function upsertSubmissionTableAssignment(submissionId, tableId) {
     const { error } = await supabase
         .from("submission_table_assignment")
-        .upsert({ submission_id: submissionId, table_id: tableId }, { onConflict: "submission_id" });
+        .upsert(
+            { submission_id: submissionId, table_id: tableId },
+            { onConflict: "submission_id" },
+        );
 
     if (error) throw error;
 }

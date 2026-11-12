@@ -21,7 +21,9 @@ function getCriterionMaxPoints(criterion) {
     if (criterion.answerType === "dropdown") {
         const optionMax = Math.max(
             0,
-            ...(criterion.answerConfig?.options ?? []).map((option) => toNumber(option.points, 0))
+            ...(criterion.answerConfig?.options ?? []).map((option) =>
+                toNumber(option.points, 0),
+            ),
         );
         return optionMax * weight;
     }
@@ -30,7 +32,10 @@ function getCriterionMaxPoints(criterion) {
 }
 
 export function computeRubricMaxPoints(criteria) {
-    return (criteria ?? []).reduce((sum, criterion) => sum + getCriterionMaxPoints(criterion), 0);
+    return (criteria ?? []).reduce(
+        (sum, criterion) => sum + getCriterionMaxPoints(criterion),
+        0,
+    );
 }
 
 export function normalizeCriteriaPayload(rubricId, criteria) {
@@ -50,7 +55,9 @@ export function normalizeCriteriaPayload(rubricId, criteria) {
 }
 
 export function mapTrackRubrics(trackRubrics, rubrics, criteria) {
-    const rubricById = new Map((rubrics ?? []).map((rubric) => [rubric.rubric_id, rubric]));
+    const rubricById = new Map(
+        (rubrics ?? []).map((rubric) => [rubric.rubric_id, rubric]),
+    );
     const criteriaByRubricId = new Map();
 
     for (const criterion of criteria ?? []) {

@@ -13,7 +13,10 @@ import {
     insertTracks,
     updateEventInstanceById,
 } from "./eventInstanceApi.js";
-import { mapEventInstanceDetails, mapEventInstanceSummaries } from "./eventInstanceMappers.js";
+import {
+    mapEventInstanceDetails,
+    mapEventInstanceSummaries,
+} from "./eventInstanceMappers.js";
 import {
     buildEventInsertPayload,
     buildEventInstanceInsertPayload,
@@ -28,7 +31,9 @@ export async function fetchEventInstances() {
     const instances = await fetchEventInstanceRows();
     if (!instances.length) return [];
 
-    const eventIds = [...new Set(instances.map((instance) => instance.event_id))];
+    const eventIds = [
+        ...new Set(instances.map((instance) => instance.event_id)),
+    ];
     const events = await fetchEventByIds(eventIds);
 
     return mapEventInstanceSummaries(instances, events);
@@ -71,7 +76,7 @@ export async function createEventHierarchyFromForm(form) {
         submissionOpenAt,
         submissionCloseAt,
         selectedTrackTypeIds,
-            // Removed: track-level pre-scoring
+        // Removed: track-level pre-scoring
     } = form;
 
     let eventId = await findEventIdByName(eventName);
@@ -103,7 +108,7 @@ export async function createEventHierarchyFromForm(form) {
 
     const selectedTrackTypes = await fetchTrackTypes();
     const trackTypesToCreate = selectedTrackTypes.filter((trackType) =>
-        selectedTrackTypeIds.includes(trackType.track_type_id)
+        selectedTrackTypeIds.includes(trackType.track_type_id),
     );
 
     if (trackTypesToCreate.length) {
@@ -116,7 +121,7 @@ export async function createEventHierarchyFromForm(form) {
             startAt,
             endAt,
             preScoringStartAt,
-                // Removed: track-level pre-scoring
+            // Removed: track-level pre-scoring
         });
 
         await insertTracks(tracksToInsert);
@@ -135,12 +140,14 @@ export async function updateEventInstanceSchedule(eventInstanceId, form) {
         name: form.instanceName?.trim(),
         start_at: toIsoString(form.startAt),
         end_at: toIsoString(form.endAt),
-        pre_scoring_start_at: form.preScoringEnabled === "yes" && form.preScoringStartAt
-            ? toIsoString(form.preScoringStartAt)
-            : null,
-        pre_scoring_end_at: form.preScoringEnabled === "yes" && form.preScoringEndAt
-            ? toIsoString(form.preScoringEndAt)
-            : null,
+        pre_scoring_start_at:
+            form.preScoringEnabled === "yes" && form.preScoringStartAt
+                ? toIsoString(form.preScoringStartAt)
+                : null,
+        pre_scoring_end_at:
+            form.preScoringEnabled === "yes" && form.preScoringEndAt
+                ? toIsoString(form.preScoringEndAt)
+                : null,
         location: form.location?.trim() || null,
         timezone: form.timezone?.trim() || "UTC",
         status: normalizeEventStatus(form.status),

@@ -2,7 +2,10 @@ import * as XLSX from "xlsx";
 
 // Normalizes incoming Excel headers for resilient key matching.
 function normalizeHeader(value) {
-    return String(value).trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    return String(value)
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
 }
 
 // Returns the first populated value for any of the provided keys.
@@ -24,7 +27,10 @@ function mapExcelRowToSubmission(row) {
         normalizedRow[normalizeHeader(key)] = value;
     });
 
-    const submittedAtRaw = getRowValue(normalizedRow, ["submittedat", "submissiondate"]);
+    const submittedAtRaw = getRowValue(normalizedRow, [
+        "submittedat",
+        "submissiondate",
+    ]);
     let submittedAt = "";
 
     if (submittedAtRaw) {
@@ -36,20 +42,37 @@ function mapExcelRowToSubmission(row) {
 
     return {
         title: String(getRowValue(normalizedRow, ["title"]))?.trim(),
-        description: String(getRowValue(normalizedRow, ["description", "abstract"]))?.trim(),
-        keywords: String(getRowValue(normalizedRow, ["keywords"]))?.trim(),
-        status: String(getRowValue(normalizedRow, ["status", "submittedstatus"]))?.trim() || "submitted",
-        created_by_email: String(getRowValue(normalizedRow, ["createdbyemail", "createdbypersonid"]))?.trim(),
-        co_author_emails: String(
-            getRowValue(normalizedRow, ["coauthoremails", "coauthors", "copresenteremails"])
+        description: String(
+            getRowValue(normalizedRow, ["description", "abstract"]),
         )?.trim(),
-        supervisor_email: String(getRowValue(normalizedRow, ["supervisoremail", "supervisor"]))?.trim(),
+        keywords: String(getRowValue(normalizedRow, ["keywords"]))?.trim(),
+        status:
+            String(
+                getRowValue(normalizedRow, ["status", "submittedstatus"]),
+            )?.trim() || "submitted",
+        created_by_email: String(
+            getRowValue(normalizedRow, ["createdbyemail", "createdbypersonid"]),
+        )?.trim(),
+        co_author_emails: String(
+            getRowValue(normalizedRow, [
+                "coauthoremails",
+                "coauthors",
+                "copresenteremails",
+            ]),
+        )?.trim(),
+        supervisor_email: String(
+            getRowValue(normalizedRow, ["supervisoremail", "supervisor"]),
+        )?.trim(),
         college: String(getRowValue(normalizedRow, ["college"]))?.trim(),
         degree: String(getRowValue(normalizedRow, ["degree"]))?.trim(),
         level: String(getRowValue(normalizedRow, ["level"]))?.trim(),
         program: String(getRowValue(normalizedRow, ["program"]))?.trim(),
         session_assignment: String(
-            getRowValue(normalizedRow, ["session", "postersessionandnumber", "sessionandnumber"])
+            getRowValue(normalizedRow, [
+                "session",
+                "postersessionandnumber",
+                "sessionandnumber",
+            ]),
         )?.trim(),
         submitted_at: submittedAt,
     };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import { fetchStudentEventInstances } from "../../services/studentProjects/studentApi.js";
 import Button from "../../components/ui/Button.jsx";
 import EventInstanceCard from "../../components/ui/EventInstanceCard.jsx";
@@ -27,7 +27,6 @@ export default function StudentDashboard() {
 
                 const result = await fetchStudentEventInstances(personId);
                 setEvents(result);
-
             } catch (err) {
                 console.error(err);
                 setError("Could not load your events.");
@@ -51,10 +50,13 @@ export default function StudentDashboard() {
         <div className="max-w-6xl mx-auto p-6">
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-3xl font-bold text-[#004785]">My Events</h1>
-                
             </div>
 
-            {loading && <p className="text-[#55616D] text-center py-10">Loading events...</p>}
+            {loading && (
+                <p className="text-[#55616D] text-center py-10">
+                    Loading events...
+                </p>
+            )}
             {error && <p className="text-[#CCAB00] text-center">{error}</p>}
             {!loading && !events.length && (
                 <p className="text-[#55616D] text-center py-10">
@@ -63,11 +65,13 @@ export default function StudentDashboard() {
             )}
 
             <ul className="grid gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                {events.map(event => (
+                {events.map((event) => (
                     <EventInstanceCard
                         key={event.event_instance_id}
                         event={event}
-                        onClick={() => handleViewDetails(event.event_instance_id)}
+                        onClick={() =>
+                            handleViewDetails(event.event_instance_id)
+                        }
                         action={
                             <div className="flex gap-2">
                                 {event.action_needed && (
@@ -76,7 +80,9 @@ export default function StudentDashboard() {
                                         size="sm"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleCompleteDetails(event.event_instance_id);
+                                            handleCompleteDetails(
+                                                event.event_instance_id,
+                                            );
                                         }}
                                     >
                                         Action Needed
@@ -87,7 +93,9 @@ export default function StudentDashboard() {
                                     size="sm"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        handleViewDetails(event.event_instance_id);
+                                        handleViewDetails(
+                                            event.event_instance_id,
+                                        );
                                     }}
                                 >
                                     View Event

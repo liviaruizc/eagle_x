@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 import Button from "../../components/ui/Button.jsx";
 import {
     fetchQueueSubmissionsForJudge,
@@ -7,14 +7,14 @@ import {
 } from "../../services/queue/queueService.js";
 import { matchesSearchTerm } from "../../services/search/searchUtils.js";
 
-const DEBUG_LOGS = import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
+const DEBUG_LOGS =
+    import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGS === "true";
 const QUEUE_REFRESH_INTERVAL_MS = 15 * 1000;
 
 function cloneFiltersMap(filters) {
     if (!filters || typeof filters !== "object") return {};
     return JSON.parse(JSON.stringify(filters));
 }
-
 
 export default function QueuePage() {
     const navigate = useNavigate();
@@ -26,16 +26,20 @@ export default function QueuePage() {
         console.log("QueuePage rendered with trackId:", trackId);
     }
 
-
     const [allSubmissions, setAllSubmissions] = useState([]);
     const [filterFacets, setFilterFacets] = useState([]);
-    const [defaultSelectedFiltersByFacetId, setDefaultSelectedFiltersByFacetId] = useState({});
-    const [selectedFiltersByFacetId, setSelectedFiltersByFacetId] = useState({});
+    const [
+        defaultSelectedFiltersByFacetId,
+        setDefaultSelectedFiltersByFacetId,
+    ] = useState({});
+    const [selectedFiltersByFacetId, setSelectedFiltersByFacetId] = useState(
+        {},
+    );
     const [searchTerm, setSearchTerm] = useState("");
 
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(true);
-    const [judgePersonId, setJudgePersonId] = useState("");
+    const [/*judgePersonId,*/ setJudgePersonId] = useState("");
     const hasInitializedFiltersRef = useRef(false);
     const isFetchingRef = useRef(false);
     const deferredSearchTerm = useDeferredValue(searchTerm);
@@ -96,13 +100,18 @@ export default function QueuePage() {
                 facetId: facet.facetId,
                 code: facet.code,
                 name: facet.name,
-                options: [...facet.optionsMap.values()].sort((a, b) => a.label.localeCompare(b.label)),
+                options: [...facet.optionsMap.values()].sort((a, b) =>
+                    a.label.localeCompare(b.label),
+                ),
             }))
             .sort((a, b) => (a.name || a.code).localeCompare(b.name || b.code));
     }, [allSubmissions, filterFacets]);
 
     const filteredSubmissions = useMemo(() => {
-        const byFacetFilters = filterQueueSubmissions(allSubmissions, selectedFiltersByFacetId);
+        const byFacetFilters = filterQueueSubmissions(
+            allSubmissions,
+            selectedFiltersByFacetId,
+        );
 
         const visible = byFacetFilters.filter((submission) =>
             matchesSearchTerm(
@@ -110,8 +119,12 @@ export default function QueuePage() {
                     submission.title,
                     submission.status,
                     submission.trackName,
-                    submission.tableNumber != null ? `table ${submission.tableNumber}` : "",
-                    submission.tableSession ? `session ${submission.tableSession}` : "",
+                    submission.tableNumber != null
+                        ? `table ${submission.tableNumber}`
+                        : "",
+                    submission.tableSession
+                        ? `session ${submission.tableSession}`
+                        : "",
                     submission.isBeingScored ? "currently being scored" : "",
                     ...(submission.facets ?? []).flatMap((facet) => [
                         facet.name,
@@ -119,8 +132,8 @@ export default function QueuePage() {
                         facet.label,
                     ]),
                 ],
-                deferredSearchTerm
-            )
+                deferredSearchTerm,
+            ),
         );
 
         return [...visible].sort((a, b) => {
@@ -135,7 +148,11 @@ export default function QueuePage() {
             const bTime = new Date(b.createdAt || 0).getTime();
             return aTime - bTime;
         });
-    }, [allSubmissions, selectedFiltersByFacetId, deferredSearchTerm, judgePersonId]);
+    }, [
+        allSubmissions,
+        selectedFiltersByFacetId,
+        deferredSearchTerm /*, judgePersonId,*/,
+    ]);
 
     useEffect(() => {
         async function loadQueueSubmissions({ showLoading }) {
@@ -154,15 +171,18 @@ export default function QueuePage() {
                 return;
             }
 
-
             try {
                 // const judgeSession = supabase.auth.getSession();
                 // alert(`Loaded judge session: ${JSON.stringify(judgeSession)}`);
                 const judgePersonId = sessionStorage.getItem("auth_person_id");
-                const eventInstanceId = sessionStorage.getItem("judge_event_instance_id");
+                const eventInstanceId = sessionStorage.getItem(
+                    "judge_event_instance_id",
+                );
 
                 if (!judgePersonId || !eventInstanceId) {
-                    setError("No active judge profile found. Please sign up first.");
+                    setError(
+                        "No active judge profile found. Please sign up first.",
+                    );
                     isFetchingRef.current = false;
                     return;
                 }
@@ -176,18 +196,23 @@ export default function QueuePage() {
                     trackId,
                 });
 
-                const judgeDefaults = cloneFiltersMap(queueData.defaultSelectedTokensByFacetId ?? {});
+                const judgeDefaults = cloneFiltersMap(
+                    queueData.defaultSelectedTokensByFacetId ?? {},
+                );
 
                 setAllSubmissions(queueData.submissions ?? []);
                 setFilterFacets(queueData.filterFacets ?? []);
                 setDefaultSelectedFiltersByFacetId(judgeDefaults);
-                sessionStorage.setItem(`queue_default_filters_${trackId}`, JSON.stringify(judgeDefaults));
+                sessionStorage.setItem(
+                    `queue_default_filters_${trackId}`,
+                    JSON.stringify(judgeDefaults),
+                );
 
                 if (!hasInitializedFiltersRef.current) {
                     const storageKey = `queue_filters_${trackId}`;
                     const savedFilters = sessionStorage.getItem(storageKey);
                     setSelectedFiltersByFacetId(
-                        savedFilters ? JSON.parse(savedFilters) : judgeDefaults
+                        savedFilters ? JSON.parse(savedFilters) : judgeDefaults,
                     );
                     hasInitializedFiltersRef.current = true;
                 }
@@ -212,11 +237,13 @@ export default function QueuePage() {
         return () => {
             window.clearInterval(refreshId);
         };
-    }, [trackId]);
-
+    }, [setJudgePersonId, trackId]);
 
     function persistFilters(filters) {
-        sessionStorage.setItem(`queue_filters_${trackId}`, JSON.stringify(filters));
+        sessionStorage.setItem(
+            `queue_filters_${trackId}`,
+            JSON.stringify(filters),
+        );
     }
 
     function setFacetFilterToken(facetId, token) {
@@ -233,7 +260,9 @@ export default function QueuePage() {
     }
 
     function resetToAssignedFilters() {
-        const storedDefaults = sessionStorage.getItem(`queue_default_filters_${trackId}`);
+        const storedDefaults = sessionStorage.getItem(
+            `queue_default_filters_${trackId}`,
+        );
         const resolvedDefaults = storedDefaults
             ? cloneFiltersMap(JSON.parse(storedDefaults))
             : cloneFiltersMap(defaultSelectedFiltersByFacetId);
@@ -243,7 +272,9 @@ export default function QueuePage() {
     }
 
     function hasAnySelectedFilters() {
-        return Object.values(selectedFiltersByFacetId).some((tokens) => (tokens ?? []).length > 0);
+        return Object.values(selectedFiltersByFacetId).some(
+            (tokens) => (tokens ?? []).length > 0,
+        );
     }
 
     async function handlePullNext() {
@@ -259,7 +290,9 @@ export default function QueuePage() {
             navigate(`/score/${targetId}`);
         } catch (err) {
             console.error(err);
-            setError("Could not check submissions right now. Please try again.");
+            setError(
+                "Could not check submissions right now. Please try again.",
+            );
         }
     }
 
@@ -267,13 +300,20 @@ export default function QueuePage() {
         <div className="mx-auto max-w-5xl p-6">
             <header className="mb-6 flex items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold text-[#004785]">Judging Queue</h1>
+                    <h1 className="text-3xl font-bold text-[#004785]">
+                        Judging Queue
+                    </h1>
                     <p className="text-sm text-[#55616D] mt-1">
-                        {filteredSubmissions.length} of {allSubmissions.length} eligible submissions shown
+                        {filteredSubmissions.length} of {allSubmissions.length}{" "}
+                        eligible submissions shown
                     </p>
                 </div>
 
-                <Button variant="primary" onClick={handlePullNext} disabled={isLoading || !filteredSubmissions.length}>
+                <Button
+                    variant="primary"
+                    onClick={handlePullNext}
+                    disabled={isLoading || !filteredSubmissions.length}
+                >
                     Pull Next
                 </Button>
             </header>
@@ -290,12 +330,22 @@ export default function QueuePage() {
 
             <section className="mb-6 rounded-2xl border border-gray-200 bg-white shadow-md p-5">
                 <div className="mb-4 flex items-center justify-between gap-3">
-                    <p className="font-semibold text-[#004785]">Submission Filters</p>
+                    <p className="font-semibold text-[#004785]">
+                        Submission Filters
+                    </p>
                     <div className="flex gap-2">
-                        <Button type="button" variant="outline" onClick={resetToAssignedFilters}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={resetToAssignedFilters}
+                        >
                             Reset to My Filters
                         </Button>
-                        <Button type="button" variant="outline" onClick={clearFilters}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={clearFilters}
+                        >
                             Clear Filters
                         </Button>
                     </div>
@@ -310,20 +360,33 @@ export default function QueuePage() {
                 {!!availableFilterFacets.length && (
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         {availableFilterFacets.map((facet) => (
-                            <div key={facet.facetId} className="rounded-xl border border-gray-200 p-3 bg-[#F3F3F3]">
+                            <div
+                                key={facet.facetId}
+                                className="rounded-xl border border-gray-200 p-3 bg-[#F3F3F3]"
+                            >
                                 <p className="text-sm font-semibold text-[#004785]">
                                     {facet.name || facet.code}
                                 </p>
                                 <select
                                     className="mt-2 w-full rounded-lg border border-gray-300 p-2 text-sm text-[#55616D] focus:outline-none focus:ring-2 focus:ring-[#00794C]/50"
-                                    value={(selectedFiltersByFacetId[facet.facetId] ?? [])[0] ?? ""}
+                                    value={
+                                        (selectedFiltersByFacetId[
+                                            facet.facetId
+                                        ] ?? [])[0] ?? ""
+                                    }
                                     onChange={(event) =>
-                                        setFacetFilterToken(facet.facetId, event.target.value)
+                                        setFacetFilterToken(
+                                            facet.facetId,
+                                            event.target.value,
+                                        )
                                     }
                                 >
                                     <option value="">All</option>
                                     {(facet.options ?? []).map((option) => (
-                                        <option key={`${facet.facetId}-${option.token}`} value={option.token}>
+                                        <option
+                                            key={`${facet.facetId}-${option.token}`}
+                                            value={option.token}
+                                        >
                                             {option.label} ({option.count})
                                         </option>
                                     ))}
@@ -341,7 +404,11 @@ export default function QueuePage() {
             </section>
 
             <section className="space-y-4">
-                {isLoading && <p className="text-[#55616D] text-center py-6">Loading queue...</p>}
+                {isLoading && (
+                    <p className="text-[#55616D] text-center py-6">
+                        Loading queue...
+                    </p>
+                )}
 
                 {!isLoading && !filteredSubmissions.length && (
                     <p className="text-[#55616D] text-center py-6">
@@ -356,9 +423,16 @@ export default function QueuePage() {
                     >
                         <div className="flex items-start justify-between gap-3">
                             <div className="space-y-1">
-                                <p className="font-bold text-[#004785] text-lg leading-snug">{submission.title}</p>
-                                <p className="text-xs text-[#55616D]">Track: {submission.trackName}</p>
-                                <p className="text-xs text-[#55616D]">Scores received: {submission.scoreCount ?? 0}</p>
+                                <p className="font-bold text-[#004785] text-lg leading-snug">
+                                    {submission.title}
+                                </p>
+                                <p className="text-xs text-[#55616D]">
+                                    Track: {submission.trackName}
+                                </p>
+                                <p className="text-xs text-[#55616D]">
+                                    Scores received:{" "}
+                                    {submission.scoreCount ?? 0}
+                                </p>
                                 {submission.isBeingScored && (
                                     <p className="text-xs font-semibold text-[#CCAB00]">
                                         Currently being scored
@@ -367,7 +441,9 @@ export default function QueuePage() {
                                 {submission.tableNumber != null && (
                                     <p className="text-xs font-semibold text-[#00794C]">
                                         Table {submission.tableNumber}
-                                        {submission.tableSession ? ` · Session ${submission.tableSession}` : ""}
+                                        {submission.tableSession
+                                            ? ` · Session ${submission.tableSession}`
+                                            : ""}
                                     </p>
                                 )}
                             </div>
@@ -375,7 +451,11 @@ export default function QueuePage() {
                             <Button
                                 type="button"
                                 variant="primary"
-                                onClick={() => navigate(`/score/${submission.submissionId}`)}
+                                onClick={() =>
+                                    navigate(
+                                        `/score/${submission.submissionId}`,
+                                    )
+                                }
                             >
                                 Score
                             </Button>
@@ -388,7 +468,9 @@ export default function QueuePage() {
                                         key={`${submission.submissionId}-${facet.facetId}-${facet.token}`}
                                         className="rounded-full bg-[#004785]/10 px-3 py-1 text-xs font-medium text-[#004785]"
                                     >
-                                        {(facet.name || facet.code) ? `${facet.name || facet.code}: ` : ""}
+                                        {facet.name || facet.code
+                                            ? `${facet.name || facet.code}: `
+                                            : ""}
                                         {facet.label}
                                     </span>
                                 ))}

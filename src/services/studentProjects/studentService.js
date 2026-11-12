@@ -1,5 +1,4 @@
-import {fetchSubmissionDetails } from "./studentApi";
-
+import { fetchSubmissionDetails } from "./studentApi";
 
 // export async function getStudentProjects(personId) {
 //     try {
@@ -18,5 +17,5 @@ export async function getStudentProjectInfo(submissionId) {
     } catch (error) {
         console.error("Error fetching student project info:", error);
         throw error;
-    }       
+    }
 }

@@ -1,6 +1,9 @@
 import Button from "../ui/Button.jsx";
 import DropdownOptionsEditor from "./DropdownOptionsEditor.jsx";
-import { CRITERION_CATEGORY_OPTIONS, computeCriterionMaxPoints } from "./rubricFormUtils.js";
+import {
+    CRITERION_CATEGORY_OPTIONS,
+    computeCriterionMaxPoints,
+} from "./rubricFormUtils.js";
 
 export default function CriterionEditor({
     criterion,
@@ -20,7 +23,6 @@ export default function CriterionEditor({
     function handleFieldChange(field) {
         return (event) => onCriterionChange(index, field, event.target.value);
     }
-
 
     return (
         <div className="space-y-2 rounded border p-2">
@@ -79,7 +81,9 @@ export default function CriterionEditor({
             </label>
 
             {isTrueFalse && (
-                <p className="text-sm text-gray-500">Response options: True / False</p>
+                <p className="text-sm text-gray-500">
+                    Response options: True / False
+                </p>
             )}
 
             {isDropdown && (
@@ -134,7 +138,7 @@ export default function CriterionEditor({
             <p className="text-xs text-gray-500">
                 Criterion max points: {computeCriterionMaxPoints(criterion)}
             </p>
-            
+
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                     When should this question appear?
@@ -152,7 +156,11 @@ export default function CriterionEditor({
             </div>
 
             {criteriaCount > 1 && (
-                <Button type="button" variant="outline" onClick={() => onRemoveCriterion(index)}>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onRemoveCriterion(index)}
+                >
                     Remove criterion
                 </Button>
             )}

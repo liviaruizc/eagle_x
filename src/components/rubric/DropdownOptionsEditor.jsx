@@ -34,7 +34,10 @@ export default function DropdownOptionsEditor({
         <div className="space-y-2">
             <p className="text-sm text-gray-700">Dropdown options and points</p>
             {options.map((option, optionIndex) => (
-                <div key={optionIndex} className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <div
+                    key={optionIndex}
+                    className="grid grid-cols-1 gap-2 sm:grid-cols-3"
+                >
                     <label className="sm:col-span-2 text-sm text-gray-700">
                         Option label
                         <input
@@ -45,7 +48,7 @@ export default function DropdownOptionsEditor({
                                     criterionIndex,
                                     optionIndex,
                                     "label",
-                                    event.target.value
+                                    event.target.value,
                                 )
                             }
                             className="mt-1 w-full rounded border p-2"
@@ -63,7 +66,7 @@ export default function DropdownOptionsEditor({
                                     criterionIndex,
                                     optionIndex,
                                     "points",
-                                    event.target.value
+                                    event.target.value,
                                 )
                             }
                             className="mt-1 w-full rounded border p-2"
@@ -75,7 +78,9 @@ export default function DropdownOptionsEditor({
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => onRemoveOption(criterionIndex, optionIndex)}
+                                onClick={() =>
+                                    onRemoveOption(criterionIndex, optionIndex)
+                                }
                             >
                                 Remove option
                             </Button>
@@ -83,7 +88,11 @@ export default function DropdownOptionsEditor({
                     )}
                 </div>
             ))}
-            <Button type="button" variant="secondary" onClick={() => onAddOption(criterionIndex)}>
+            <Button
+                type="button"
+                variant="secondary"
+                onClick={() => onAddOption(criterionIndex)}
+            >
                 Add dropdown option
             </Button>
         </div>

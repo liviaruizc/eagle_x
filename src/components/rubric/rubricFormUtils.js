@@ -62,9 +62,9 @@ export function toFormCriterion(criterion) {
     const answerType = criterion.answerType ?? DEFAULT_ANSWER_TYPE;
     const dropdownOptions = Array.isArray(criterion.answerConfig?.options)
         ? criterion.answerConfig.options.map((option) => ({
-            label: option.label ?? "",
-            points: toNumber(option.points, 0),
-        }))
+              label: option.label ?? "",
+              points: toNumber(option.points, 0),
+          }))
         : [];
 
     return {
@@ -170,13 +170,17 @@ export function normalizeCriteria(criteria) {
 // for criteria using `answerType = dropdown`.
 export function hasDropdownWithoutOptions(criteria) {
     return criteria.some(
-        (criterion) => criterion.answerType === "dropdown" && !(criterion.answerConfig?.options?.length)
+        (criterion) =>
+            criterion.answerType === "dropdown" &&
+            !criterion.answerConfig?.options?.length,
     );
 }
 
 // Validation helper: numeric range boundaries must be valid.
 export function hasInvalidScoreRange(criteria) {
-    return criteria.some((criterion) => criterion.scoreMin > criterion.scoreMax);
+    return criteria.some(
+        (criterion) => criterion.scoreMin > criterion.scoreMax,
+    );
 }
 
 // Computes max points for a single criterion after weight is applied.
@@ -189,22 +193,31 @@ export function computeCriterionMaxPoints(criterion) {
     const weight = toNumber(criterion.weight, 0);
 
     switch (criterion.answerType) {
-    case "true_false": {
-        const truePoints = toNumber(criterion.answerConfig?.truePoints, 1);
-        return truePoints * weight;
-    }
-    case "dropdown": {
-        const options = criterion.dropdownOptions ?? criterion.answerConfig?.options ?? [];
-        const optionMax = Math.max(0, ...options.map((option) => toNumber(option.points, 0)));
-        return optionMax * weight;
-    }
-    default:
-        return toNumber(criterion.scoreMax, 0) * weight;
+        case "true_false": {
+            const truePoints = toNumber(criterion.answerConfig?.truePoints, 1);
+            return truePoints * weight;
+        }
+        case "dropdown": {
+            const options =
+                criterion.dropdownOptions ??
+                criterion.answerConfig?.options ??
+                [];
+            const optionMax = Math.max(
+                0,
+                ...options.map((option) => toNumber(option.points, 0)),
+            );
+            return optionMax * weight;
+        }
+        default:
+            return toNumber(criterion.scoreMax, 0) * weight;
     }
 }
 
 // Computes rubric maximum total points as sum of each criterion max points.
 // Used for user feedback in form and for persisted rubric metadata.
 export function computeRubricMaxTotalPoints(criteria) {
-    return criteria.reduce((sum, criterion) => sum + computeCriterionMaxPoints(criterion), 0);
+    return criteria.reduce(
+        (sum, criterion) => sum + computeCriterionMaxPoints(criterion),
+        0,
+    );
 }

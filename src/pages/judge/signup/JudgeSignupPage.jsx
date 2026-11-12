@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 import { fetchEventInstanceDetails } from "../../../services/eventAdminService.js";
-import { fetchJudgeSignupConfig, signUpJudgeForEvent } from "../../../services/judgeSignup/judgeSignupService.js";
+import {
+    fetchJudgeSignupConfig,
+    signUpJudgeForEvent,
+} from "../../../services/judgeSignup/judgeSignupService.js";
 import { saveJudgeSession } from "../../../services/judgeSession.js";
 import JudgeSignupPageView from "./JudgeSignupPageView.jsx";
 import {
@@ -20,8 +23,10 @@ export default function JudgeSignupPage() {
 
     const [eventName, setEventName] = useState("Event");
     const [facets, setFacets] = useState([]);
-    const [selectedFacetOptionByFacetId, setSelectedFacetOptionByFacetId] = useState({});
-    const [showSecondSelectionByFacetId, setShowSecondSelectionByFacetId] = useState({});
+    const [selectedFacetOptionByFacetId, setSelectedFacetOptionByFacetId] =
+        useState({});
+    const [showSecondSelectionByFacetId, setShowSecondSelectionByFacetId] =
+        useState({});
 
     const [email, setEmail] = useState("");
     const [displayName, setDisplayName] = useState("");
@@ -32,8 +37,11 @@ export default function JudgeSignupPage() {
     const [message, setMessage] = useState("");
 
     const requiredFacetIds = useMemo(
-        () => facets.filter((facet) => facet.isRequired).map((facet) => facet.facetId),
-        [facets]
+        () =>
+            facets
+                .filter((facet) => facet.isRequired)
+                .map((facet) => facet.facetId),
+        [facets],
     );
 
     const collegeFacetId = useMemo(() => getCollegeFacetId(facets), [facets]);
@@ -70,7 +78,7 @@ export default function JudgeSignupPage() {
                 optionId,
                 collegeFacetId,
                 facets,
-            })
+            }),
         );
     }
 
@@ -82,7 +90,7 @@ export default function JudgeSignupPage() {
                 optionId,
                 collegeFacetId,
                 facets,
-            })
+            }),
         );
     }
 
@@ -94,7 +102,7 @@ export default function JudgeSignupPage() {
                 optionId,
                 collegeFacetId,
                 facets,
-            })
+            }),
         );
     }
 
@@ -117,7 +125,7 @@ export default function JudgeSignupPage() {
                 facetId,
                 collegeFacetId,
                 facets,
-            })
+            }),
         );
     }
 
@@ -144,8 +152,8 @@ export default function JudgeSignupPage() {
             return;
         }
 
-        const hasMissingRequiredFacet = requiredFacetIds.some((facetId) =>
-            !hasFacetValue(selectedFacetOptionByFacetId, facetId)
+        const hasMissingRequiredFacet = requiredFacetIds.some(
+            (facetId) => !hasFacetValue(selectedFacetOptionByFacetId, facetId),
         );
 
         if (hasMissingRequiredFacet) {
@@ -173,7 +181,9 @@ export default function JudgeSignupPage() {
             setMessage("Signup complete. You can now start judging.");
         } catch (submitError) {
             console.error(submitError);
-            setError("Could not complete signup. Check role/facet configuration.");
+            setError(
+                "Could not complete signup. Check role/facet configuration.",
+            );
         } finally {
             setIsSubmitting(false);
         }
