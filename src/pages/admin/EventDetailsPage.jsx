@@ -4,7 +4,9 @@ import { useNavigate, useParams } from "react-router";
 import Button from "../../components/ui/Button.jsx";
 import CreateJudgeForm from "../../components/ui/CreateJudgeForm.jsx";
 import DateTimeField from "../../components/ui/DateTimeField.jsx";
+import DeleteEventDialog from "../../components/ui/DeleteEventDialog.jsx";
 import {
+    deleteEventInstance,
     fetchEventInstanceDetails,
     updateEventInstanceSchedule,
 } from "../../services/eventAdminService.js";
@@ -26,6 +28,9 @@ export default function EventDetailsPage() {
     const [isEditingInstance, setIsEditingInstance] = useState(false);
     const [isSavingInstance, setIsSavingInstance] = useState(false);
     const [editError, setEditError] = useState("");
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isDeletingInstance, setIsDeletingInstance] = useState(false);
+    const [deleteError, setDeleteError] = useState("");
     const [editForm, setEditForm] = useState({
         instanceName: "",
         startAt: "",
@@ -128,6 +133,21 @@ export default function EventDetailsPage() {
             setEditError("Could not save event schedule.");
         } finally {
             setIsSavingInstance(false);
+        }
+    }
+
+    async function handleDeleteEventInstance(confirmName) {
+        setDeleteError("");
+        setIsDeletingInstance(true);
+
+        try {
+            await deleteEventInstance(eventInstanceId, confirmName);
+            navigate("/admin");
+        } catch (removeError) {
+            console.error(removeError);
+            setDeleteError("Could not delete event.");
+        } finally {
+            setIsDeletingInstance(false);
         }
     }
 
@@ -558,7 +578,37 @@ export default function EventDetailsPage() {
                             ))}
                         </ul>
                     </div>
+
+                    {/* Danger Zone */}
+                    <div className="rounded-2xl border border-red-200 bg-white shadow-md p-6">
+                        <h2 className="text-lg font-bold text-red-600 mb-1">
+                            Danger Zone
+                        </h2>
+                        <p className="text-xs text-[#55616D] mb-4">
+                            Permanently delete this event and all of its tracks,
+                            submissions, scores, and judge assignments.
+                        </p>
+                        <Button
+                            variant="danger"
+                            onClick={() => {
+                                setDeleteError("");
+                                setIsDeleteDialogOpen(true);
+                            }}
+                        >
+                            Delete Event
+                        </Button>
+                    </div>
                 </div>
+            )}
+
+            {isDeleteDialogOpen && (
+                <DeleteEventDialog
+                    eventName={eventDetails.name}
+                    isDeleting={isDeletingInstance}
+                    error={deleteError}
+                    onConfirm={handleDeleteEventInstance}
+                    onCancel={() => setIsDeleteDialogOpen(false)}
+                />
             )}
         </div>
     );

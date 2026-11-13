@@ -14,6 +14,7 @@ export default function Button({
             "bg-[#55616D] text-white hover:bg-[#404b52] focus:ring-2 focus:ring-[#55616D]/50",
         outline:
             "border border-[#00794C] text-[#00794C] hover:bg-[#00794C]/10 focus:ring-2 focus:ring-[#00794C]/50",
+        danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-red-600/50",
     };
 
     return (
