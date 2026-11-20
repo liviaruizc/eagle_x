@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import Button from "../../components/ui/Button.jsx";
-import FGCUlogo from "../../assets/FGCU logo.jpg";
+import FGCUlogo from "../../components/layout/Logo.jsx";
 
 export default function ResetPasswordPage() {
     const navigate = useNavigate();

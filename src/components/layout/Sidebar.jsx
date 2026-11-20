@@ -7,7 +7,7 @@ import {
     HiUser,
     HiClipboardCheck,
 } from "react-icons/hi";
-import FGCUlogo from "../../assets/FGCU logo.jpg";
+import FGCUlogo from "./Logo.jsx";
 
 export default function Sidebar({ isOpen, setIsOpen }) {
     const navigate = useNavigate();

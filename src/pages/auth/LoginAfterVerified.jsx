@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router";
 import Button from "../../components/ui/Button.jsx";
 import { signInWithPassword } from "../../services/loginAuth/authService.js";
 import { fetchPersonByEmail } from "../../services/loginAuth/authApi.js";
-import FGCUlogo from "../../assets/FGCU logo.jpg";
+import FGCUlogo from "../../components/layout/Logo.jsx";
 
 export default function LoginPasswordPage() {
     const navigate = useNavigate();
