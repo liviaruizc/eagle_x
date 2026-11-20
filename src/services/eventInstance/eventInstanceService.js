@@ -2,8 +2,7 @@ import { fetchTrackTypes } from "../track/trackService.js";
 import {
     createEvent,
     createEventInstance,
-    deleteEventInstanceById,
-    deleteTracksByEventInstanceId,
+    deleteEventInstanceAndData,
     fetchEventById,
     fetchEventByIds,
     fetchEventInstanceById,
@@ -51,10 +50,10 @@ export async function fetchEventInstanceDetails(eventInstanceId) {
     return mapEventInstanceDetails(instance, event, tracks, trackTypes);
 }
 
-// Deletes an event instance and all related track rows.
-export async function deleteEventInstance(eventInstanceId) {
-    await deleteTracksByEventInstanceId(eventInstanceId);
-    await deleteEventInstanceById(eventInstanceId);
+// Deletes an event instance and everything under it. confirmName must match
+// the instance name exactly; the database function enforces this.
+export async function deleteEventInstance(eventInstanceId, confirmName) {
+    return deleteEventInstanceAndData(eventInstanceId, confirmName);
 }
 
 // Creates event, event instance, and tracks from admin form data.
