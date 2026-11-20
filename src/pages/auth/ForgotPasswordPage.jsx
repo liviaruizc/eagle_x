@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import { fetchPersonByEmail } from "../../services/loginAuth/authApi.js";
 import Button from "../../components/ui/Button.jsx";
-import FGCUlogo from "../../assets/FGCU logo.jpg";
+import FGCUlogo from "../../components/layout/Logo.jsx";
 
 export default function ForgotPasswordPage() {
     const navigate = useNavigate();

@@ -6,7 +6,7 @@ import {
     fetchPersonByEmail,
     fetchPersonRoles,
 } from "../../services/loginAuth/authApi.js";
-import FGCUlogo from "../../assets/FGCU logo.jpg";
+import FGCUlogo from "../../components/layout/Logo.jsx";
 
 export default function LoginEmailPage() {
     const navigate = useNavigate();

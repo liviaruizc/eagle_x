@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import Button from "../../components/ui/Button.jsx";
 import { setAuthIntent } from "../../services/loginAuth/authIntent.js";
-import FGCUlogo from "../../assets/FGCU logo.jpg";
+import FGCUlogo from "../../components/layout/Logo.jsx";
 
 export default function RoleSelectionPage() {
     const navigate = useNavigate();
