@@ -113,20 +113,14 @@ export async function insertTracks(trackRows) {
     if (error) throw error;
 }
 
-export async function deleteTracksByEventInstanceId(eventInstanceId) {
-    const { error } = await supabase
-        .from("track")
-        .delete()
-        .eq("event_instance_id", eventInstanceId);
+// Calls the delete_event_instance database function, which removes the event
+// instance and everything under it in one transaction (admin only).
+export async function deleteEventInstanceAndData(eventInstanceId, confirmName) {
+    const { data, error } = await supabase.rpc("delete_event_instance", {
+        p_event_instance_id: eventInstanceId,
+        p_confirm_name: confirmName,
+    });
 
     if (error) throw error;
-}
-
-export async function deleteEventInstanceById(eventInstanceId) {
-    const { error } = await supabase
-        .from("event_instance")
-        .delete()
-        .eq("event_instance_id", eventInstanceId);
-
-    if (error) throw error;
+    return data;
 }
